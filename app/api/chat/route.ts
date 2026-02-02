@@ -4,7 +4,7 @@ import { streamText } from 'ai';
 
 export const maxDuration = 30;
 
-export async function POSTjb(req: Request) {
+export async function POST(req: Request) { // CHANGED: Fixed function name from POSTjb to POST
   const { messages } = await req.json();
 
   const result = streamText({

@@ -1,7 +1,7 @@
 // components/roast-section.tsx
 "use client";
 
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react"; // CHANGED: Updated import path for SDK v6+
 import { ArrowRight, Send } from "lucide-react";
 import { useRef, useEffect } from "react";
 
@@ -32,7 +32,7 @@ export function RoastSection() {
         </div>
 
         {/* Chat Window */}
-        <div className="bg-cream rounded-3xlQP border-2 border-border hard-shadow-lg p-6 max-w-2xl mx-auto flex flex-col h-[600px]">
+        <div className="bg-cream rounded-3xl border-2 border-border hard-shadow-lg p-6 max-w-2xl mx-auto flex flex-col h-[600px]">
           
           {/* Window Header */}
           <div className="flex items-center gap-2 mb-4 pb-4 border-b-2 border-border shrink-0">
@@ -89,7 +89,7 @@ export function RoastSection() {
                   <button
                     key={i}
                     onClick={() => append({ role: "user", content: reply })}
-                    className="bg-white text-coffee px-4 py-2 rounded-full border-2 border-borderXH text-sm font-medium hard-shadow hard-shadow-hover hover:bg-muted transition-colors text-left"
+                    className="bg-white text-coffee px-4 py-2 rounded-full border-2 border-border text-sm font-medium hard-shadow hard-shadow-hover hover:bg-mutedYB transition-colors text-left"
                   >
                     {reply}
                   </button>
