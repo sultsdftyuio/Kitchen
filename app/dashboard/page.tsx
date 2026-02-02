@@ -5,7 +5,7 @@ import { addPantryItem, deletePantryItem } from "@/app/actions/pantry"
 import { Trash2, Plus } from "lucide-react"
 
 export default async function Dashboard() {
-  const supabase = createClient()
+  const supabase = await createClient() // CHANGED: Added await
 
   // 1. Check Auth
   const { data: { user } } = await supabase.auth.getUser()

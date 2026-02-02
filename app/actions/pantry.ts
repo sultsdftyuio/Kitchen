@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
 
 export async function addPantryItem(formData: FormData) {
-  const supabase = createClient()
+  const supabase = await createClient() // CHANGED: Added await
   
   // Get the current user
   const { data: { user } } = await supabase.auth.getUser()
@@ -36,7 +36,7 @@ export async function addPantryItem(formData: FormData) {
 }
 
 export async function deletePantryItem(itemId: number) {
-  const supabase = createClient()
+  const supabase = await createClient() // CHANGED: Added await
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
@@ -45,7 +45,7 @@ export async function deletePantryItem(itemId: number) {
     .from("pantry_items")
     .delete()
     .eq("id", itemId)
-    .eq("user_id", user.id) // Security: Ensure user owns the item
+    .eq("user_id", user.id)
 
   if (error) {
     console.error("Error deleting item:", error)
