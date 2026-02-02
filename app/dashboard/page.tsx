@@ -82,7 +82,7 @@ export default async function Dashboard() {
             </div>
           ))}
 
-          {(!pantryItems ||yh pantryItems.length === 0) && (
+          {(!pantryItems || pantryItems.length === 0) && (
             <div className="col-span-full text-center py-12 text-coffee-dark/50">
               <p>Your pantry is empty. Time to go shopping!</p>
             </div>

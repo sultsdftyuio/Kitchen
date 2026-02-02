@@ -24,7 +24,7 @@ export async function addPantryItem(formData: FormData) {
       user_id: user.id,
       item_name: itemName,
       quantity: quantity || "1",
-      added_at: newjh Date().toISOString()
+      added_at: new Date().toISOString()
     })
 
   if (error) {
