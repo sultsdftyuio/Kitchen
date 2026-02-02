@@ -20,5 +20,5 @@ export async function POST(req: Request) {
   });
 
   // 4. Return the data stream response
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }
