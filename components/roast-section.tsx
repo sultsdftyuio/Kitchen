@@ -1,7 +1,7 @@
 // components/roast-section.tsx
 "use client";
 
-import { useChat } from "@ai-sdk/react"; // CHANGED: Updated import path for SDK v6+
+import { useChat } from "@ai-sdk/react";
 import { ArrowRight, Send } from "lucide-react";
 import { useRef, useEffect } from "react";
 
@@ -47,7 +47,7 @@ export function RoastSection() {
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 scrollbar-thin scrollbar-thumb-coffee/20">
             
-            {/* Zero State / Welcome Message (Shows if no messages yet) */}
+            {/* Zero State / Welcome Message */}
             {messages.length === 0 && (
               <div className="flex justify-start">
                 <div className="bg-butter rounded-2xl rounded-tl-none px-5 py-3 max-w-[85%] border-2 border-transparent">
@@ -82,7 +82,7 @@ export function RoastSection() {
           {/* Footer Area: Quick Replies + Input */}
           <div className="shrink-0 space-y-4">
             
-            {/* Quick Replies (Only show if chat is empty or short) */}
+            {/* Quick Replies */}
             {messages.length < 2 && (
               <div className="flex gap-2 flex-wrap">
                 {quickReplies.map((reply, i) => (
