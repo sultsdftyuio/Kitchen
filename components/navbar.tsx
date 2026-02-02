@@ -1,7 +1,9 @@
-"use client"; //navbar.tsx
+// componets/navbar.tsx
+"use client";
 
 import { Flame, Menu, X } from "lucide-react";
 import { useState } from "react";
+import AuthButton from "@/componets/auth-button";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -42,11 +44,9 @@ export function Navbar() {
             </a>
           </div>
 
-          {/* CTA Button */}
+          {/* CTA Button (Desktop) */}
           <div className="hidden md:block">
-            <button className="bg-tangerine text-white px-6 py-2.5 rounded-2xl font-semibold border-2 border-border hard-shadow hard-shadow-hover">
-              Open Kitchen
-            </button>
+            <AuthButton />
           </div>
 
           {/* Mobile Menu Button */}
@@ -85,9 +85,10 @@ export function Navbar() {
               >
                 Reviews
               </a>
-              <button className="bg-tangerine text-white px-6 py-2.5 rounded-2xl font-semibold border-2 border-border hard-shadow w-fit">
-                Open Kitchen
-              </button>
+              {/* CTA Button (Mobile) - Added w-fit to prevent full width stretch */}
+              <div className="pt-2">
+                <AuthButton className="w-fit" />
+              </div>
             </div>
           </div>
         )}
