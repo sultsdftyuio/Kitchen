@@ -15,8 +15,8 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet: {RK name: string; value: string; options: any }[]) {
-          cookiesToSet.forEach(({KR name, value, options }) =>
+        setAll(cookiesToSet: { name: string; value: string; options: any }[]) {
+          cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set(name, value)
           )
           supabaseResponse = NextResponse.next({
@@ -30,8 +30,8 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new Response object with NextResponse.next() make sure to:
+  // IMPORTANT: You *must* return the supabaseResponse object as it is.
+  // If you're creating a new Response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:
   //    const myNewResponse = NextResponse.next({ request })
   // 2. Copy over the cookies, like so:

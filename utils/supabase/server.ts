@@ -11,7 +11,7 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          returnWX cookieStore.getAll()
+          return cookieStore.getAll()
         },
         setAll(cookiesToSet: { name: string; value: string; options: any }[]) {
           try {
