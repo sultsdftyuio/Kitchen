@@ -1,9 +1,10 @@
-// componets/navbar.tsx
+// components/navbar.tsx
 "use client";
 
 import { Flame, Menu, X } from "lucide-react";
 import { useState } from "react";
-import AuthButton from "@/componets/auth-button";
+// FIX: Corrected typo 'componets' -> 'components'
+import AuthButton from "@/components/auth-button";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -85,7 +86,6 @@ export function Navbar() {
               >
                 Reviews
               </a>
-              {/* CTA Button (Mobile) - Added w-fit to prevent full width stretch */}
               <div className="pt-2">
                 <AuthButton className="w-fit" />
               </div>
