@@ -1,97 +1,65 @@
 // components/navbar.tsx
-"use client";
+import Link from "next/link";
+import { Flame } from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
+import { AuthButton } from "@/components/auth-button"; // Assuming this exists or we replace it
 
-import { Flame, Menu, X } from "lucide-react";
-import { useState } from "react";
-// FIX: Corrected typo 'componets' -> 'components'
-import AuthButton from "@/components/auth-button";
-
-export function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+export async function Navbar() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-butter/80 backdrop-blur-md border-b-2 border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="bg-tangerine p-2 rounded-xl border-2 border-border">
-              <Flame className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-serif text-2xl font-bold text-coffee">
-              KitchenOS
-            </span>
+    <nav className="fixed top-0 w-full z-50 bg-cream/80 backdrop-blur-md border-b border-coffee/10">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2 group">
+          <div className="bg-tangerine p-1.5 rounded-lg border-2 border-coffee hard-shadow group-hover:rotate-12 transition-transform">
+            <Flame className="w-5 h-5 text-white" />
           </div>
+          <span className="font-serif text-xl font-bold text-coffee">
+            KitchenOS
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <a
-              href="#features"
-              className="text-coffee-dark hover:text-tangerine transition-colors font-medium"
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="text-coffee-dark hover:text-tangerine transition-colors font-medium"
-            >
-              How It Works
-            </a>
-            <a
-              href="#testimonials"
-              className="text-coffee-dark hover:text-tangerine transition-colors font-medium"
-            >
-              Reviews
-            </a>
-          </div>
-
-          {/* CTA Button (Desktop) */}
-          <div className="hidden md:block">
-            <AuthButton />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6 text-coffee" />
-            ) : (
-              <Menu className="w-6 h-6 text-coffee" />
-            )}
-          </button>
+        {/* Desktop Nav */}
+        <div className="hidden md:flex items-center gap-8">
+          <Link href="#features" className="text-coffee-dark/80 hover:text-coffee font-medium text-sm">
+            Features
+          </Link>
+          <Link href="#how-it-works" className="text-coffee-dark/80 hover:text-coffee font-medium text-sm">
+            How it works
+          </Link>
+          <Link href="#pricing" className="text-coffee-dark/80 hover:text-coffee font-medium text-sm">
+            Pricing
+          </Link>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t-2 border-border">
-            <div className="flex flex-col gap-4">
-              <a
-                href="#features"
-                className="text-coffee-dark hover:text-tangerine transition-colors font-medium"
+        {/* Auth Actions */}
+        <div className="flex items-center gap-4">
+          {user ? (
+             <Link
+              href="/dashboard"
+              className="bg-coffee text-white text-sm font-bold px-4 py-2 rounded-xl border-2 border-transparent hover:bg-coffee-dark transition-colors"
+            >
+              Go to Kitchen
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="hidden md:block text-coffee font-bold text-sm hover:underline underline-offset-4"
               >
-                Features
-              </a>
-              <a
-                href="#how-it-works"
-                className="text-coffee-dark hover:text-tangerine transition-colors font-medium"
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                className="bg-tangerine hover:bg-tangerine-dark text-white text-sm font-bold px-5 py-2.5 rounded-xl border-2 border-coffee hard-shadow hover:translate-y-[1px] hover:shadow-none transition-all"
               >
-                How It Works
-              </a>
-              <a
-                href="#testimonials"
-                className="text-coffee-dark hover:text-tangerine transition-colors font-medium"
-              >
-                Reviews
-              </a>
-              <div className="pt-2">
-                <AuthButton className="w-fit" />
-              </div>
-            </div>
-          </div>
-        )}
+                Get Started
+              </Link>
+            </>
+          )}
+        </div>
       </div>
     </nav>
   );
