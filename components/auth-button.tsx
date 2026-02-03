@@ -1,58 +1,69 @@
-// componets/auth-button.tsx
-"use client"
+// components/auth-button.tsx
+"use client";
 
-import { createClient } from "@/utils/supabase/client"
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { type User } from "@supabase/supabase-js"
-import { Loader2 } from "lucide-react"
-import { cn } from "@/lib/utils" // Assuming you have this from shadcn, otherwise remove cn() wrapper
+import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import { LogOut, User as UserIcon, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { User } from "@supabase/supabase-js";
 
-export default function AuthButton({ className }: { className?: string }) {
-  const supabase = createClient()
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+interface AuthButtonProps {
+  user: User | null;
+}
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
-    }
-    checkUser()
-  }, [supabase])
+export function AuthButton({ user }: AuthButtonProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
 
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${location.origin}/auth/callback`,
-      },
-    })
-  }
-
-  // Base styles matching your design system
-  const baseClasses = "bg-tangerine text-white px-6 py-2.5 rounded-2xl font-semibold border-2 border-border hard-shadow hard-shadow-hover transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none flex items-center justify-center gap-2 cursor-pointer"
-
-  if (loading) {
-    return (
-      <button className={baseClasses} disabled>
-        <Loader2 className="h-4 w-4 animate-spin" />
-      </button>
-    )
-  }
+  const handleSignOut = async () => {
+    setIsLoading(true);
+    await supabase.auth.signOut();
+    router.refresh();
+    setIsLoading(false);
+  };
 
   if (user) {
     return (
-      <Link href="/dashboard" className={`${baseClasses} ${className || ''}`}>
-        My Pantry
-      </Link>
-    )
+      <div className="flex items-center gap-4">
+        <Link
+          href="/dashboard"
+          className="bg-coffee text-white text-sm font-bold px-4 py-2 rounded-xl border-2 border-transparent hover:bg-coffee-dark transition-colors flex items-center gap-2"
+        >
+          <UserIcon className="w-4 h-4" />
+          Kitchen
+        </Link>
+        <button
+          onClick={handleSignOut}
+          disabled={isLoading}
+          className="text-coffee-dark/70 hover:text-rose-600 transition-colors p-2"
+          title="Sign out"
+        >
+          {isLoading ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <LogOut className="w-5 h-5" />
+          )}
+        </button>
+      </div>
+    );
   }
 
   return (
-    <button onClick={handleLogin} className={`${baseClasses} ${className || ''}`}>
-      Open Kitchen
-    </button>
-  )
+    <div className="flex items-center gap-4">
+      <Link
+        href="/login"
+        className="hidden md:block text-coffee font-bold text-sm hover:underline underline-offset-4"
+      >
+        Log in
+      </Link>
+      <Link
+        href="/signup"
+        className="bg-tangerine hover:bg-tangerine-dark text-white text-sm font-bold px-5 py-2.5 rounded-xl border-2 border-coffee hard-shadow hover:translate-y-[1px] hover:shadow-none transition-all"
+      >
+        Get Started
+      </Link>
+    </div>
+  );
 }

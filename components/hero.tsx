@@ -1,72 +1,56 @@
-// app/login/page.tsx
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import { LoginButton } from "@/components/login-button";
-import { Flame, Sparkles } from "lucide-react";
+// components/hero.tsx
 import Link from "next/link";
-import { signInWithEmail } from "@/app/actions/auth"; // We'll add a simple email form too
+import { ArrowRight, Sparkles } from "lucide-react";
 
-export default async function LoginPage() {
-  const supabase = await createClient();
-
-  // Redirect if logged in
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) redirect("/dashboard");
-
+// NOTICE: "export function" (Named Export), NOT "export default function"
+export function Hero() {
   return (
-    <main className="min-h-screen bg-cream flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background blobs... (same as before) */}
-      
-      <div className="w-full max-w-md bg-white rounded-3xl border-2 border-border hard-shadow-lg p-8 relative z-10">
-        {/* Header */}
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="bg-tangerine p-3 rounded-2xl border-2 border-border hard-shadow mb-4 rotate-3">
-            <Flame className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="font-serif text-3xl font-bold text-coffee">Welcome Back</h1>
+    <section className="relative pt-32 pb-20 px-4 overflow-hidden">
+      <div className="max-w-4xl mx-auto text-center relative z-10">
+        
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full border-2 border-coffee/10 hard-shadow-sm mb-8 animate-fade-in-up">
+          <Sparkles className="w-4 h-4 text-tangerine fill-tangerine" />
+          <span className="text-sm font-bold text-coffee">
+            The sous-chef for your brain
+          </span>
         </div>
 
-        <div className="space-y-6">
-          <LoginButton />
+        {/* Headline */}
+        <h1 className="font-serif text-5xl md:text-7xl font-bold text-coffee mb-6 leading-[1.1] animate-fade-in-up delay-100">
+          Stop wasting food. <br />
+          <span className="text-tangerine relative inline-block">
+            Start cooking.
+            <svg className="absolute w-full h-3 -bottom-1 left-0 text-butter/50 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+              <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
+            </svg>
+          </span>
+        </h1>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-coffee-dark/20" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-coffee-dark/50">Or login with email</span>
-            </div>
-          </div>
+        {/* Subhead */}
+        <p className="text-xl text-coffee-dark/70 mb-10 max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-200">
+          KitchenOS tracks your pantry, suggests recipes based on what you have, 
+          and helps you master the art of "making do" with style.
+        </p>
 
-          {/* Email Login Form */}
-          <form action={signInWithEmail} className="space-y-4">
-            <div>
-               <input name="email" type="email" placeholder="Email" required className="w-full p-3 rounded-xl border-2 border-border bg-cream/30 focus:border-tangerine outline-none text-coffee" />
-            </div>
-            <div>
-               <input name="password" type="password" placeholder="Password" required className="w-full p-3 rounded-xl border-2 border-border bg-cream/30 focus:border-tangerine outline-none text-coffee" />
-            </div>
-            
-            {/* Forgot Password Link */}
-            <div className="flex justify-end">
-                <Link href="/forgot-password" className="text-xs font-bold text-tangerine hover:underline">
-                    Forgot Password?
-                </Link>
-            </div>
-
-            <button type="submit" className="w-full bg-coffee text-white font-bold py-3 rounded-xl hover:bg-coffee-dark transition-colors">
-                Log In
-            </button>
-          </form>
-
-          <div className="text-center text-sm">
-            <span className="text-coffee-dark/70">Don't have a pantry? </span>
-            <Link href="/signup" className="font-bold text-tangerine hover:underline">
-              Sign up
-            </Link>
-          </div>
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
+          <Link
+            href="/signup"
+            className="w-full sm:w-auto bg-coffee hover:bg-coffee-dark text-white text-lg font-bold px-8 py-4 rounded-2xl border-2 border-transparent hard-shadow hover:translate-y-[1px] hover:shadow-none transition-all flex items-center justify-center gap-2 group"
+          >
+            Start Your Pantry
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+          
+          <Link
+            href="/login"
+            className="w-full sm:w-auto bg-white hover:bg-cream text-coffee text-lg font-bold px-8 py-4 rounded-2xl border-2 border-coffee hard-shadow hover:translate-y-[1px] hover:shadow-none transition-all"
+          >
+            I have an account
+          </Link>
         </div>
       </div>
-    </main>
+    </section>
   );
 }
