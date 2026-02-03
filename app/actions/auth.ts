@@ -8,14 +8,28 @@ import { redirect } from "next/navigation";
 export async function signUp(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+  const terms = formData.get("terms"); // returns "on" if checked, null if not
+  
   const origin = (await headers()).get("origin");
   const supabase = await createClient();
 
-  if (!email || !password) {
-    return { error: "Email and password are required" };
+  // 1. Basic Validation
+  if (!email || !password || !confirmPassword) {
+    return { error: "All fields are required" };
   }
 
-  const { error } = await supabase.auth.signUp({
+  // 2. Password Match Validation
+  if (password !== confirmPassword) {
+    return { error: "Passwords do not match" };
+  }
+
+  // 3. Terms of Service Validation
+  if (!terms) {
+    return { error: "You must agree to the Terms and Privacy Policy" };
+  }
+
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -26,6 +40,11 @@ export async function signUp(formData: FormData) {
   if (error) {
     console.error("Signup error:", error);
     return { error: error.message };
+  }
+
+  // Immediate redirect if email confirmation is disabled in Supabase
+  if (data.session) {
+    redirect("/dashboard");
   }
 
   return { success: "Check your email to confirm your account." };
