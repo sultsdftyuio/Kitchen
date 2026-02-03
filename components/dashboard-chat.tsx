@@ -2,14 +2,15 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { ArrowUp, Sparkles, ChefHat, PlusCircle } from "lucide-react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils } from "lucide-react"
 import { useRef, useEffect } from "react"
+import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
-  "What can I cook with my pantry?",
-  "Give me a 15-min recipe",
-  "I have too many eggs!",
-  "Something healthy"
+  { label: "What can I cook?", icon: "🍳" },
+  { label: "15-min recipe", icon: "⏱️" },
+  { label: "Use my eggs", icon: "🥚" },
+  { label: "Something healthy", icon: "🥗" }
 ]
 
 export function DashboardChat({ 
@@ -27,88 +28,136 @@ export function DashboardChat({
   }, [messages])
 
   return (
-    <div className="flex flex-col h-[650px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden sticky top-8">
-      {/* Header */}
-      <div className="bg-cream p-4 border-b-2 border-border flex items-center justify-between">
-        <div className="flex items-center gap-3">
-            <div className="bg-tangerine p-2 rounded-xl text-white border-2 border-border hard-shadow-sm">
-            <ChefHat className="w-5 h-5" />
-            </div>
-            <div>
-            <h2 className="font-bold text-coffee">Chef AI</h2>
-            <p className="text-xs text-coffee-dark/60">Your Kitchen Copilot</p>
-            </div>
-        </div>
-        
-        {/* Quick Action to switch tabs */}
-        <button 
-            onClick={() => onLogRecipe("")}
-            className="text-xs font-bold text-coffee/50 hover:text-tangerine flex items-center gap-1 bg-white px-2 py-1 rounded-lg border-2 border-border"
-        >
-            <PlusCircle className="w-3 h-3" /> Log Meal
-        </button>
+    <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden sticky top-8 relative group">
+      
+      {/* DECORATIVE: Kitchen Background Pattern */}
+      <div className="absolute top-0 left-0 w-full h-32 bg-tangerine/10 opacity-50 pointer-events-none z-0" 
+           style={{ backgroundImage: 'radial-gradient(#F97316 1px, transparent 1px)', backgroundSize: '10px 10px' }}>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/20 scrollbar-thin">
+      {/* HEADER: The Kitchen Pass */}
+      <div className="relative z-10 p-6 pb-2 border-b-2 border-border/10">
+        <div className="flex flex-col items-center justify-center text-center space-y-3">
+            
+            {/* Animated Chef Avatar */}
+            <div className={cn(
+                "relative w-20 h-20 bg-cream rounded-full border-2 border-border flex items-center justify-center shadow-md",
+                isLoading ? "animate-bounce" : "animate-float"
+            )}>
+                <div className="absolute -top-2 -right-2 bg-tangerine text-white text-xs font-bold px-2 py-0.5 rounded-full border-2 border-border transform rotate-12">
+                    {isLoading ? "Cooking..." : "Ready!"}
+                </div>
+                <ChefHat className="w-10 h-10 text-coffee" />
+                {isLoading && (
+                    <Flame className="absolute -bottom-1 -right-1 w-6 h-6 text-orange-500 animate-pulse" />
+                )}
+            </div>
+
+            <div>
+                <h2 className="font-serif text-2xl font-bold text-coffee">Chef AI</h2>
+                <p className="text-xs font-medium text-coffee-dark/60 uppercase tracking-wider">
+                    {isLoading ? "Chopping & Sautéing..." : "Waiting for orders"}
+                </p>
+            </div>
+        </div>
+
+        {/* Quick Actions Bar */}
+        <div className="flex justify-center mt-4 pb-2">
+            <button 
+                onClick={() => onLogRecipe("")}
+                className="text-xs font-bold text-coffee/70 hover:text-tangerine hover:bg-white flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-transparent hover:border-border transition-all"
+            >
+                <PlusCircle className="w-3.5 h-3.5" /> 
+                Log a Meal Manually
+            </button>
+        </div>
+      </div>
+
+      {/* CHAT AREA: The Counter */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
+        
+        {/* Empty State / Welcome Screen */}
         {messages.length === 0 && (
-          <div className="text-center py-10 text-coffee-dark/50 space-y-4">
-            <Sparkles className="w-8 h-8 mx-auto text-tangerine/50" />
-            <p className="font-medium">What are we cooking today?</p>
+          <div className="mt-8 text-center space-y-6 animate-in fade-in zoom-in duration-500">
+            <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
+                <Utensils className="w-8 h-8 text-coffee/40" />
+            </div>
+            <div className="px-6">
+                <p className="font-medium text-coffee text-lg">"What ingredients are we working with today?"</p>
+                <p className="text-sm text-coffee-dark/50 mt-1">I can see your pantry. Ask me anything!</p>
+            </div>
             
             <div className="grid grid-cols-2 gap-2 px-4">
-              {PROMPT_CHIPS.map(chip => (
+              {PROMPT_CHIPS.map((chip) => (
                 <button
-                  key={chip}
-                  onClick={() => {
-                    setInput(chip)
-                    // Optional: Auto submit? For now just fill.
-                  }}
-                  className="text-xs bg-white p-2 rounded-xl border border-border text-coffee hover:border-tangerine transition-colors"
+                  key={chip.label}
+                  onClick={() => setInput(chip.label)}
+                  className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip"
                 >
-                  {chip}
+                  <span className="text-lg mr-2 group-hover/chip:scale-110 inline-block transition-transform">{chip.icon}</span>
+                  <span className="font-bold">{chip.label}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
         
-        {messages.map(m => (
-          <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-             <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
+        {/* Message Stream */}
+        {messages.map((m, i) => (
+          <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
+             
+             {/* Chef Icon for AI messages */}
+             {m.role !== 'user' && (
+                 <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
+                    <ChefHat className="w-3 h-3 text-tangerine" />
+                 </div>
+             )}
+
+             <div className={cn(
+               "max-w-[85%] p-4 text-sm shadow-sm relative",
                m.role === 'user' 
-                 ? 'bg-tangerine text-white rounded-br-none hard-shadow-sm' 
-                 : 'bg-white border-2 border-border text-coffee rounded-bl-none hard-shadow-sm'
-             }`}>
-               <p className="whitespace-pre-wrap">{m.content}</p>
+                 ? "bg-coffee text-white rounded-2xl rounded-br-none border-2 border-transparent" 
+                 : "bg-cream text-coffee rounded-2xl rounded-bl-none border-2 border-border"
+             )}>
+               {/* Message Content */}
+               <div className="whitespace-pre-wrap leading-relaxed">
+                 {m.content}
+               </div>
              </div>
           </div>
         ))}
+
+        {/* Loading Indicator bubble */}
         {isLoading && (
-            <div className="flex justify-start">
-               <div className="bg-white border-2 border-border text-coffee rounded-2xl rounded-bl-none p-3 text-sm flex gap-1 hard-shadow-sm">
-                 <span className="animate-bounce">●</span><span className="animate-bounce delay-100">●</span><span className="animate-bounce delay-200">●</span>
+            <div className="flex justify-start items-end gap-2">
+               <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
+                    <ChefHat className="w-3 h-3 text-tangerine" />
+               </div>
+               <div className="bg-cream border-2 border-border text-coffee rounded-2xl rounded-bl-none p-4 py-3 text-sm flex gap-1.5 shadow-sm items-center">
+                 <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce"></span>
+                 <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce delay-100"></span>
+                 <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce delay-200"></span>
                </div>
             </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <div className="p-4 bg-white border-t-2 border-border">
-        <form onSubmit={handleSubmit} className="relative">
+      {/* INPUT AREA */}
+      <div className="p-4 bg-white border-t-2 border-border z-20">
+        <form onSubmit={handleSubmit} className="relative group/input">
           <input
             value={input}
             onChange={handleInputChange}
             placeholder="Ask Chef..."
-            className="w-full bg-muted pl-4 pr-12 py-3 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine text-coffee"
+            className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="absolute right-2 top-2 p-1.5 bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 transition-transform disabled:opacity-50"
+            className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
-            <ArrowUp className="w-5 h-5" />
+            {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}
           </button>
         </form>
       </div>

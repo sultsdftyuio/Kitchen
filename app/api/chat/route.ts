@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
   // 4. Stream Response
   const result = streamText({
-    model: google("gemini-1.5-flash-latest"), // Or "gemini-1.5-flash" depending on your access
+    model: google("gemini-2.5-flash-lite"), // Updated to Gemini 2.5 Flash-Lite
     system: systemPrompt,
     messages,
   })
