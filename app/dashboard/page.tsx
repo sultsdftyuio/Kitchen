@@ -5,6 +5,7 @@ import { addPantryItem, deletePantryItem } from "@/app/actions/pantry"
 import { Trash2, Plus } from "lucide-react"
 import { CookingHistory } from "@/components/cooking-history"
 import { ProfileSettings } from "@/components/profile-settings"
+import { RoastSection } from "@/components/roast-section" // <--- IMPORT THIS
 
 export default async function Dashboard() {
   const supabase = await createClient()
@@ -15,25 +16,25 @@ export default async function Dashboard() {
     redirect("/")
   }
 
-  // 2. Fetch Data (Parallel for speed)
+  // 2. Fetch Data
   const [pantryResponse, historyResponse, profileResponse] = await Promise.all([
     supabase.from("pantry_items").select("*").eq("user_id", user.id).order("added_at", { ascending: false }),
     supabase.from("cooking_history").select("*").eq("user_id", user.id).order("cooked_at", { ascending: false }),
     supabase.from("profiles").select("*").eq("id", user.id).single()
   ])
 
-  const pantryItems = pantryResponse.data || [] // Ensure array
+  const pantryItems = pantryResponse.data || []
   const historyItems = historyResponse.data || []
   const userProfile = profileResponse.data
 
   return (
     <main className="min-h-screen bg-cream p-4 sm:p-8">
-      <div className="max-w-6xl mx-auto space-y-12">
+      <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="font-serif text-4xl font-bold text-coffee">
+            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-coffee">
               Kitchen<span className="text-tangerine">OS</span>
             </h1>
           </div>
@@ -46,11 +47,20 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12">
+        {/* --- NEW: AI CHEF SECTION --- */}
+        {/* We wrap RoastSection in a container to fit the dashboard theme */}
+        <div className="rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden">
+             {/* We rely on RoastSection's internal styling, or you can tweak it to remove its default padding/margins if needed */}
+            <RoastSection /> 
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-2 gap-8 sm:gap-12">
+          
           {/* LEFT COLUMN: PANTRY */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="font-serif text-3xl font-bold text-coffee">
+              <h2 className="font-serif text-2xl sm:text-3xl font-bold text-coffee">
                 Your <span className="text-tangerine">Pantry</span>
               </h2>
             </div>
@@ -102,7 +112,6 @@ export default async function Dashboard() {
                   </form>
                 </div>
               ))}
-
               {pantryItems.length === 0 && (
                 <div className="text-center py-12 text-coffee-dark/50">
                   <p>Your pantry is empty.</p>
@@ -113,7 +122,6 @@ export default async function Dashboard() {
 
           {/* RIGHT COLUMN: COOKING HISTORY */}
           <div>
-            {/* Now passing pantryItems so we can deduce inventory */}
             <CookingHistory 
               initialHistory={historyItems} 
               pantryItems={pantryItems}
