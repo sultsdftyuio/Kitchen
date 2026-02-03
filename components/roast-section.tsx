@@ -2,7 +2,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Send } from "lucide-react";
 import { useRef, useEffect } from "react";
 
 export function RoastSection() {
@@ -11,18 +11,14 @@ export function RoastSection() {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    // FIX: Only scroll if we actually have messages! 
-    // This prevents the page from jumping down on initial load.
-    if (messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Specific "Quick Replies" that work well with the persona
+  // Specific "Quick Replies" that work well with the Chef persona
   const quickReplies = [
     "I have eggs, spinach, and rice 🍳",
-    "My fridge is empty, help! sos",
-    "Roast my grocery list 🔥"
+    "What pantry staples should I buy?",
+    "Review my grocery list 📝"
   ];
 
   return (
@@ -30,9 +26,12 @@ export function RoastSection() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="font-serif text-4xl sm:text-5xl font-bold text-cream text-balance">
-            Your Fridge is Chaos.{" "}
-            <span className="text-butter">We Fix That.</span>
+            Got Ingredients?{" "}
+            <span className="text-butter">Let's Get Cooking.</span>
           </h2>
+          <p className="mt-4 text-cream/80 text-lg max-w-2xl mx-auto">
+            Your personal chef is ready to turn your pantry into a 5-star menu.
+          </p>
         </div>
 
         {/* Chat Window */}
@@ -44,7 +43,7 @@ export function RoastSection() {
             <div className="w-3 h-3 bg-butter rounded-full" />
             <div className="w-3 h-3 bg-[#86EFAC] rounded-full" />
             <span className="ml-2 font-medium text-coffee text-sm">
-              KitchenOS Chat
+              KitchenOS Chef
             </span>
           </div>
 
@@ -56,7 +55,7 @@ export function RoastSection() {
               <div className="flex justify-start">
                 <div className="bg-butter rounded-2xl rounded-tl-none px-5 py-3 max-w-[85%] border-2 border-transparent">
                   <p className="text-coffee">
-                    {"I'm ready to judge... I mean, help. Tell me what leftovers are haunting your fridge right now."}
+                    {"Hello! I'm here to help you navigate your kitchen. Tell me what ingredients you have, and we'll make something wonderful."}
                   </p>
                 </div>
               </div>
