@@ -2,13 +2,12 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { ArrowRight, Sparkles, ChefHat, Bug, AlertTriangle } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { ArrowRight, Sparkles, ChefHat, AlertTriangle } from "lucide-react";
+import { useRef, useEffect } from "react";
 
 export function RoastSection() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [debugMode, setDebugMode] = useState(true); // Default to true for now
-
+  
   const { 
     messages, 
     input, 
@@ -16,16 +15,10 @@ export function RoastSection() {
     handleSubmit, 
     append, 
     isLoading, 
-    error,
-    data 
+    error 
   } = useChat({
     api: '/api/chat',
-    onError: (err) => {
-      console.error("Client: Chat Error Recieved:", err);
-    },
-    onFinish: (msg) => {
-      console.log("Client: Chat Finished:", msg);
-    }
+    onError: (err) => console.error("Chat Error:", err)
   });
 
   // Auto-scroll
@@ -34,7 +27,6 @@ export function RoastSection() {
   }, [messages]);
 
   const handleMagicClick = () => {
-    console.log("Magic button clicked");
     append({ 
       role: "user", 
       content: "Based on my current pantry inventory, what can I cook right now?" 
@@ -45,30 +37,12 @@ export function RoastSection() {
     <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-forest">
       <div className="max-w-4xl mx-auto">
         
-        {/* DEBUG PANEL */}
-        {debugMode && (
-          <div className="mb-8 p-4 bg-black/80 text-green-400 font-mono text-xs rounded-xl overflow-x-auto border border-green-500/30">
-            <div className="flex justify-between items-center mb-2 border-b border-green-500/30 pb-2">
-              <span className="font-bold flex items-center gap-2"><Bug className="w-4 h-4"/> DEBUG CONSOLE</span>
-              <button onClick={() => setDebugMode(false)} className="text-white hover:text-red-400">Hide</button>
-            </div>
-            <div>Status: {isLoading ? "⏳ Generating..." : "Idle"}</div>
-            <div>Messages: {messages.length}</div>
-            <div>API Route: /api/chat</div>
-            {error && (
-              <div className="text-red-400 font-bold mt-2 p-2 border border-red-500 rounded bg-red-900/20">
-                ❌ ERROR: {error.message}
-              </div>
-            )}
-          </div>
-        )}
-
         <div className="text-center mb-12">
           <h2 className="font-serif text-4xl sm:text-5xl font-bold text-cream text-balance">
             Your AI <span className="text-butter">Sous Chef</span>
           </h2>
           <p className="mt-4 text-cream/80 text-lg max-w-2xl mx-auto">
-            I know what's in your pantry. Ask me for a recipe.
+            Powered by Gemini 2.5 Flash-Lite
           </p>
         </div>
 
@@ -116,7 +90,6 @@ export function RoastSection() {
               </div>
             ))}
             
-            {/* Loading Indicator */}
             {isLoading && (
                <div className="flex justify-start">
                  <div className="bg-butter rounded-2xl rounded-tl-none px-5 py-3">
@@ -129,12 +102,16 @@ export function RoastSection() {
                </div>
             )}
             
-            {/* Error Message Display in Chat Flow */}
+            {/* Error Message Display */}
             {error && (
               <div className="flex justify-center my-4">
                 <div className="bg-red-100 text-red-600 px-4 py-2 rounded-lg text-sm flex items-center gap-2 border border-red-200">
                   <AlertTriangle className="w-4 h-4" />
-                  <span>Something went wrong. Check the Debug Console above.</span>
+                  <span>
+                    {error.message.includes("404") 
+                      ? "Model version not found. Try 'gemini-1.5-flash'?" 
+                      : "Chef is busy. Check console."}
+                  </span>
                 </div>
               </div>
             )}
@@ -146,7 +123,7 @@ export function RoastSection() {
           <div className="shrink-0 space-y-3">
             {messages.length === 0 && (
               <button
-                type="button" // Explicitly type button to prevent form submission
+                type="button"
                 onClick={handleMagicClick}
                 className="w-full bg-tangerine text-white py-3 rounded-xl border-2 border-border hard-shadow hover:translate-y-1 hover:shadow-none transition-all font-bold flex items-center justify-center gap-2 group"
               >
