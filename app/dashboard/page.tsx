@@ -5,7 +5,7 @@ import { addPantryItem, deletePantryItem } from "@/app/actions/pantry"
 import { Trash2, Plus } from "lucide-react"
 
 export default async function Dashboard() {
-  const supabase = await createClient() // CHANGED: Added await
+  const supabase = await createClient()
 
   // 1. Check Auth
   const { data: { user } } = await supabase.auth.getUser()
@@ -67,7 +67,8 @@ export default async function Dashboard() {
               className="bg-white p-4 rounded-2xl border-2 border-border hard-shadow flex items-center justify-between group"
             >
               <div>
-                <h3 className="font-bold text-coffee text-lg">{item.item_name}</h3>
+                {/* FIXED: Changed item.item_name to item.name */}
+                <h3 className="font-bold text-coffee text-lg">{item.name}</h3>
                 <p className="text-coffee-dark/60 text-sm">Qty: {item.quantity}</p>
               </div>
               

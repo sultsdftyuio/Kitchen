@@ -7,42 +7,31 @@ import { revalidatePath } from "next/cache"
 export async function addPantryItem(formData: FormData) {
   const supabase = await createClient()
   
-  // 1. Check Auth
+  // Get the current user
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
-    throw new Error("Unauthorized: Please log in to add items.")
+    throw new Error("Unauthorized")
   }
 
-  // 2. Extract Data
   const itemName = formData.get("item_name") as string
   const quantity = formData.get("quantity") as string
 
-  // Validation
-  if (!itemName || itemName.trim() === "") return
+  if (!itemName) return
 
-  // 3. Database Mutation
   const { error } = await supabase
     .from("pantry_items")
     .insert({
       user_id: user.id,
-      item_name: itemName,
+      name: itemName, // FIXED: Changed 'item_name' to 'name' to match DB constraint
       quantity: quantity || "1",
       added_at: new Date().toISOString()
     })
 
-  // 4. Enhanced Error Handling
   if (error) {
-    console.error("Supabase Error [addPantryItem]:", error)
-    
-    // Check for schema cache issues (PGRST204)
-    if (error.code === 'PGRST204') {
-      throw new Error("Database schema mismatch. Please reload Supabase schema cache.")
-    }
-    
-    throw new Error("Failed to add item. Check server logs.")
+    console.error("Error adding item:", error)
+    throw new Error("Failed to add item")
   }
 
-  // 5. Refresh UI
   revalidatePath("/dashboard")
 }
 
@@ -59,7 +48,7 @@ export async function deletePantryItem(itemId: number) {
     .eq("user_id", user.id)
 
   if (error) {
-    console.error("Supabase Error [deletePantryItem]:", error)
+    console.error("Error deleting item:", error)
     throw new Error("Failed to delete item")
   }
 
