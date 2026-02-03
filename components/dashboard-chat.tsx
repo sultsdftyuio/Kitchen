@@ -2,7 +2,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils } from "lucide-react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
 import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
@@ -18,14 +18,15 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  const { messages, input, setInput, handleInputChange, handleSubmit, isLoading } = useChat()
+  // Extract 'error' and 'reload' from useChat to handle failures
+  const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, error, reload } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (messages.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages])
+  }, [messages, error]) // Scroll on error too
 
   return (
     <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden sticky top-8 relative group">
@@ -42,12 +43,16 @@ export function DashboardChat({
             {/* Animated Chef Avatar */}
             <div className={cn(
                 "relative w-20 h-20 bg-cream rounded-full border-2 border-border flex items-center justify-center shadow-md",
-                isLoading ? "animate-bounce" : "animate-float"
+                isLoading ? "animate-bounce" : error ? "animate-none bg-red-100 border-red-300" : "animate-float"
             )}>
-                <div className="absolute -top-2 -right-2 bg-tangerine text-white text-xs font-bold px-2 py-0.5 rounded-full border-2 border-border transform rotate-12">
-                    {isLoading ? "Cooking..." : "Ready!"}
+                <div className={cn(
+                  "absolute -top-2 -right-2 text-white text-xs font-bold px-2 py-0.5 rounded-full border-2 border-border transform rotate-12",
+                  error ? "bg-red-500" : "bg-tangerine"
+                )}>
+                    {isLoading ? "Cooking..." : error ? "Error!" : "Ready!"}
                 </div>
-                <ChefHat className="w-10 h-10 text-coffee" />
+                {error ? <AlertCircle className="w-10 h-10 text-red-500" /> : <ChefHat className="w-10 h-10 text-coffee" />}
+                
                 {isLoading && (
                     <Flame className="absolute -bottom-1 -right-1 w-6 h-6 text-orange-500 animate-pulse" />
                 )}
@@ -56,7 +61,7 @@ export function DashboardChat({
             <div>
                 <h2 className="font-serif text-2xl font-bold text-coffee">Chef AI</h2>
                 <p className="text-xs font-medium text-coffee-dark/60 uppercase tracking-wider">
-                    {isLoading ? "Chopping & Sautéing..." : "Waiting for orders"}
+                    {isLoading ? "Chopping & Sautéing..." : error ? "Kitchen Fire!" : "Waiting for orders"}
                 </p>
             </div>
         </div>
@@ -77,7 +82,7 @@ export function DashboardChat({
       <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
         
         {/* Empty State / Welcome Screen */}
-        {messages.length === 0 && (
+        {messages.length === 0 && !error && (
           <div className="mt-8 text-center space-y-6 animate-in fade-in zoom-in duration-500">
             <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
                 <Utensils className="w-8 h-8 text-coffee/40" />
@@ -140,6 +145,26 @@ export function DashboardChat({
                </div>
             </div>
         )}
+
+        {/* Error Message Display */}
+        {error && (
+            <div className="flex justify-center my-4 animate-in fade-in slide-in-from-bottom-2">
+                <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-4 max-w-[90%] text-sm text-center shadow-sm">
+                    <p className="font-bold flex items-center justify-center gap-2 mb-1">
+                        <AlertCircle className="w-4 h-4" /> 
+                        Oops, something burned.
+                    </p>
+                    <p className="opacity-90">{error.message}</p>
+                    <button 
+                        onClick={() => reload()}
+                        className="mt-2 text-xs bg-white border border-red-200 px-3 py-1 rounded-full hover:bg-red-50 transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        )}
+        
         <div ref={messagesEndRef} />
       </div>
 
@@ -150,7 +175,8 @@ export function DashboardChat({
             value={input}
             onChange={handleInputChange}
             placeholder="Ask Chef..."
-            className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium"
+            disabled={isLoading}
+            className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />
           <button
             type="submit"
