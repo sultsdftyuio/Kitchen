@@ -2,11 +2,11 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { ArrowRight, Send } from "lucide-react";
+import { ArrowRight, Sparkles, ChefHat } from "lucide-react";
 import { useRef, useEffect } from "react";
 
 export function RoastSection() {
-  const { messages, input, handleInputChange, handleSubmit, append } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, append, isLoading } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom
@@ -14,50 +14,49 @@ export function RoastSection() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Specific "Quick Replies" that work well with the Chef persona
-  const quickReplies = [
-    "I have eggs, spinach, and rice 🍳",
-    "What pantry staples should I buy?",
-    "Review my grocery list 📝"
-  ];
+  const handleMagicClick = () => {
+    append({ 
+      role: "user", 
+      content: "Based on my current pantry inventory, what can I cook right now?" 
+    });
+  };
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-forest">
+    <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 bg-forest">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="font-serif text-4xl sm:text-5xl font-bold text-cream text-balance">
-            Got Ingredients?{" "}
-            <span className="text-butter">Let's Get Cooking.</span>
+            Your AI <span className="text-butter">Sous Chef</span>
           </h2>
           <p className="mt-4 text-cream/80 text-lg max-w-2xl mx-auto">
-            Your personal chef is ready to turn your pantry into a 5-star menu.
+            I know what's in your pantry. Ask me for a recipe.
           </p>
         </div>
 
         {/* Chat Window */}
-        <div className="bg-cream rounded-3xl border-2 border-border hard-shadow-lg p-6 max-w-2xl mx-auto flex flex-col h-[600px]">
+        <div className="bg-cream rounded-3xl border-2 border-border hard-shadow-lg p-4 sm:p-6 max-w-2xl mx-auto flex flex-col h-[600px]">
           
           {/* Window Header */}
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b-2 border-border shrink-0">
-            <div className="w-3 h-3 bg-rose rounded-full" />
-            <div className="w-3 h-3 bg-butter rounded-full" />
-            <div className="w-3 h-3 bg-[#86EFAC] rounded-full" />
-            <span className="ml-2 font-medium text-coffee text-sm">
-              KitchenOS Chef
-            </span>
+          <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-border shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-rose rounded-full" />
+              <div className="w-3 h-3 bg-butter rounded-full" />
+              <div className="w-3 h-3 bg-[#86EFAC] rounded-full" />
+              <span className="ml-2 font-medium text-coffee text-sm">KitchenOS Chef</span>
+            </div>
           </div>
 
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 scrollbar-thin scrollbar-thumb-coffee/20">
             
-            {/* Zero State / Welcome Message */}
+            {/* Zero State */}
             {messages.length === 0 && (
-              <div className="flex justify-start">
-                <div className="bg-butter rounded-2xl rounded-tl-none px-5 py-3 max-w-[85%] border-2 border-transparent">
-                  <p className="text-coffee">
-                    {"Hello! I'm here to help you navigate your kitchen. Tell me what ingredients you have, and we'll make something wonderful."}
-                  </p>
-                </div>
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-60">
+                <ChefHat className="w-12 h-12 text-coffee" />
+                <p className="text-coffee text-sm">
+                  My database is connected to your pantry.<br/>
+                  Click the magic button below to get started.
+                </p>
               </div>
             )}
 
@@ -75,29 +74,37 @@ export function RoastSection() {
                       : "bg-butter rounded-tl-none"}
                   `}
                 >
-                  <p className="whitespace-pre-wrap">{m.content}</p>
+                  <p className="whitespace-pre-wrap text-sm sm:text-base">{m.content}</p>
                 </div>
               </div>
             ))}
+            
+            {isLoading && (
+               <div className="flex justify-start">
+                 <div className="bg-butter rounded-2xl rounded-tl-none px-5 py-3">
+                   <div className="flex gap-1">
+                     <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce" />
+                     <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce [animation-delay:0.2s]" />
+                     <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+                   </div>
+                 </div>
+               </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Footer Area: Quick Replies + Input */}
-          <div className="shrink-0 space-y-4">
+          {/* Footer Area */}
+          <div className="shrink-0 space-y-3">
             
-            {/* Quick Replies */}
-            {messages.length < 2 && (
-              <div className="flex gap-2 flex-wrap">
-                {quickReplies.map((reply, i) => (
-                  <button
-                    key={i}
-                    onClick={() => append({ role: "user", content: reply })}
-                    className="bg-white text-coffee px-4 py-2 rounded-full border-2 border-border text-sm font-medium hard-shadow hard-shadow-hover hover:bg-mutedYB transition-colors text-left"
-                  >
-                    {reply}
-                  </button>
-                ))}
-              </div>
+            {/* Magic Suggestion Button */}
+            {messages.length === 0 && (
+              <button
+                onClick={handleMagicClick}
+                className="w-full bg-tangerine text-white py-3 rounded-xl border-2 border-border hard-shadow hover:translate-y-1 hover:shadow-none transition-all font-bold flex items-center justify-center gap-2 group"
+              >
+                <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                What can I cook right now?
+              </button>
             )}
 
             {/* Input Form */}
@@ -105,13 +112,13 @@ export function RoastSection() {
               <input
                 value={input}
                 onChange={handleInputChange}
-                placeholder="Type ingredients here..."
+                placeholder="Ask your chef..."
                 className="flex-1 bg-transparent px-3 py-2 text-coffee placeholder:text-coffee-dark/50 outline-none text-base"
               />
               <button 
                 type="submit"
-                disabled={!input.trim()}
-                className="bg-tangerine text-white p-3 rounded-xl border-2 border-border hover:translate-y-[1px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!input.trim() || isLoading}
+                className="bg-coffee text-white p-3 rounded-xl border-2 border-border hover:translate-y-[1px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ArrowRight className="w-5 h-5" />
               </button>
