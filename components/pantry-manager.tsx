@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 type PantryItem = {
   id: number
-  item_name: string 
+  item_name: string | null // Update type to reflect possible nulls from DB
   quantity: string
   added_at: string
 }
@@ -20,14 +20,17 @@ const CATEGORIES = [
   { id: 'grains', label: 'Grains', icon: Wheat, keywords: ['rice', 'pasta', 'bread', 'oats', 'flour', 'quinoa', 'cereal'] },
 ]
 
-// Helper to guess category
-const getCategory = (name: string) => {
-  const lower = name.toLowerCase()
-  return CATEGORIES.find(c => c.keywords.some(k => lower.includes(k))) || { id: 'other', label: 'Pantry', icon: Package }
+// Helper to guess category - FIXED: Handles null/undefined safely
+const getCategory = (name: string | null) => {
+  const safeName = (name || "").toLowerCase()
+  if (!safeName) return { id: 'other', label: 'Pantry', icon: Package }
+  
+  return CATEGORIES.find(c => c.keywords.some(k => safeName.includes(k))) || { id: 'other', label: 'Pantry', icon: Package }
 }
 
 // Helper for freshness color
 const getFreshnessColor = (dateString: string) => {
+  if (!dateString) return "bg-gray-300" // Safety for missing dates
   const days = (new Date().getTime() - new Date(dateString).getTime()) / (1000 * 3600 * 24)
   if (days < 3) return "bg-green-500"
   if (days < 7) return "bg-yellow-500"
@@ -41,11 +44,14 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
 
   // Client-side filtering and sorting
   const filteredItems = useMemo(() => {
-    let result = [...items]
+    // Safety check: ensure items is an array
+    const safeItems = Array.isArray(items) ? items : []
+    
+    let result = [...safeItems]
 
     if (search) {
       result = result.filter(i => 
-        i.item_name.toLowerCase().includes(search.toLowerCase())
+        (i.item_name || "").toLowerCase().includes(search.toLowerCase())
       )
     }
 
@@ -54,7 +60,11 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
     }
 
     // Default Sort: Newest First
-    result.sort((a, b) => new Date(b.added_at).getTime() - new Date(a.added_at).getTime())
+    result.sort((a, b) => {
+        const dateA = a.added_at ? new Date(a.added_at).getTime() : 0
+        const dateB = b.added_at ? new Date(b.added_at).getTime() : 0
+        return dateB - dateA
+    })
     
     return result
   }, [items, search, filterCat])
@@ -62,7 +72,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
   return (
     <div className="space-y-6">
       
-      {/* 1. INPUT ZONE: The "Stocking Station" */}
+      {/* 1. INPUT ZONE */}
       <div className="bg-white p-1 rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden">
          <div className="bg-muted/30 p-4 sm:p-6 rounded-[20px]">
             <h3 className="font-serif text-xl font-bold text-coffee mb-4 flex items-center gap-2">
@@ -72,9 +82,13 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
             <form 
                 action={async (formData) => {
                     setIsAdding(true)
-                    await addPantryItem(formData)
-                    setIsAdding(false)
-                    // Optional: clear inputs via ref if needed, but standard form behavior handles it nicely
+                    try {
+                        await addPantryItem(formData)
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        setIsAdding(false)
+                    }
                 }} 
                 className="flex flex-col sm:flex-row gap-3"
             >
@@ -167,7 +181,9 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
       {/* 3. INVENTORY GRID */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
         {filteredItems.map((item) => {
-          const CategoryIcon = getCategory(item.item_name).icon
+          // Robust checking for rendering
+          const displayName = item.item_name || "Unnamed Item"
+          const CategoryIcon = getCategory(displayName).icon
           
           return (
             <div
@@ -190,9 +206,11 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
               </div>
 
               <div className="space-y-1">
-                 <h4 className="font-bold text-coffee text-lg leading-tight truncate pr-2">{item.item_name}</h4>
+                 <h4 className="font-bold text-coffee text-lg leading-tight truncate pr-2">
+                   {displayName}
+                 </h4>
                  <p className="text-sm font-medium text-coffee-dark/60 bg-muted inline-block px-2 py-0.5 rounded-md">
-                    x {item.quantity}
+                    x {item.quantity || "?"}
                  </p>
               </div>
 
@@ -202,7 +220,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                     <div className={`h-full w-full ${getFreshnessColor(item.added_at)} opacity-50`} />
                  </div>
                  <span className="text-[10px] font-bold text-coffee/30 uppercase tracking-wider">
-                    {new Date(item.added_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                    {item.added_at ? new Date(item.added_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'N/A'}
                  </span>
               </div>
             </div>
