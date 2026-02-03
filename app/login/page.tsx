@@ -66,7 +66,7 @@ export default function LoginPage() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="Enter your email:"
+                  placeholder="Enter your email"
                   required
                   className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-border bg-cream/30 focus:border-tangerine focus:ring-0 outline-none transition-colors text-coffee"
                 />
