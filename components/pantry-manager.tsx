@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 // --- Types ---
 type PantryItem = {
   id: number
-  item_name: string | null 
+  name: string | null  // FIX: Updated to match DB column
   quantity: string
   added_at: string
 }
@@ -46,7 +46,6 @@ function DeleteButton({ id }: { id: number }) {
     setStatus('deleting')
     startTransition(async () => {
       await deletePantryItem(id)
-      // Note: Component will likely unmount before this finishes, which is fine.
     })
   }
 
@@ -104,12 +103,12 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
 
     if (search) {
       result = result.filter(i => 
-        (i.item_name || "").toLowerCase().includes(search.toLowerCase())
+        (i.name || "").toLowerCase().includes(search.toLowerCase())
       )
     }
 
     if (filterCat !== 'all') {
-      result = result.filter(i => getCategory(i.item_name).id === filterCat)
+      result = result.filter(i => getCategory(i.name).id === filterCat)
     }
 
     result.sort((a, b) => {
@@ -136,7 +135,6 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                     setIsAdding(true)
                     try {
                         await addPantryItem(formData)
-                        // Reset form manually if needed, or let Next.js handle it
                         const form = document.getElementById("add-form") as HTMLFormElement
                         form?.reset()
                     } catch (e) {
@@ -177,7 +175,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
 
             {/* Quick Chips */}
             <div className="flex flex-wrap gap-2 mt-4">
-                {["Eggs 🥚", "Milk 🥛", "Bread 🍞", "Pasta 🍝", "Rice 🍚", "Chicken 🍗"].map(chip => (
+                {["Eggs ･", "Milk ･", "Bread 込", "Pasta 狛", "Rice 忽", "Chicken 漉"].map(chip => (
                     <button
                         key={chip}
                         type="button"
@@ -238,7 +236,8 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
       {/* ITEM GRID */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
         {filteredItems.map((item) => {
-          const displayName = item.item_name || "Unknown Item"
+          // FIX: Use 'item.name' instead of 'item.item_name'
+          const displayName = item.name || "Unknown Item"
           const CategoryIcon = getCategory(displayName).icon
           
           return (
@@ -251,7 +250,6 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                     <CategoryIcon className="w-5 h-5" />
                  </div>
                  
-                 {/* Better Delete UI */}
                  <DeleteButton id={item.id} />
               </div>
 

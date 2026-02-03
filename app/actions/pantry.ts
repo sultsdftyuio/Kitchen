@@ -17,15 +17,16 @@ export async function addPantryItem(formData: FormData) {
   const itemName = rawName?.trim()
   const quantity = rawQty?.trim() || "1"
 
-  // 2. Validation (Prevents "ghost" items)
+  // 2. Validation
   if (!itemName) return 
 
   // 3. Database Insert
+  // FIX: Using 'name' instead of 'item_name' to match your DB schema
   const { error } = await supabase
     .from("pantry_items")
     .insert({
       user_id: user.id,
-      item_name: itemName,
+      name: itemName, 
       quantity: quantity,
       added_at: new Date().toISOString()
     })
