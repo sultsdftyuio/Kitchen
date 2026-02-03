@@ -1,21 +1,26 @@
 // app/login/page.tsx
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import { LoginButton } from "@/components/login-button";
-import { Flame, Sparkles } from "lucide-react";
+"use client";
+
 import Link from "next/link";
+import { useTransition, useState } from "react";
+import { signInWithEmail } from "@/app/actions/auth";
+import { LoginButton } from "@/components/login-button";
+import { Flame, Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 
-export default async function LoginPage() {
-  const supabase = await createClient();
+export default function LoginPage() {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
-  // Redirect to dashboard if already logged in
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect("/dashboard");
-  }
+  const handleSubmit = (formData: FormData) => {
+    setError(null);
+    startTransition(async () => {
+      const result = await signInWithEmail(formData);
+      if (result?.error) {
+        setError(result.error);
+      }
+      // On success, the server action redirects to /dashboard
+    });
+  };
 
   return (
     <main className="min-h-screen bg-cream flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -34,45 +39,94 @@ export default async function LoginPage() {
             KitchenOS
           </h1>
           <p className="text-coffee-dark/80 text-lg">
-            Your sous-chef is waiting.
+            Welcome back, Chef.
           </p>
         </div>
 
-        {/* Login Action */}
         <div className="space-y-6">
-          <div className="bg-muted p-4 rounded-2xl border-2 border-border/50 text-center">
-            <p className="text-coffee-dark text-sm flex items-center justify-center gap-2">
-              <Sparkles className="w-4 h-4 text-tangerine" />
-              Join 12,000+ happy home cooks
-            </p>
-          </div>
-
           <LoginButton />
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-fullQX border-t border-coffee-dark/20" />
+              <span className="w-full border-t border-coffee-dark/20" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-white px-2 text-coffee-dark/50">
-                Or go back home
+                Or login with email
               </span>
             </div>
           </div>
 
-          <Link
-            href="/"
-            className="block text-center text-sm font-medium text-coffee hover:text-tangerine transition-colors hover:underline underline-offset-4"
-          >
-            ← Back to Homepage
-          </Link>
+          <form action={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-coffee ml-1" htmlFor="email">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-5 w-5 text-coffee-dark/40" />
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="chef@kitchenos.com"
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-border bg-cream/30 focus:border-tangerine focus:ring-0 outline-none transition-colors text-coffee"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between items-center ml-1">
+                <label className="text-sm font-bold text-coffee" htmlFor="password">Password</label>
+                <Link 
+                  href="/forgot-password" 
+                  className="text-xs text-coffee-dark/70 hover:text-tangerine hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-5 w-5 text-coffee-dark/40" />
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-border bg-cream/30 focus:border-tangerine focus:ring-0 outline-none transition-colors text-coffee"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-rose/20 border-2 border-rose text-rose-dark p-3 rounded-xl text-sm text-center font-medium">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="w-full bg-coffee hover:bg-coffee/90 text-white font-bold py-3 px-6 rounded-xl border-2 border-transparent hard-shadow hover:translate-y-[1px] hover:shadow-none transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+            >
+              {isPending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  Log In <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="text-center pt-2">
+            <p className="text-coffee-dark/70 text-sm">
+              Don't have a pantry yet?{" "}
+              <Link href="/signup" className="font-bold text-tangerine hover:underline underline-offset-2">
+                Create an account
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
-
-      {/* Footer text */}
-      <p className="mt-8 text-coffee-dark/60 text-sm">
-        By continuing, you agree to cook with ❤️ and 🧈.
-      </p>
     </main>
   );
 }

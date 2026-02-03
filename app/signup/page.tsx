@@ -41,7 +41,7 @@ export default function SignupPage() {
 
         {/* OAuth Section */}
         <div className="mb-6">
-           <LoginButton /> {/* Reusing the Google Button */}
+           <LoginButton />
         </div>
         
         <div className="relative mb-6">

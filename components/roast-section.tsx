@@ -2,7 +2,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { ArrowRight, Send } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useRef, useEffect } from "react";
 
 export function RoastSection() {
@@ -11,7 +11,11 @@ export function RoastSection() {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // FIX: Only scroll if we actually have messages! 
+    // This prevents the page from jumping down on initial load.
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   // Specific "Quick Replies" that work well with the persona
