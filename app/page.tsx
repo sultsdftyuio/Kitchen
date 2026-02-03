@@ -1,4 +1,5 @@
 // app/page.tsx
+import { createClient } from "@/utils/supabase/server";
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
 import { FeaturesBento } from "@/components/features-bento";
@@ -7,26 +8,25 @@ import { RoastSection } from "@/components/roast-section";
 import { Testimonials } from "@/components/testimonials";
 import { Footer } from "@/components/footer";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <main className="min-h-screen bg-cream font-sans text-coffee selection:bg-tangerine/30">
-      <Navbar />
+      <Navbar user={user} />
+      
       <Hero />
       
-      <div id="features">
-        <FeaturesBento />
-      </div>
+      <FeaturesBento />
       
-      <div id="how-it-works">
-        <HowItWorks />
-      </div>
+      <HowItWorks />
 
       <RoastSection />
       
-      <div id="pricing">
-        <Testimonials /> 
-        {/* Note: We can rename Testimonials to Pricing or add a specific pricing component later */}
-      </div>
+      <Testimonials /> 
 
       <Footer />
     </main>
