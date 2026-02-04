@@ -1,5 +1,5 @@
 // app/api/chat/route.ts
-import { google } from "@ai-sdk/google"
+import { openai } from "@ai-sdk/openai"
 import { streamText } from "ai"
 import { createClient } from "@/utils/supabase/server"
 
@@ -49,9 +49,9 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    // kept your model choice as it is valid for 2026
+    // Switched to OpenAI GPT-5 Nano as requested
     const result = streamText({
-      model: google("gemini-2.5-flash-lite"), 
+      model: openai("gpt-5-nano"), 
       system: systemPrompt,
       messages,
     })
