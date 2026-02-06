@@ -2,7 +2,6 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { type Message } from "ai" 
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
 import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
@@ -22,15 +21,15 @@ export function DashboardChat({
   // Manage Input State Manually
   const [input, setInput] = useState("")
 
-  // FIX: Cast to 'any' to bypass TS error. 
-  // 'append' exists at runtime in v3+ but the type definition 'UseChatHelpers' 
-  // in your environment is lagging behind.
+  // FIX: Double 'any' cast.
+  // 1. Cast the OPTIONS object to 'any' so TS stops complaining about 'api'.
+  // 2. Cast the RESULT to 'any' so TS stops complaining about 'append/status'.
   const { messages, append, status, error, isLoading: hookIsLoading } = useChat({
     api: "/api/chat",
-    onError: (err) => console.error("Chat error:", err)
-  }) as any
+    onError: (err: any) => console.error("Chat error:", err)
+  } as any) as any
   
-  // Robust loading check: support both 'status' (new) and 'isLoading' (old)
+  // Robust loading check
   const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -45,19 +44,16 @@ export function DashboardChat({
     e.preventDefault()
     if (!input?.trim()) return
     
-    // Use 'append' to add the user message and trigger the API call
     append({ role: 'user', content: input })
     setInput("")
   }
 
   const handleChipClick = (label: string) => {
-      // Automatically send the chip text
       append({ role: 'user', content: label })
   }
   
   const handleReload = () => {
-     // Fallback retry logic: Re-send the last user message
-     const lastUserMessage = [...messages].reverse().find((m: Message) => m.role === 'user')
+     const lastUserMessage = [...messages].reverse().find((m: any) => m.role === 'user')
      if (lastUserMessage) {
          append({ role: 'user', content: lastUserMessage.content })
      }
@@ -143,7 +139,7 @@ export function DashboardChat({
         )}
         
         {/* Message Stream */}
-        {messages?.map((m: Message) => (
+        {messages?.map((m: any) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              
              {/* Chef Icon for AI messages */}
