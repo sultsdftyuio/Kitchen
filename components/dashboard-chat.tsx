@@ -2,8 +2,9 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
+import { type Message } from "ai" 
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
@@ -18,12 +19,19 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // Removing 'as any' and using standard destructuring. 
-  // We use setInput directly to ensure the input field is always editable.
-  const { messages, input, setInput, handleSubmit, isLoading, error, reload } = useChat({
+  // FIX: Manage Input State Manually (Required for AI SDK v6+ / React v3+)
+  const [input, setInput] = useState("")
+
+  // FIX: Destructure available properties. 
+  // 'isLoading' is replaced by checking 'status'.
+  // 'input/setInput/handleSubmit' are removed in favor of manual control + append.
+  const { messages, append, status, error, stop } = useChat({
     api: "/api/chat",
     onError: (err) => console.error("Chat error:", err)
   })
+  
+  // Derive isLoading from status
+  const isLoading = status === 'submitted' || status === 'streaming'
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -36,12 +44,25 @@ export function DashboardChat({
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!input?.trim()) return
-    handleSubmit(e)
+    
+    // FIX: Use 'append' to add the user message and trigger the API call
+    append({ role: 'user', content: input })
+    setInput("")
+  }
+
+  const handleChipClick = (label: string) => {
+      setInput(label)
+  }
+  
+  const handleReload = () => {
+     // Fallback retry logic: Re-send the last user message
+     const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')
+     if (lastUserMessage) {
+         append({ role: 'user', content: lastUserMessage.content })
+     }
   }
 
   return (
-    // FIX: Added z-10 to ensure it sits above the decorative blobs in the parent container
-    // FIX: Removed 'sticky top-8' from here because the parent <aside> in dashboard-shell handles the stickiness
     <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden relative group z-10">
       
       {/* DECORATIVE: Kitchen Background Pattern */}
@@ -109,7 +130,7 @@ export function DashboardChat({
               {PROMPT_CHIPS.map((chip) => (
                 <button
                   key={chip.label}
-                  onClick={() => setInput(chip.label)}
+                  onClick={() => handleChipClick(chip.label)}
                   className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip"
                 >
                   <span className="text-lg mr-2 group-hover/chip:scale-110 inline-block transition-transform">{chip.icon}</span>
@@ -121,7 +142,7 @@ export function DashboardChat({
         )}
         
         {/* Message Stream */}
-        {messages?.map((m: any) => (
+        {messages?.map((m: Message) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              
              {/* Chef Icon for AI messages */}
@@ -137,7 +158,6 @@ export function DashboardChat({
                  ? "bg-coffee text-white rounded-2xl rounded-br-none border-2 border-transparent" 
                  : "bg-cream text-coffee rounded-2xl rounded-bl-none border-2 border-border"
              )}>
-               {/* Message Content */}
                <div className="whitespace-pre-wrap leading-relaxed">
                  {m.content}
                </div>
@@ -169,7 +189,7 @@ export function DashboardChat({
                     </p>
                     <p className="opacity-90">{error.message}</p>
                     <button 
-                        onClick={() => reload()}
+                        onClick={handleReload}
                         className="mt-2 text-xs bg-white border border-red-200 px-3 py-1 rounded-full hover:bg-red-50 transition-colors"
                     >
                         Try Again
@@ -185,8 +205,7 @@ export function DashboardChat({
       <div className="p-4 bg-white border-t-2 border-border z-20">
         <form onSubmit={handleFormSubmit} className="relative group/input">
           <input
-            // FIX: Explicitly using setInput(e.target.value) for robust typing support
-            value={input || ''}
+            value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Chef..."
             disabled={isLoading}
@@ -194,7 +213,7 @@ export function DashboardChat({
           />
           <button
             type="submit"
-            disabled={isLoading || !input?.trim()}
+            disabled={isLoading || !input.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}

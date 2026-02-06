@@ -30,7 +30,6 @@ export async function POST(req: Request) {
     if (!user) return new Response("Unauthorized", { status: 401 })
 
     // 3. Fetch Context (Strict Selection)
-    // ONLY fetch what the AI needs. Do not use select("*")
     const [pantryRes, profileRes] = await Promise.all([
         supabase
           .from("pantry_items")
@@ -38,24 +37,26 @@ export async function POST(req: Request) {
           .eq("user_id", user.id),
         supabase
           .from("profiles")
-          .select("kitchen_equipment, dietary_restrictions") // Strict selection
+          .select("kitchen_equipment, dietary_restrictions")
           .eq("id", user.id)
           .single()
     ])
 
     const pantryItems = pantryRes.data || []
-    const profile = profileRes.data || {}
+    // FIX: Removed '|| {}' to allow TS to infer the correct nullable type
+    const profile = profileRes.data 
 
     // Context Strings
     const pantryList = pantryItems.length > 0
       ? pantryItems.map((i: any) => `- ${i.name} (${i.amount} ${i.unit})`).join("\n")
       : "Pantry is empty."
 
-    const equipment = profile.kitchen_equipment 
+    // FIX: Added optional chaining (?.) to safely access properties
+    const equipment = profile?.kitchen_equipment 
       ? `User's Equipment: ${profile.kitchen_equipment}` 
       : "User has standard kitchen equipment."
 
-    const restrictions = profile.dietary_restrictions
+    const restrictions = profile?.dietary_restrictions
       ? `Dietary Restrictions: ${profile.dietary_restrictions}`
       : "No dietary restrictions."
 
@@ -88,7 +89,7 @@ export async function POST(req: Request) {
     const result = await streamText({
       model: openai("gpt-4o"), 
       system: systemPrompt,
-      messages: convertToModelMessages(messages), // UPDATED: Use convertToModelMessages for AI SDK v6+
+      messages: convertToModelMessages(messages),
     })
     
     return result.toDataStreamResponse()
