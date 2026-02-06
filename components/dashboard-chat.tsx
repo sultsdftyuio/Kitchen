@@ -18,17 +18,16 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Cast useChat() to 'any' to bypass the build-time type error.
-  // The SDK returns these values at runtime, but the type definitions are currently conflicting.
+  // Cast to any to bypass version mismatch in types
   const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, error, reload } = useChat() as any
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages?.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages, error]) // Scroll on error too
+  }, [messages, error]) 
 
   return (
     <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden sticky top-8 relative group">
@@ -84,7 +83,7 @@ export function DashboardChat({
       <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
         
         {/* Empty State / Welcome Screen */}
-        {messages.length === 0 && !error && (
+        {(!messages || messages.length === 0) && !error && (
           <div className="mt-8 text-center space-y-6 animate-in fade-in zoom-in duration-500">
             <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
                 <Utensils className="w-8 h-8 text-coffee/40" />
@@ -110,7 +109,7 @@ export function DashboardChat({
         )}
         
         {/* Message Stream */}
-        {messages.map((m: any, i: number) => (
+        {messages?.map((m: any, i: number) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              
              {/* Chef Icon for AI messages */}
@@ -174,7 +173,7 @@ export function DashboardChat({
       <div className="p-4 bg-white border-t-2 border-border z-20">
         <form onSubmit={handleSubmit} className="relative group/input">
           <input
-            value={input}
+            value={input || ''} 
             onChange={handleInputChange}
             placeholder="Ask Chef..."
             disabled={isLoading}
@@ -182,7 +181,7 @@ export function DashboardChat({
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input?.trim()} 
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}

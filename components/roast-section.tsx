@@ -6,15 +6,12 @@ import { ArrowRight, Send } from "lucide-react";
 import { useRef, useEffect } from "react";
 
 export function RoastSection() {
-  // FIX: Cast useChat() to 'any' to bypass the build-time type error.
   const { messages, input, handleInputChange, handleSubmit, append } = useChat() as any;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom
-  // FIXED: Only scroll if there are actually messages. 
-  // This prevents the page from jumping down on load.
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages?.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
@@ -56,7 +53,7 @@ export function RoastSection() {
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 scrollbar-thin scrollbar-thumb-coffee/20">
             
             {/* Zero State / Welcome Message */}
-            {messages.length === 0 && (
+            {(!messages || messages.length === 0) && (
               <div className="flex justify-start">
                 <div className="bg-butter rounded-2xl rounded-tl-none px-5 py-3 max-w-[85%] border-2 border-transparent">
                   <p className="text-coffee">
@@ -67,7 +64,7 @@ export function RoastSection() {
             )}
 
             {/* Dynamic Messages */}
-            {messages.map((m: any) => (
+            {messages?.map((m: any) => (
               <div
                 key={m.id}
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
@@ -91,7 +88,7 @@ export function RoastSection() {
           <div className="shrink-0 space-y-4">
             
             {/* Quick Replies */}
-            {messages.length < 2 && (
+            {(!messages || messages.length < 2) && (
               <div className="flex gap-2 flex-wrap">
                 {quickReplies.map((reply, i) => (
                   <button
@@ -108,14 +105,14 @@ export function RoastSection() {
             {/* Input Form */}
             <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-2xl px-2 py-2 border-2 border-border hard-shadow">
               <input
-                value={input}
+                value={input || ''} 
                 onChange={handleInputChange}
                 placeholder="Type ingredients here..."
                 className="flex-1 bg-transparent px-3 py-2 text-coffee placeholder:text-coffee-dark/50 outline-none text-base"
               />
               <button 
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input?.trim()} 
                 className="bg-tangerine text-white p-3 rounded-xl border-2 border-border hover:translate-y-[1px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ArrowRight className="w-5 h-5" />
