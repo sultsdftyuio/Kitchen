@@ -12,12 +12,14 @@ export default async function Dashboard() {
     redirect("/")
   }
 
-  // 2. Fetch All Data Parallelly
+  // 2. Fetch All Data Parallelly (With Filters)
   const [pantryRes, historyRes] = await Promise.all([
     supabase
       .from("pantry_items")
       .select("*")
       .eq("user_id", user.id)
+      .not("item_name", "is", null) // FILTER: No nulls
+      .neq("item_name", "")         // FILTER: No empty strings
       .order("added_at", { ascending: false }),
     
     supabase

@@ -12,16 +12,16 @@ export default async function PantryPage() {
     redirect('/login')
   }
 
-  // 2. Fetch Data (Server-Side)
-  // We allow the result to be null, but we handle it in the return
+  // 2. Fetch Data (Filtered)
   const { data: pantryItems, error } = await supabase
     .from('pantry_items')
     .select('*')
     .eq('user_id', user.id)
+    .not("item_name", "is", null) // Fixed
+    .neq("item_name", "")         // Fixed
     .order('added_at', { ascending: false })
 
   if (error) {
-    // Log the actual error to your server console so we can debug if RLS fails
     console.error('Supabase Pantry Fetch Error:', error)
     return (
       <div className="p-10 text-center text-red-500">
@@ -36,9 +36,6 @@ export default async function PantryPage() {
       <h1 className="text-3xl font-bold mb-2">KitchenOS Pantry</h1>
       <p className="text-muted-foreground mb-8">Manage your ingredients to generate recipes.</p>
       
-      {/* FIX: The '?? []' operator specifically fixes the null crash. 
-         If pantryItems is null, it passes an empty array.
-      */}
       <PantryUI items={pantryItems ?? []} />
     </div>
   )

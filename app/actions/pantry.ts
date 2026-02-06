@@ -13,8 +13,10 @@ export async function addToPantry(formData: FormData) {
     throw new Error('You must be logged in to add items.')
   }
 
-  const itemName = formData.get('item_name') as string
-  const quantity = formData.get('quantity') as string
+  // Robust Input handling: trim whitespace
+  const rawName = formData.get('item_name') as string
+  const itemName = rawName?.trim()
+  const quantity = (formData.get('quantity') as string)?.trim()
 
   if (!itemName) return
 
@@ -22,7 +24,7 @@ export async function addToPantry(formData: FormData) {
   const { error } = await supabase.from('pantry_items').insert({
     user_id: user.id,
     item_name: itemName,
-    quantity: quantity || '1', // Default value
+    quantity: quantity || '1', 
     added_at: new Date().toISOString(),
   })
 
@@ -33,6 +35,7 @@ export async function addToPantry(formData: FormData) {
 
   // 3. Refresh the page data immediately
   revalidatePath('/pantry')
+  revalidatePath('/dashboard') // Also refresh dashboard
 }
 
 export async function deleteFromPantry(itemId: number) {
@@ -44,7 +47,7 @@ export async function deleteFromPantry(itemId: number) {
   const { error } = await supabase
     .from('pantry_items')
     .delete()
-    .match({ id: itemId, user_id: user.id }) // Extra safety check
+    .match({ id: itemId, user_id: user.id }) 
 
   if (error) {
     console.error('Delete Error:', error)
@@ -52,4 +55,5 @@ export async function deleteFromPantry(itemId: number) {
   }
 
   revalidatePath('/pantry')
+  revalidatePath('/dashboard')
 }
