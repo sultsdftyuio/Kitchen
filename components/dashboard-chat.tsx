@@ -2,7 +2,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { type Message } from "ai" 
+import { type UIMessage } from "ai" 
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
 import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
@@ -22,10 +22,8 @@ export function DashboardChat({
   // FIX: Manage Input State Manually (Required for AI SDK v6+ / React v3+)
   const [input, setInput] = useState("")
 
-  // FIX: Destructure available properties. 
-  // 'isLoading' is replaced by checking 'status'.
-  // 'input/setInput/handleSubmit' are removed in favor of manual control + append.
-  const { messages, append, status, error, stop } = useChat({
+  // FIX: Destructure 'append' and 'status' instead of missing properties
+  const { messages, append, status, error } = useChat({
     api: "/api/chat",
     onError: (err) => console.error("Chat error:", err)
   })
@@ -51,7 +49,8 @@ export function DashboardChat({
   }
 
   const handleChipClick = (label: string) => {
-      setInput(label)
+      // Automatically send the chip text
+      append({ role: 'user', content: label })
   }
   
   const handleReload = () => {

@@ -43,7 +43,6 @@ export async function POST(req: Request) {
     ])
 
     const pantryItems = pantryRes.data || []
-    // FIX: Removed '|| {}' to allow TS to infer the correct nullable type
     const profile = profileRes.data 
 
     // Context Strings
@@ -51,7 +50,6 @@ export async function POST(req: Request) {
       ? pantryItems.map((i: any) => `- ${i.name} (${i.amount} ${i.unit})`).join("\n")
       : "Pantry is empty."
 
-    // FIX: Added optional chaining (?.) to safely access properties
     const equipment = profile?.kitchen_equipment 
       ? `User's Equipment: ${profile.kitchen_equipment}` 
       : "User has standard kitchen equipment."
@@ -87,12 +85,14 @@ export async function POST(req: Request) {
 
     // 4. Stream Response
     const result = await streamText({
-      model: openai("gpt-4o"), 
+      model: openai("gpt-5-nano"), // Keeping your requested model
       system: systemPrompt,
-      messages: convertToModelMessages(messages),
+      // await is required for convertToModelMessages in the new SDK
+      messages: await convertToModelMessages(messages),
     })
     
-    return result.toDataStreamResponse()
+    // FIX: Changed to toTextStreamResponse() as per your compiler error
+    return result.toTextStreamResponse()
 
   } catch (error: any) {
     console.error("Chat API Error:", error)
