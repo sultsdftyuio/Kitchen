@@ -3,11 +3,11 @@
 
 import { useState } from "react"
 import { DashboardChat } from "@/components/dashboard-chat"
-import PantryUI from "@/app/pantry/pantry-ui" // Using the updated UI with Amount/Unit logic
+import PantryUI from "@/app/pantry/pantry-ui" 
 import { CookingHistory } from "@/components/cooking-history"
 import { ProfileSettings } from "@/components/profile-settings"
 import { signOut } from "@/app/actions/auth"
-import { Package, UtensilsCrossed, ChefHat, LogOut } from "lucide-react"
+import { Package, UtensilsCrossed, ChefHat, LogOut, Loader2 } from "lucide-react"
 
 export function DashboardShell({ 
   userEmail, 
@@ -24,12 +24,17 @@ export function DashboardShell({
 }) {
   const [activeTab, setActiveTab] = useState<'pantry' | 'history'>('pantry')
   const [prefillDish, setPrefillDish] = useState("")
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const handleLogRecipe = (dishName: string) => {
     setPrefillDish(dishName)
     setActiveTab('history')
-    // Scroll to top on mobile to see the form
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    await signOut()
   }
 
   return (
@@ -86,14 +91,19 @@ export function DashboardShell({
              <div className="flex items-center gap-2">
                 <ProfileSettings initialProfile={profile} />
                 
-                <form action={signOut}>
-                  <button 
-                    className="bg-white p-2 sm:p-3 rounded-xl border-2 border-border hard-shadow hover:translate-y-1 hover:shadow-none transition-all text-red-400 hover:text-red-600 hover:bg-red-50"
-                    title="Sign Out"
-                  >
+                {/* FIX: Replaced form action with direct onClick handler to avoid hydration/event errors */}
+                <button 
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="bg-white p-2 sm:p-3 rounded-xl border-2 border-border hard-shadow hover:translate-y-1 hover:shadow-none transition-all text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  title="Sign Out"
+                >
+                  {isSigningOut ? (
+                    <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                  ) : (
                     <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </button>
-                </form>
+                  )}
+                </button>
              </div>
 
           </div>
@@ -131,7 +141,6 @@ export function DashboardShell({
             {/* Content Container */}
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
                 {activeTab === 'pantry' ? (
-                    // Replaced PantryManager with PantryUI to use the new "Amount/Unit" features
                     <PantryUI items={pantryItems} />
                 ) : (
                     <CookingHistory 
