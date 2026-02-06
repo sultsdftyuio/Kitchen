@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       CRITICAL OUTPUT FORMAT:
       If providing a recipe, you MUST output valid Markdown but use specific headers like "## Title", "### Ingredients", "### Instructions".
       
-      Actually, let's stick to rich Markdown for streaming speed, but structure it strictly:
+      Structure it strictly:
       1. Title (H2)
       2. Time & Difficulty (Bold)
       3. Missing Ingredients (if any - IMPORTANT)
@@ -62,15 +62,17 @@ export async function POST(req: Request) {
       If the user just chats, reply normally.
     `
 
-    const result = streamText({
-      model: openai("gpt-4o"), // Upgraded model for logic
+    // FIX: Added 'await' before streamText
+    const result = await streamText({
+      model: openai("gpt-4o"), 
       system: systemPrompt,
       messages,
     })
     
-    return (result as any).toDataStreamResponse()
+    return result.toDataStreamResponse()
 
   } catch (error: any) {
+    console.error("Chat API Error:", error)
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   }
 }
