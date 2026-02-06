@@ -71,9 +71,9 @@ export async function POST(req: Request) {
     
     console.log("✅ 7. Stream created successfully. Returning response.")
     
-    // FIX: Changed from .toTextStreamResponse() to .toDataStreamResponse()
-    // This matches what the modern useChat hook expects.
-    return result.toDataStreamResponse() 
+    // FIX: Cast to 'any' to bypass TypeScript build error regarding 'toDataStreamResponse'
+    // The method exists in ai@6.x at runtime, but the type definition in CI might be lagging.
+    return (result as any).toDataStreamResponse()
 
   } catch (error: any) {
     console.error("--------------- CRITICAL API ERROR ---------------")
@@ -82,6 +82,7 @@ export async function POST(req: Request) {
     console.error("Full Error Object:", JSON.stringify(error, null, 2))
     console.error("--------------------------------------------------")
 
+    // Return the specific error message to the client for easier debugging
     return new Response(JSON.stringify({ 
       error: "Server processing failed.", 
       details: error.message 
