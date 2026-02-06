@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     // 4. Fetch Pantry Context
     console.log("4. Fetching pantry items...")
     const { data: pantryItems, error: dbError } = await supabase
-      .from("pantry_items")
+      .from("pantry_items") //
       .select("item_name, quantity") 
       .eq("user_id", user.id)
 
@@ -63,20 +63,17 @@ export async function POST(req: Request) {
     // 6. Stream Response
     console.log("6. Initializing OpenAI stream with model: gpt-5-nano")
     
-    try {
-        const result = streamText({
-          model: openai("gpt-5-nano"), 
-          system: systemPrompt,
-          messages,
-        })
-        
-        console.log("✅ 7. Stream created successfully. Returning response.")
-        return result.toTextStreamResponse()
-
-    } catch (streamError) {
-        console.error("❌ STREAM CREATION ERROR:", streamError)
-        throw streamError // Re-throw to be caught by the outer block
-    }
+    const result = streamText({
+      model: openai("gpt-5-nano"), // Kept as requested
+      system: systemPrompt,
+      messages,
+    })
+    
+    console.log("✅ 7. Stream created successfully. Returning response.")
+    
+    // FIX: Changed from .toTextStreamResponse() to .toDataStreamResponse()
+    // This matches what the modern useChat hook expects.
+    return result.toDataStreamResponse() 
 
   } catch (error: any) {
     console.error("--------------- CRITICAL API ERROR ---------------")
@@ -85,7 +82,6 @@ export async function POST(req: Request) {
     console.error("Full Error Object:", JSON.stringify(error, null, 2))
     console.error("--------------------------------------------------")
 
-    // Return the specific error message to the client for easier debugging
     return new Response(JSON.stringify({ 
       error: "Server processing failed.", 
       details: error.message 
