@@ -25,7 +25,8 @@ export async function signIn(formData: FormData) {
     return { error: error.message }
   }
 
-  return redirect("/")
+  // FIX: Redirect to dashboard after successful login
+  return redirect("/dashboard")
 }
 
 export async function signUp(formData: FormData) {
@@ -77,7 +78,8 @@ export async function updatePassword(formData: FormData) {
     return { error: error.message }
   }
 
-  return redirect("/")
+  // FIX: Redirect to dashboard after password update
+  return redirect("/dashboard")
 }
 
 export async function signInWithEmail(formData: FormData) {

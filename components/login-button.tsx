@@ -15,7 +15,8 @@ export function LoginButton() {
       await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${location.origin}/auth/callback`,
+          // FIX: Add ?next=/dashboard to ensure redirection after OAuth
+          redirectTo: `${location.origin}/auth/callback?next=/dashboard`,
         },
       });
     } catch (error) {
