@@ -62,14 +62,15 @@ export async function POST(req: Request) {
       If the user just chats, reply normally.
     `
 
-    // FIX: Added 'await' before streamText
+    // FIX: Ensure we await the streamText call
     const result = await streamText({
       model: openai("gpt-4o"), 
       system: systemPrompt,
       messages,
     })
     
-    return result.toDataStreamResponse()
+    // FIX: Use toTextStreamResponse() as requested by your specific version build error
+    return result.toTextStreamResponse()
 
   } catch (error: any) {
     console.error("Chat API Error:", error)
