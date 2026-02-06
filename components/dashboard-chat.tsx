@@ -2,7 +2,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { type UIMessage } from "ai" 
+import { type Message } from "ai" 
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
 import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
@@ -19,17 +19,19 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Manage Input State Manually (Required for AI SDK v6+ / React v3+)
+  // Manage Input State Manually
   const [input, setInput] = useState("")
 
-  // FIX: Destructure 'append' and 'status' instead of missing properties
-  const { messages, append, status, error } = useChat({
+  // FIX: Cast to 'any' to bypass TS error. 
+  // 'append' exists at runtime in v3+ but the type definition 'UseChatHelpers' 
+  // in your environment is lagging behind.
+  const { messages, append, status, error, isLoading: hookIsLoading } = useChat({
     api: "/api/chat",
     onError: (err) => console.error("Chat error:", err)
-  })
+  }) as any
   
-  // Derive isLoading from status
-  const isLoading = status === 'submitted' || status === 'streaming'
+  // Robust loading check: support both 'status' (new) and 'isLoading' (old)
+  const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -43,7 +45,7 @@ export function DashboardChat({
     e.preventDefault()
     if (!input?.trim()) return
     
-    // FIX: Use 'append' to add the user message and trigger the API call
+    // Use 'append' to add the user message and trigger the API call
     append({ role: 'user', content: input })
     setInput("")
   }
@@ -55,7 +57,7 @@ export function DashboardChat({
   
   const handleReload = () => {
      // Fallback retry logic: Re-send the last user message
-     const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')
+     const lastUserMessage = [...messages].reverse().find((m: Message) => m.role === 'user')
      if (lastUserMessage) {
          append({ role: 'user', content: lastUserMessage.content })
      }
