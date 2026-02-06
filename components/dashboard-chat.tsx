@@ -18,7 +18,7 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // Cast to any to bypass version mismatch in types
+  // FIX: Cast to any to bypass build types, but use safety checks below for runtime
   const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, error, reload } = useChat() as any
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -173,7 +173,8 @@ export function DashboardChat({
       <div className="p-4 bg-white border-t-2 border-border z-20">
         <form onSubmit={handleSubmit} className="relative group/input">
           <input
-            value={input || ''} 
+            // FIX: Ensure input is never undefined to prevent uncontrolled/controlled warnings
+            value={input || ''}
             onChange={handleInputChange}
             placeholder="Ask Chef..."
             disabled={isLoading}
@@ -181,7 +182,8 @@ export function DashboardChat({
           />
           <button
             type="submit"
-            disabled={isLoading || !input?.trim()} 
+            // FIX: Use optional chaining (?.) to prevent crash if input is undefined
+            disabled={isLoading || !input?.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}

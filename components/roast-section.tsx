@@ -105,13 +105,15 @@ export function RoastSection() {
             {/* Input Form */}
             <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-2xl px-2 py-2 border-2 border-border hard-shadow">
               <input
-                value={input || ''} 
+                // FIX: Guard against undefined input
+                value={input || ''}
                 onChange={handleInputChange}
                 placeholder="Type ingredients here..."
                 className="flex-1 bg-transparent px-3 py-2 text-coffee placeholder:text-coffee-dark/50 outline-none text-base"
               />
               <button 
                 type="submit"
+                // FIX: Optional chaining
                 disabled={!input?.trim()} 
                 className="bg-tangerine text-white p-3 rounded-xl border-2 border-border hover:translate-y-[1px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
