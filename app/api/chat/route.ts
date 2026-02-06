@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText, convertToCoreMessages } from "ai" // import convertToCoreMessages for safety
+import { streamText, convertToModelMessages } from "ai"
 import { createClient } from "@/utils/supabase/server"
 import { z } from "zod"
 
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     const result = await streamText({
       model: openai("gpt-4o"), 
       system: systemPrompt,
-      messages: convertToCoreMessages(messages), // sanitize messages
+      messages: convertToModelMessages(messages), // UPDATED: Use convertToModelMessages for AI SDK v6+
     })
     
     return result.toDataStreamResponse()
