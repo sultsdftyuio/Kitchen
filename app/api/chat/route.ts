@@ -12,33 +12,26 @@ export async function POST(req: Request) {
     // 1. Parse Body
     const body = await req.json()
     const { messages } = body
-    console.log("1. Request body parsed. Message count:", messages?.length)
 
     // 2. Supabase Setup
     const supabase = await createClient()
-    console.log("2. Supabase client initialized")
 
     // 3. Verify User
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      console.error("❌ 3. Auth Error or No User:", authError)
       return new Response("Unauthorized: Please log in again.", { status: 401 })
     }
-    console.log("✅ 3. User verified:", user.id)
 
     // 4. Fetch Pantry Context
-    console.log("4. Fetching pantry items...")
     const { data: pantryItems, error: dbError } = await supabase
       .from("pantry_items") //
       .select("item_name, quantity") 
       .eq("user_id", user.id)
 
     if (dbError) {
-      console.error("❌ 4. Database Error:", dbError)
       return new Response("Database connection failed", { status: 500 })
     }
-    console.log(`✅ 4. Pantry items fetched: ${pantryItems?.length || 0} items`)
 
     // 5. Construct System Prompt
     const pantryContext = pantryItems?.map(i => `- ${i.item_name} (${i.quantity})`).join("\n") || "Pantry is empty."
@@ -58,31 +51,71 @@ export async function POST(req: Request) {
       - Use emojis (🥑, 🍳, 🔥) to keep it friendly.
       - If the user asks "What can I cook?", suggest 2-3 specific dishes based strictly on their inventory.
     `
-    console.log("5. System prompt constructed.")
 
     // 6. Stream Response
     console.log("6. Initializing OpenAI stream with model: gpt-5-nano")
     
     const result = streamText({
-      model: openai("gpt-5-nano"), // Kept as requested
+      model: openai("gpt-5-nano"),
       system: systemPrompt,
       messages,
     })
     
-    console.log("✅ 7. Stream created successfully. Returning response.")
+    console.log("✅ 7. Stream created successfully.")
     
-    // FIX: Cast to 'any' to bypass TypeScript build error regarding 'toDataStreamResponse'
-    // The method exists in ai@6.x at runtime, but the type definition in CI might be lagging.
-    return (result as any).toDataStreamResponse()
+    // ----------------------------------------------------------------------
+    // ROBUST RESPONSE HANDLING (Polyfill for Version Mismatch)
+    // ----------------------------------------------------------------------
+    
+    // Check if the modern method exists (SDK v6+)
+    if (typeof (result as any).toDataStreamResponse === 'function') {
+        console.log("Using native toDataStreamResponse")
+        return (result as any).toDataStreamResponse()
+    }
+
+    // Fallback: If running on older SDK, manually format as Data Stream Protocol
+    // Protocol: '0:"text part"\n'
+    console.log("Using manual Data Stream polyfill")
+    
+    // @ts-ignore - 'textStream' exists in older SDK versions
+    const textStream = result.textStream || (result as any).fullStream // Fallback property check
+
+    if (!textStream) {
+       throw new Error("Could not extract stream from result")
+    }
+
+    const transformedStream = new ReadableStream({
+        async start(controller) {
+            const reader = textStream.getReader()
+            try {
+                while (true) {
+                    const { done, value } = await reader.read()
+                    if (done) break
+                    // Format as Data Stream Part 0 (Text)
+                    // The client expects lines like: 0:"Hello"
+                    if (value) {
+                        const formatted = `0:${JSON.stringify(value)}\n`
+                        controller.enqueue(new TextEncoder().encode(formatted))
+                    }
+                }
+            } finally {
+                reader.releaseLock()
+                controller.close()
+            }
+        }
+    })
+
+    return new Response(transformedStream, {
+        headers: {
+            "Content-Type": "text/plain; charset=utf-8",
+            "X-Vercel-AI-Data-Stream": "v1"
+        }
+    })
 
   } catch (error: any) {
     console.error("--------------- CRITICAL API ERROR ---------------")
-    console.error("Error Name:", error.name)
-    console.error("Error Message:", error.message)
-    console.error("Full Error Object:", JSON.stringify(error, null, 2))
-    console.error("--------------------------------------------------")
+    console.error(error)
 
-    // Return the specific error message to the client for easier debugging
     return new Response(JSON.stringify({ 
       error: "Server processing failed.", 
       details: error.message 
