@@ -2,14 +2,14 @@
 "use client"
 
 import { addToPantry, deleteFromPantry } from "@/app/actions/pantry"
-import { Trash2, Plus, Search, Check, X, Loader2, Carrot, Beef, Milk, Wheat, Package } from "lucide-react"
-import { useState, useMemo, useTransition } from "react"
+import { Trash2, Plus, Search, Check, X, Loader2, Carrot, Beef, Milk, Wheat, Package, AlertCircle } from "lucide-react"
+import { useState, useMemo, useTransition, useRef } from "react"
 import { cn } from "@/lib/utils"
 
 // --- Types ---
 type PantryItem = {
   id: number
-  item_name: string | null  // Fixed: Matches DB column 'item_name'
+  item_name: string | null
   quantity: string
   added_at: string
 }
@@ -37,7 +37,6 @@ const getFreshnessColor = (dateString: string) => {
 
 // --- Components ---
 
-// 1. Interactive Delete Button Component
 function DeleteButton({ id }: { id: number }) {
   const [status, setStatus] = useState<'idle' | 'confirm' | 'deleting'>('idle')
   const [isPending, startTransition] = useTransition()
@@ -45,7 +44,12 @@ function DeleteButton({ id }: { id: number }) {
   const handleDelete = () => {
     setStatus('deleting')
     startTransition(async () => {
-      await deleteFromPantry(id)
+      try {
+        await deleteFromPantry(id)
+      } catch (e) {
+        alert("Failed to delete. Try again.")
+        setStatus('idle')
+      }
     })
   }
 
@@ -89,13 +93,14 @@ function DeleteButton({ id }: { id: number }) {
   )
 }
 
-// 2. Main Manager Component
 export function PantryManager({ items }: { items: PantryItem[] }) {
   const [search, setSearch] = useState("")
   const [filterCat, setFilterCat] = useState<string | 'all'>('all')
   const [isAdding, setIsAdding] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
-  // Robust Filtering (Crash-Proof)
+  // Robust Filtering
   const filteredItems = useMemo(() => {
     const safeItems = Array.isArray(items) ? items : []
     
@@ -120,6 +125,21 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
     return result
   }, [items, search, filterCat])
 
+  // Handle Add
+  const handleAdd = async (formData: FormData) => {
+    setIsAdding(true)
+    setErrorMsg(null)
+    try {
+        await addToPantry(formData)
+        formRef.current?.reset()
+    } catch (e) {
+        console.error(e)
+        setErrorMsg("Failed to add item. Check your connection.")
+    } finally {
+        setIsAdding(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       
@@ -130,20 +150,15 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                 <Plus className="w-5 h-5 text-tangerine" /> Stock Your Kitchen
             </h3>
             
+            {errorMsg && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" /> {errorMsg}
+                </div>
+            )}
+            
             <form 
-                action={async (formData) => {
-                    setIsAdding(true)
-                    try {
-                        await addToPantry(formData)
-                        const form = document.getElementById("add-form") as HTMLFormElement
-                        form?.reset()
-                    } catch (e) {
-                        console.error(e)
-                    } finally {
-                        setIsAdding(false)
-                    }
-                }}
-                id="add-form"
+                ref={formRef}
+                action={handleAdd}
                 className="flex flex-col sm:flex-row gap-3"
             >
                 <div className="flex-1 relative group">
@@ -180,7 +195,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                         key={chip}
                         type="button"
                         onClick={() => {
-                            const input = document.querySelector('input[name="item_name"]') as HTMLInputElement
+                            const input = formRef.current?.querySelector('input[name="item_name"]') as HTMLInputElement
                             if (input) {
                                 input.value = chip.split(' ')[0]
                                 input.focus()
@@ -274,11 +289,18 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
         })}
 
         {filteredItems.length === 0 && (
-          <div className="col-span-full py-12 text-center space-y-4 border-2 border-dashed border-border/30 rounded-3xl bg-white/50">
-            <div className="bg-muted w-12 h-12 rounded-full flex items-center justify-center mx-auto">
-                <Search className="w-6 h-6 text-coffee/30" />
+          <div className="col-span-full py-16 text-center space-y-4 border-2 border-dashed border-border/30 rounded-3xl bg-white/50">
+            <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                {search ? <Search className="w-8 h-8 text-coffee/30" /> : <Package className="w-8 h-8 text-coffee/30" />}
             </div>
-            <p className="text-coffee-dark/50 font-medium">No items found.</p>
+            <div className="space-y-1">
+                 <h3 className="text-lg font-bold text-coffee">
+                    {search ? `No items match "${search}"` : "Your pantry is empty!"}
+                 </h3>
+                 <p className="text-coffee/60 max-w-sm mx-auto">
+                    {search ? "Try searching for something else." : "Add your first ingredient above to get started."}
+                 </p>
+            </div>
           </div>
         )}
       </div>
