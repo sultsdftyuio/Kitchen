@@ -6,30 +6,41 @@ import { createClient } from "@/utils/supabase/server"
 export const maxDuration = 30
 
 export async function POST(req: Request) {
+  console.log("--------------- STARTING CHAT REQUEST ---------------")
+  
   try {
-    const { messages } = await req.json()
-    const supabase = await createClient()
+    // 1. Parse Body
+    const body = await req.json()
+    const { messages } = body
+    console.log("1. Request body parsed. Message count:", messages?.length)
 
-    // 1. Verify User (This was likely crashing due to bad env vars)
+    // 2. Supabase Setup
+    const supabase = await createClient()
+    console.log("2. Supabase client initialized")
+
+    // 3. Verify User
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
     if (authError || !user) {
-      console.error("Auth Error:", authError)
+      console.error("❌ 3. Auth Error or No User:", authError)
       return new Response("Unauthorized: Please log in again.", { status: 401 })
     }
+    console.log("✅ 3. User verified:", user.id)
 
-    // 2. Fetch Pantry Context
+    // 4. Fetch Pantry Context
+    console.log("4. Fetching pantry items...")
     const { data: pantryItems, error: dbError } = await supabase
       .from("pantry_items")
       .select("item_name, quantity") 
       .eq("user_id", user.id)
 
     if (dbError) {
-      console.error("Database Error:", dbError)
+      console.error("❌ 4. Database Error:", dbError)
       return new Response("Database connection failed", { status: 500 })
     }
+    console.log(`✅ 4. Pantry items fetched: ${pantryItems?.length || 0} items`)
 
-    // 3. Construct System Prompt
+    // 5. Construct System Prompt
     const pantryContext = pantryItems?.map(i => `- ${i.item_name} (${i.quantity})`).join("\n") || "Pantry is empty."
     
     const systemPrompt = `
@@ -47,21 +58,38 @@ export async function POST(req: Request) {
       - Use emojis (🥑, 🍳, 🔥) to keep it friendly.
       - If the user asks "What can I cook?", suggest 2-3 specific dishes based strictly on their inventory.
     `
+    console.log("5. System prompt constructed.")
 
-    // 4. Stream Response
-    // Switched to OpenAI GPT-5 Nano as requested
-    const result = streamText({
-      model: openai("gpt-5-nano"), 
-      system: systemPrompt,
-      messages,
-    })
+    // 6. Stream Response
+    console.log("6. Initializing OpenAI stream with model: gpt-5-nano")
+    
+    try {
+        const result = streamText({
+          model: openai("gpt-5-nano"), 
+          system: systemPrompt,
+          messages,
+        })
+        
+        console.log("✅ 7. Stream created successfully. Returning response.")
+        return result.toTextStreamResponse()
 
-    return result.toTextStreamResponse()
+    } catch (streamError) {
+        console.error("❌ STREAM CREATION ERROR:", streamError)
+        throw streamError // Re-throw to be caught by the outer block
+    }
 
-  } catch (error) {
-    console.error("CRITICAL API ERROR:", error)
-    // Return a JSON error that the client can handle, rather than crashing
-    return new Response(JSON.stringify({ error: "Server processing failed." }), { 
+  } catch (error: any) {
+    console.error("--------------- CRITICAL API ERROR ---------------")
+    console.error("Error Name:", error.name)
+    console.error("Error Message:", error.message)
+    console.error("Full Error Object:", JSON.stringify(error, null, 2))
+    console.error("--------------------------------------------------")
+
+    // Return the specific error message to the client for easier debugging
+    return new Response(JSON.stringify({ 
+      error: "Server processing failed.", 
+      details: error.message 
+    }), { 
       status: 500,
       headers: { "Content-Type": "application/json" }
     })
