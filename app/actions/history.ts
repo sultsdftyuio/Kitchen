@@ -14,7 +14,7 @@ export async function logMeal(formData: FormData) {
   const rating = formData.get("rating") as string
   const notes = formData.get("notes") as string
   
-  // Parse selected ingredients (sent as multiple input fields with same name)
+  // Get all IDs of items used
   const usedItemIds = formData.getAll("used_items") as string[]
 
   if (!dishName) return
@@ -35,18 +35,19 @@ export async function logMeal(formData: FormData) {
     throw new Error("Failed to log meal")
   }
 
-  // 2. Delete Used Ingredients (The "Smart" Part)
+  // 2. Smart Inventory Management
   if (usedItemIds.length > 0) {
+    // For the MVP, checking the box means "I used this up."
+    // FUTURE UPGRADE: Check formData.get(`amount_used_${id}`) to deduct instead of delete.
+    
     const { error: pantryError } = await supabase
       .from("pantry_items")
       .delete()
       .in("id", usedItemIds)
-      .eq("user_id", user.id) // Extra safety check
+      .eq("user_id", user.id)
 
     if (pantryError) {
       console.error("Error updating pantry:", pantryError)
-      // We don't throw here, because the meal was successfully logged.
-      // We just log the error.
     }
   }
 
@@ -55,7 +56,6 @@ export async function logMeal(formData: FormData) {
 
 export async function deleteMeal(mealId: number) {
   const supabase = await createClient()
-  
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
@@ -65,10 +65,7 @@ export async function deleteMeal(mealId: number) {
     .eq("id", mealId)
     .eq("user_id", user.id)
 
-  if (error) {
-    console.error("Error deleting meal:", error)
-    throw new Error("Failed to delete meal")
-  }
+  if (error) throw new Error("Failed to delete meal")
 
   revalidatePath("/dashboard")
 }

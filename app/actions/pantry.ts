@@ -7,31 +7,33 @@ import { revalidatePath } from 'next/cache'
 export async function addToPantry(formData: FormData) {
   const supabase = await createClient()
   
-  // 1. Check Auth
   const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    throw new Error('You must be logged in to add items.')
-  }
+  if (authError || !user) throw new Error('You must be logged in.')
 
-  // 2. Validate Input
-  // We keep the form input name as 'item_name' for the UI, but map it to DB column 'name'
+  // Validate Input
   const rawName = formData.get('item_name') as string
   const itemName = rawName?.trim()
-  const quantity = (formData.get('quantity') as string)?.trim()
+  
+  // New: Parse Amount and Unit
+  const rawAmount = formData.get('amount') as string
+  const unit = (formData.get('unit') as string) || 'pcs'
+  const amount = parseFloat(rawAmount) || 1
 
   if (!itemName) return
 
-  // 3. Insert Data (Fixed: Uses 'name' column)
+  // Insert with new Schema
   const { error } = await supabase.from('pantry_items').insert({
     user_id: user.id,
-    name: itemName,         // FIXED: Was 'item_name'
-    quantity: quantity || '1', 
+    name: itemName,
+    amount: amount,
+    unit: unit,
+    quantity: `${amount} ${unit}`, // Keep legacy column synced just in case
     added_at: new Date().toISOString(),
   })
 
   if (error) {
     console.error('Supabase Insert Error:', error)
-    throw new Error('Failed to add item to pantry')
+    throw new Error('Failed to add item')
   }
 
   revalidatePath('/dashboard')
@@ -40,7 +42,6 @@ export async function addToPantry(formData: FormData) {
 
 export async function deleteFromPantry(itemId: number) {
   const supabase = await createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
@@ -49,10 +50,7 @@ export async function deleteFromPantry(itemId: number) {
     .delete()
     .match({ id: itemId, user_id: user.id }) 
 
-  if (error) {
-    console.error('Delete Error:', error)
-    throw new Error('Failed to delete item')
-  }
+  if (error) throw new Error('Failed to delete item')
 
   revalidatePath('/dashboard')
   revalidatePath('/pantry')

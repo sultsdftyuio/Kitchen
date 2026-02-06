@@ -12,13 +12,16 @@ export async function updateProfile(formData: FormData) {
 
   const dietaryRestrictions = formData.get("dietary_restrictions") as string
   const skillLevel = formData.get("skill_level") as string
+  // New: Kitchen Equipment
+  const equipment = formData.get("kitchen_equipment") as string
 
   const { error } = await supabase
     .from("profiles")
     .upsert({
-      id: user.id, // matches auth.users.id
+      id: user.id, 
       dietary_restrictions: dietaryRestrictions,
       skill_level: skillLevel,
+      kitchen_equipment: equipment,
       updated_at: new Date().toISOString()
     })
 

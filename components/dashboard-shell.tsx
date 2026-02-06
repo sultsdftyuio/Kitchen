@@ -3,19 +3,23 @@
 
 import { useState } from "react"
 import { DashboardChat } from "@/components/dashboard-chat"
-import { PantryManager } from "@/components/pantry-manager"
+import PantryUI from "@/app/pantry/pantry-ui" // Using the updated UI with Amount/Unit logic
 import { CookingHistory } from "@/components/cooking-history"
-import { Package, UtensilsCrossed, ChefHat } from "lucide-react"
+import { ProfileSettings } from "@/components/profile-settings"
+import { signOut } from "@/app/actions/auth"
+import { Package, UtensilsCrossed, ChefHat, LogOut } from "lucide-react"
 
 export function DashboardShell({ 
   userEmail, 
   pantryItems, 
   history,
+  profile,
   stats 
 }: { 
   userEmail: string
   pantryItems: any[]
   history: any[]
+  profile: any
   stats: { pantryCount: number, mealsCooked: number }
 }) {
   const [activeTab, setActiveTab] = useState<'pantry' | 'history'>('pantry')
@@ -34,7 +38,9 @@ export function DashboardShell({
         
         {/* Top Navigation / Header */}
         <header className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-6 border-b-2 border-coffee/5">
-          <div className="space-y-2">
+          
+          {/* Brand & User Greeting */}
+          <div className="space-y-2 flex-1">
             <div className="flex items-center gap-2">
                 <div className="bg-tangerine p-2 rounded-lg border-2 border-black hard-shadow-sm rotate-3">
                     <ChefHat className="text-white w-6 h-6" />
@@ -48,7 +54,10 @@ export function DashboardShell({
             </p>
           </div>
           
-          <div className="flex gap-4 w-full md:w-auto">
+          {/* Stats & Controls Cluster */}
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-4 w-full md:w-auto">
+             
+             {/* Stat: Pantry */}
              <div className="flex-1 md:flex-none bg-white px-5 py-3 rounded-2xl border-2 border-border hard-shadow flex items-center gap-4 hover:-translate-y-1 transition-transform cursor-default">
                 <div className="bg-butter p-2 rounded-xl text-coffee border-2 border-border/10">
                     <Package className="w-5 h-5" />
@@ -58,6 +67,8 @@ export function DashboardShell({
                     <p className="text-2xl font-black text-coffee leading-none">{stats.pantryCount}</p>
                 </div>
              </div>
+
+             {/* Stat: Cooked */}
              <div className="flex-1 md:flex-none bg-white px-5 py-3 rounded-2xl border-2 border-border hard-shadow flex items-center gap-4 hover:-translate-y-1 transition-transform cursor-default">
                 <div className="bg-lavender p-2 rounded-xl text-coffee border-2 border-border/10">
                     <UtensilsCrossed className="w-5 h-5" />
@@ -67,6 +78,24 @@ export function DashboardShell({
                     <p className="text-2xl font-black text-coffee leading-none">{stats.mealsCooked}</p>
                 </div>
              </div>
+
+             {/* Vertical Divider */}
+             <div className="hidden md:block w-px h-12 bg-border/20 mx-2"></div>
+
+             {/* User Actions */}
+             <div className="flex items-center gap-2">
+                <ProfileSettings initialProfile={profile} />
+                
+                <form action={signOut}>
+                  <button 
+                    className="bg-white p-2 sm:p-3 rounded-xl border-2 border-border hard-shadow hover:translate-y-1 hover:shadow-none transition-all text-red-400 hover:text-red-600 hover:bg-red-50"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                </form>
+             </div>
+
           </div>
         </header>
 
@@ -102,7 +131,8 @@ export function DashboardShell({
             {/* Content Container */}
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
                 {activeTab === 'pantry' ? (
-                    <PantryManager items={pantryItems} />
+                    // Replaced PantryManager with PantryUI to use the new "Amount/Unit" features
+                    <PantryUI items={pantryItems} />
                 ) : (
                     <CookingHistory 
                         initialHistory={history} 

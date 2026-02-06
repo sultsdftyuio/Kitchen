@@ -9,31 +9,43 @@ export default async function Dashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/")
 
-  const [pantryRes, historyRes] = await Promise.all([
+  // Parallel Fetching for Performance
+  const [pantryRes, historyRes, profileRes] = await Promise.all([
     supabase
       .from("pantry_items")
       .select("*")
       .eq("user_id", user.id)
-      .not("name", "is", null) // FIXED: Filter on 'name'
-      .neq("name", "")         // FIXED: Filter on 'name'
+      .not("name", "is", null) 
+      .neq("name", "")
       .order("added_at", { ascending: false }),
     
     supabase
       .from("cooking_history")
       .select("*")
       .eq("user_id", user.id)
-      .order("cooked_at", { ascending: false })
+      .order("cooked_at", { ascending: false }),
+
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single()
   ])
 
-  // @ts-ignore - Supabase types might still say item_name, but we know it's name now
   const pantryItems = pantryRes.data || []
   const history = historyRes.data || []
+  const profile = profileRes.data || { 
+    dietary_restrictions: null, 
+    skill_level: null, 
+    kitchen_equipment: null 
+  }
 
   return (
     <DashboardShell 
       userEmail={user.email || "Chef"} 
       pantryItems={pantryItems}
       history={history}
+      profile={profile} // Passing the full profile now
       stats={{
         pantryCount: pantryItems.length,
         mealsCooked: history.length
