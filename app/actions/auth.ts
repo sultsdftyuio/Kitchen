@@ -1,3 +1,4 @@
+// app/actions/auth.ts
 "use server"
 
 import { createClient } from "@/utils/supabase/server"
@@ -46,4 +47,39 @@ export async function signUp(formData: FormData) {
   }
 
   return redirect("/login?message=Check email to continue sign in process")
+}
+
+export async function forgotPassword(formData: FormData) {
+  const origin = (await headers()).get("origin")
+  const email = formData.get("email") as string
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: "Check your email for the password reset link" }
+}
+
+export async function updatePassword(formData: FormData) {
+  const password = formData.get("password") as string
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.updateUser({
+    password,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return redirect("/")
+}
+
+export async function signInWithEmail(formData: FormData) {
+  return signIn(formData)
 }

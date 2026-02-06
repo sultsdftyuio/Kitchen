@@ -1,86 +1,96 @@
-// app/forgot-password/page.tsx
-"use client";
+"use client"
 
-import Link from "next/link";
-import { useTransition, useState } from "react";
-import { forgotPassword } from "@/app/actions/auth";
-import { Loader2, KeyRound, ArrowLeft } from "lucide-react";
+import Link from "next/link"
+import { useTransition, useState } from "react"
+import { forgotPassword } from "@/app/actions/auth"
+import { Loader2, KeyRound, ArrowLeft } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function ForgotPasswordPage() {
-  const [isPending, startTransition] = useTransition();
-  const [message, setMessage] = useState<{ error?: string; success?: string } | null>(null);
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
-  const handleSubmit = (formData: FormData) => {
-    setMessage(null);
+  async function handleSubmit(formData: FormData) {
+    setError(null)
+    setSuccess(null)
+    
     startTransition(async () => {
-      const result = await forgotPassword(formData);
-      setMessage(result);
-    });
-  };
+      const result = await forgotPassword(formData)
+      if (result?.error) {
+        setError(result.error)
+      } else if (result?.success) {
+        setSuccess(result.success)
+      }
+    })
+  }
 
   return (
-    <main className="min-h-screen bg-cream flex flex-col items-center justify-center p-4 relative overflow-hidden">
-       {/* Background */}
-       <div className="absolute top-10 left-10 w-32 h-32 bg-tangerine/20 rounded-full blur-xl" />
-       <div className="absolute bottom-10 right-10 w-40 h-40 bg-coffee/10 rounded-full blur-xl" />
-
-      <div className="w-full max-w-md bg-white rounded-3xl border-2 border-border hard-shadow-lg p-8 relative z-10">
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="bg-butter p-3 rounded-2xl border-2 border-border hard-shadow mb-4">
-            <KeyRound className="w-8 h-8 text-coffee" />
+    <div className="flex min-h-screen items-center justify-center p-4 bg-muted/50">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <div className="rounded-full bg-primary/10 p-3">
+              <KeyRound className="h-6 w-6 text-primary" />
+            </div>
           </div>
-          <h1 className="font-serif text-2xl font-bold text-coffee mb-2">
-            Forgot Password?
-          </h1>
-          <p className="text-coffee-dark/80 text-sm">
-            Don't worry, it happens to the best of us. Enter your email and we'll send you a rescue link.
-          </p>
-        </div>
+          <CardTitle className="text-2xl text-center">Forgot password?</CardTitle>
+          <CardDescription className="text-center">
+            No worries, we'll send you reset instructions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                name="email" 
+                type="email" 
+                placeholder="m@example.com" 
+                required 
+                disabled={isPending}
+              />
+            </div>
 
-        <form action={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-bold text-coffee ml-1" htmlFor="email">Email Address</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="chef@kitchenos.com"
-              required
-              className="w-full px-4 py-3 rounded-xl border-2 border-border bg-cream/30 focus:border-tangerine focus:ring-0 outline-none transition-colors text-coffee"
-            />
-          </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-          {message?.error && (
-             <div className="bg-rose/20 border-2 border-rose text-rose-dark p-3 rounded-xl text-sm text-center font-medium">
-               {message.error}
-             </div>
-          )}
-          
-          {message?.success && (
-             <div className="bg-green-100 border-2 border-green-500 text-green-800 p-3 rounded-xl text-sm text-center font-medium">
-               {message.success}
-             </div>
-          )}
+            {success && (
+              <Alert className="text-green-600 border-green-200 bg-green-50">
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
 
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full bg-coffee hover:bg-coffee/90 text-white font-bold py-3 px-6 rounded-xl border-2 border-transparent hard-shadow hover:translate-y-[1px] hover:shadow-none transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending link...
+                </>
+              ) : (
+                "Send Reset Link"
+              )}
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <Link 
+            href="/login" 
+            className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
           >
-            {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send Reset Link"}
-          </button>
-        </form>
-
-        <div className="mt-8 pt-6 border-t border-border flex justify-center">
-          <Link
-            href="/login"
-            className="text-sm font-medium text-coffee-dark hover:text-tangerine flex items-center gap-2 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Login
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to login
           </Link>
-        </div>
-      </div>
-    </main>
-  );
+        </CardFooter>
+      </Card>
+    </div>
+  )
 }
