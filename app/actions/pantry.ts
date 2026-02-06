@@ -1,60 +1,55 @@
 // app/actions/pantry.ts
 'use server'
 
-import { createClient } from "@/utils/supabase/server"
-import { revalidatePath } from "next/cache"
+import { createClient } from '@/utils/supabase/server'
+import { revalidatePath } from 'next/cache'
 
-export async function addPantryItem(formData: FormData) {
+export async function addToPantry(formData: FormData) {
   const supabase = await createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Unauthorized")
-
-  // 1. Sanitize Input
-  const rawName = formData.get("item_name") as string
-  const rawQty = formData.get("quantity") as string
-  
-  const itemName = rawName?.trim()
-  const quantity = rawQty?.trim() || "1"
-
-  // 2. Validation
-  if (!itemName) return 
-
-  // 3. Database Insert
-  // FIX: Using 'name' instead of 'item_name' to match your DB schema
-  const { error } = await supabase
-    .from("pantry_items")
-    .insert({
-      user_id: user.id,
-      name: itemName, 
-      quantity: quantity,
-      added_at: new Date().toISOString()
-    })
-
-  if (error) {
-    console.error("Error adding item:", error)
-    throw new Error("Failed to add item")
+  // 1. Check Auth securely on the server
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    throw new Error('You must be logged in to add items.')
   }
 
-  revalidatePath("/dashboard")
+  const itemName = formData.get('item_name') as string
+  const quantity = formData.get('quantity') as string
+
+  if (!itemName) return
+
+  // 2. Insert Data
+  const { error } = await supabase.from('pantry_items').insert({
+    user_id: user.id,
+    item_name: itemName,
+    quantity: quantity || '1', // Default value
+    added_at: new Date().toISOString(),
+  })
+
+  if (error) {
+    console.error('Supabase Error:', error)
+    throw new Error('Failed to add item to pantry')
+  }
+
+  // 3. Refresh the page data immediately
+  revalidatePath('/pantry')
 }
 
-export async function deletePantryItem(itemId: number) {
+export async function deleteFromPantry(itemId: number) {
   const supabase = await createClient()
-  
+
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Unauthorized")
+  if (!user) throw new Error('Unauthorized')
 
   const { error } = await supabase
-    .from("pantry_items")
+    .from('pantry_items')
     .delete()
-    .eq("id", itemId)
-    .eq("user_id", user.id)
+    .match({ id: itemId, user_id: user.id }) // Extra safety check
 
   if (error) {
-    console.error("Error deleting item:", error)
-    throw new Error("Failed to delete item")
+    console.error('Delete Error:', error)
+    throw new Error('Failed to delete item')
   }
 
-  revalidatePath("/dashboard")
+  revalidatePath('/pantry')
 }
