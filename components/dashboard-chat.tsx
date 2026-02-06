@@ -18,16 +18,13 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // Manage Input State Manually
   const [input, setInput] = useState("")
 
-  // FIX: Double 'any' cast.
-  // 1. Cast the OPTIONS object to 'any' so TS stops complaining about 'api'.
-  // 2. Cast the RESULT to 'any' so TS stops complaining about 'append/status'.
+  // Clean initialization of useChat without 'as any' casting
   const { messages, append, status, error, isLoading: hookIsLoading } = useChat({
     api: "/api/chat",
-    onError: (err: any) => console.error("Chat error:", err)
-  } as any) as any
+    onError: (err) => console.error("Chat error:", err),
+  })
   
   // Robust loading check
   const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
@@ -38,22 +35,24 @@ export function DashboardChat({
     if (messages?.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages, error]) 
+  }, [messages, status]) 
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input?.trim()) return
     
-    append({ role: 'user', content: input })
-    setInput("")
+    const userMessage = input
+    setInput("") // Clear input immediately
+    
+    await append({ role: 'user', content: userMessage })
   }
 
-  const handleChipClick = (label: string) => {
-      append({ role: 'user', content: label })
+  const handleChipClick = async (label: string) => {
+      await append({ role: 'user', content: label })
   }
   
   const handleReload = () => {
-     const lastUserMessage = [...messages].reverse().find((m: any) => m.role === 'user')
+     const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user')
      if (lastUserMessage) {
          append({ role: 'user', content: lastUserMessage.content })
      }
@@ -139,7 +138,7 @@ export function DashboardChat({
         )}
         
         {/* Message Stream */}
-        {messages?.map((m: any) => (
+        {messages?.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              
              {/* Chef Icon for AI messages */}

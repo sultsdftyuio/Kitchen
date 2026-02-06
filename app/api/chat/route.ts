@@ -1,35 +1,23 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText, convertToModelMessages } from "ai"
+import { streamText, convertToCoreMessages } from "ai"
 import { createClient } from "@/utils/supabase/server"
-import { z } from "zod"
 
 export const maxDuration = 30
 
-// Define schema for incoming chat requests
-const ChatRequestSchema = z.object({
-  messages: z.array(z.any()), // basic validation that messages is an array
-})
-
 export async function POST(req: Request) {
   try {
-    // 1. Input Validation
-    const json = await req.json()
-    const parseResult = ChatRequestSchema.safeParse(json)
+    const { messages } = await req.json()
 
-    if (!parseResult.success) {
-      return new Response("Invalid request body", { status: 400 })
-    }
-
-    const { messages } = parseResult.data
-
-    // 2. Auth Check
+    // 1. Auth Check
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
-    if (!user) return new Response("Unauthorized", { status: 401 })
+    if (!user) {
+      return new Response("Unauthorized", { status: 401 })
+    }
 
-    // 3. Fetch Context (Strict Selection)
+    // 2. Fetch Context
     const [pantryRes, profileRes] = await Promise.all([
         supabase
           .from("pantry_items")
@@ -45,14 +33,14 @@ export async function POST(req: Request) {
     const pantryItems = pantryRes.data || []
     const profile = profileRes.data 
 
-    // Context Strings
+    // 3. Context Strings
     const pantryList = pantryItems.length > 0
-      ? pantryItems.map((i: any) => `- ${i.name} (${i.amount} ${i.unit})`).join("\n")
+      ? pantryItems.map((i: any) => `- ${i.name || "Item"} (${i.amount || ""} ${i.unit || ""})`).join("\n")
       : "Pantry is empty."
 
     const equipment = profile?.kitchen_equipment 
       ? `User's Equipment: ${profile.kitchen_equipment}` 
-      : "User has standard kitchen equipment."
+      : "Standard home kitchen equipment."
 
     const restrictions = profile?.dietary_restrictions
       ? `Dietary Restrictions: ${profile.dietary_restrictions}`
@@ -84,14 +72,13 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    const result = await streamText({
-      model: openai("gpt-5-nano"), // Keeping your requested model
+    // FIX: Used convertToCoreMessages for AI SDK v6 compatibility
+    const result = streamText({
+      model: openai("gpt-5-nano"), // Kept as requested
       system: systemPrompt,
-      // await is required for convertToModelMessages in the new SDK
-      messages: await convertToModelMessages(messages),
+      messages: convertToCoreMessages(messages),
     })
     
-    // FIX: Changed to toTextStreamResponse() as per your compiler error
     return result.toTextStreamResponse()
 
   } catch (error: any) {
