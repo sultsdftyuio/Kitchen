@@ -33,8 +33,13 @@ export function DashboardShell({
   }
 
   const handleSignOut = async () => {
-    setIsSigningOut(true)
-    await signOut()
+    try {
+      setIsSigningOut(true)
+      await signOut()
+    } catch (error) {
+      console.error("Sign out failed", error)
+      setIsSigningOut(false)
+    }
   }
 
   return (
@@ -91,7 +96,7 @@ export function DashboardShell({
              <div className="flex items-center gap-2">
                 <ProfileSettings initialProfile={profile} />
                 
-                {/* FIX: Replaced form action with direct onClick handler to avoid hydration/event errors */}
+                {/* FIX: Replaced <form> with <button onClick> to prevent "p is not a function" error */}
                 <button 
                   onClick={handleSignOut}
                   disabled={isSigningOut}
