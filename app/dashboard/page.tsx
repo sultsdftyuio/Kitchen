@@ -6,20 +6,16 @@ import { DashboardShell } from "@/components/dashboard-shell"
 export default async function Dashboard() {
   const supabase = await createClient()
 
-  // 1. Check Auth
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    redirect("/")
-  }
+  if (!user) redirect("/")
 
-  // 2. Fetch All Data Parallelly (With Filters)
   const [pantryRes, historyRes] = await Promise.all([
     supabase
       .from("pantry_items")
       .select("*")
       .eq("user_id", user.id)
-      .not("item_name", "is", null) // FILTER: No nulls
-      .neq("item_name", "")         // FILTER: No empty strings
+      .not("name", "is", null) // FIXED: Filter on 'name'
+      .neq("name", "")         // FIXED: Filter on 'name'
       .order("added_at", { ascending: false }),
     
     supabase
@@ -29,10 +25,10 @@ export default async function Dashboard() {
       .order("cooked_at", { ascending: false })
   ])
 
+  // @ts-ignore - Supabase types might still say item_name, but we know it's name now
   const pantryItems = pantryRes.data || []
   const history = historyRes.data || []
 
-  // 3. Render Shell
   return (
     <DashboardShell 
       userEmail={user.email || "Chef"} 

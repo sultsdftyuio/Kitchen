@@ -23,23 +23,25 @@ export async function POST(req: Request) {
       return new Response("Unauthorized: Please log in again.", { status: 401 })
     }
 
-    // 4. Fetch Pantry Context (Strict Filtering)
+    // 4. Fetch Pantry Context (Fixed: Uses 'name' column & filters nulls)
     const { data: pantryItems, error: dbError } = await supabase
-      .from("pantry_items")
-      .select("item_name, quantity") 
+      .from("pantry_items") 
+      .select("name, quantity") 
       .eq("user_id", user.id)
-      .not("item_name", "is", null) // Critical fix
-      .neq("item_name", "")
+      .not("name", "is", null)  // Filter out corrupted data
+      .neq("name", "")          // Filter out empty strings
 
     if (dbError) {
+      console.error("Context Fetch Error:", dbError)
       return new Response("Database connection failed", { status: 500 })
     }
 
     // 5. Construct System Prompt
-    const validItems = pantryItems?.filter(i => i.item_name) || []
+    // Map the 'name' column correctly
+    const validItems = pantryItems?.filter((i: any) => i.name) || []
     
     const pantryContext = validItems.length > 0
-      ? validItems.map(i => `- ${i.item_name} (${i.quantity})`).join("\n")
+      ? validItems.map((i: any) => `- ${i.name} (${i.quantity})`).join("\n")
       : "Pantry is empty. Ask the user what ingredients they have."
     
     const systemPrompt = `
@@ -70,16 +72,17 @@ export async function POST(req: Request) {
     console.log("✅ 7. Stream created successfully.")
     
     // ----------------------------------------------------------------------
-    // ROBUST RESPONSE HANDLING (Polyfill for Version Mismatch)
+    // ROBUST RESPONSE HANDLING
     // ----------------------------------------------------------------------
     
+    // Check if the modern method exists (SDK v6+)
     if (typeof (result as any).toDataStreamResponse === 'function') {
         return (result as any).toDataStreamResponse()
     }
 
-    // Polyfill for older AI SDKs
+    // Fallback: If running on older SDK, manually format as Data Stream Protocol
     // @ts-ignore
-    const textStream = result.textStream || (result as any).fullStream
+    const textStream = result.textStream || (result as any).fullStream 
 
     if (!textStream) {
        throw new Error("Could not extract stream from result")
@@ -92,6 +95,7 @@ export async function POST(req: Request) {
                 while (true) {
                     const { done, value } = await reader.read()
                     if (done) break
+                    // Format as Data Stream Part 0 (Text)
                     if (value) {
                         const formatted = `0:${JSON.stringify(value)}\n`
                         controller.enqueue(new TextEncoder().encode(formatted))
