@@ -1,24 +1,46 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText } from "ai"
+import { streamText, convertToCoreMessages } from "ai" // import convertToCoreMessages for safety
 import { createClient } from "@/utils/supabase/server"
+import { z } from "zod"
 
 export const maxDuration = 30
 
+// Define schema for incoming chat requests
+const ChatRequestSchema = z.object({
+  messages: z.array(z.any()), // basic validation that messages is an array
+})
+
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const { messages } = body
+    // 1. Input Validation
+    const json = await req.json()
+    const parseResult = ChatRequestSchema.safeParse(json)
 
+    if (!parseResult.success) {
+      return new Response("Invalid request body", { status: 400 })
+    }
+
+    const { messages } = parseResult.data
+
+    // 2. Auth Check
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) return new Response("Unauthorized", { status: 401 })
 
-    // Fetch Context (Profile + Pantry)
+    // 3. Fetch Context (Strict Selection)
+    // ONLY fetch what the AI needs. Do not use select("*")
     const [pantryRes, profileRes] = await Promise.all([
-        supabase.from("pantry_items").select("name, amount, unit").eq("user_id", user.id),
-        supabase.from("profiles").select("*").eq("id", user.id).single()
+        supabase
+          .from("pantry_items")
+          .select("name, amount, unit")
+          .eq("user_id", user.id),
+        supabase
+          .from("profiles")
+          .select("kitchen_equipment, dietary_restrictions") // Strict selection
+          .eq("id", user.id)
+          .single()
     ])
 
     const pantryItems = pantryRes.data || []
@@ -62,18 +84,17 @@ export async function POST(req: Request) {
       If the user just chats, reply normally.
     `
 
+    // 4. Stream Response
     const result = await streamText({
       model: openai("gpt-4o"), 
       system: systemPrompt,
-      messages,
+      messages: convertToCoreMessages(messages), // sanitize messages
     })
     
-    // FIX: Cast to 'any' to bypass TS error while keeping the correct Protocol for the frontend
-    // This MUST be toDataStreamResponse() for useChat to work.
-    return (result as any).toDataStreamResponse()
+    return result.toDataStreamResponse()
 
   } catch (error: any) {
     console.error("Chat API Error:", error)
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+    return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { status: 500 })
   }
 }

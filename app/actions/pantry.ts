@@ -3,31 +3,46 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+
+// Define the validation schema
+const PantryItemSchema = z.object({
+  item_name: z.string().trim().min(1, "Item name is required").max(100, "Name too long"),
+  amount: z.coerce.number().positive("Amount must be positive").default(1),
+  unit: z.string().trim().default('pcs'),
+})
 
 export async function addToPantry(formData: FormData) {
   const supabase = await createClient()
   
+  // 1. Auth Check
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) throw new Error('You must be logged in.')
 
-  // Validate Input
-  const rawName = formData.get('item_name') as string
-  const itemName = rawName?.trim()
-  
-  // New: Parse Amount and Unit
-  const rawAmount = formData.get('amount') as string
-  const unit = (formData.get('unit') as string) || 'pcs'
-  const amount = parseFloat(rawAmount) || 1
+  // 2. Input Validation (Defensive)
+  const rawData = {
+    item_name: formData.get('item_name'),
+    amount: formData.get('amount'),
+    unit: formData.get('unit'),
+  }
 
-  if (!itemName) return
+  const result = PantryItemSchema.safeParse(rawData)
 
-  // Insert with new Schema
+  if (!result.success) {
+    // Return the specific validation error if needed, or throw generic
+    console.error("Validation Error:", result.error.flatten())
+    throw new Error("Invalid input data")
+  }
+
+  const { item_name, amount, unit } = result.data
+
+  // 3. Database Operation
   const { error } = await supabase.from('pantry_items').insert({
     user_id: user.id,
-    name: itemName,
+    name: item_name,
     amount: amount,
     unit: unit,
-    quantity: `${amount} ${unit}`, // Keep legacy column synced just in case
+    quantity: `${amount} ${unit}`, // Legacy support
     added_at: new Date().toISOString(),
   })
 
@@ -45,6 +60,7 @@ export async function deleteFromPantry(itemId: number) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
+  // Enforce User Ownership in the query
   const { error } = await supabase
     .from('pantry_items')
     .delete()

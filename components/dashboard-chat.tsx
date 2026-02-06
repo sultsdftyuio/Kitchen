@@ -18,8 +18,12 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Cast useChat() to 'any' to bypass the build-time type error.
-  const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, error, reload } = useChat() as any
+  // Removing 'as any' and using standard destructuring. 
+  // We use setInput directly to ensure the input field is always editable.
+  const { messages, input, setInput, handleSubmit, isLoading, error, reload } = useChat({
+    api: "/api/chat",
+    onError: (err) => console.error("Chat error:", err)
+  })
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -29,8 +33,16 @@ export function DashboardChat({
     }
   }, [messages, error]) 
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input?.trim()) return
+    handleSubmit(e)
+  }
+
   return (
-    <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden sticky top-8 relative group">
+    // FIX: Added z-10 to ensure it sits above the decorative blobs in the parent container
+    // FIX: Removed 'sticky top-8' from here because the parent <aside> in dashboard-shell handles the stickiness
+    <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden relative group z-10">
       
       {/* DECORATIVE: Kitchen Background Pattern */}
       <div className="absolute top-0 left-0 w-full h-32 bg-tangerine/10 opacity-50 pointer-events-none z-0" 
@@ -109,7 +121,7 @@ export function DashboardChat({
         )}
         
         {/* Message Stream */}
-        {messages?.map((m: any, i: number) => (
+        {messages?.map((m: any) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              
              {/* Chef Icon for AI messages */}
@@ -171,18 +183,17 @@ export function DashboardChat({
 
       {/* INPUT AREA */}
       <div className="p-4 bg-white border-t-2 border-border z-20">
-        <form onSubmit={handleSubmit} className="relative group/input">
+        <form onSubmit={handleFormSubmit} className="relative group/input">
           <input
-            // FIX: Ensure input is never undefined to prevent uncontrolled/controlled warnings
+            // FIX: Explicitly using setInput(e.target.value) for robust typing support
             value={input || ''}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Chef..."
             disabled={isLoading}
             className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />
           <button
             type="submit"
-            // FIX: Use optional chaining (?.) to prevent crash if input is undefined
             disabled={isLoading || !input?.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >

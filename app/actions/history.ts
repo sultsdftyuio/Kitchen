@@ -3,6 +3,13 @@
 
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
+
+const MealSchema = z.object({
+  dish_name: z.string().trim().min(1, "Dish name is required").max(150),
+  rating: z.coerce.number().int().min(0).max(5).default(0),
+  notes: z.string().trim().max(1000).optional().default(""),
+})
 
 export async function logMeal(formData: FormData) {
   const supabase = await createClient()
@@ -10,23 +17,32 @@ export async function logMeal(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const dishName = formData.get("dish_name") as string
-  const rating = formData.get("rating") as string
-  const notes = formData.get("notes") as string
+  // 1. Validate Input
+  const rawData = {
+    dish_name: formData.get("dish_name"),
+    rating: formData.get("rating"),
+    notes: formData.get("notes"),
+  }
+
+  const result = MealSchema.safeParse(rawData)
+  if (!result.success) {
+    console.error("Validation Error:", result.error.flatten())
+    throw new Error("Invalid meal data")
+  }
+
+  const { dish_name, rating, notes } = result.data
   
-  // Get all IDs of items used
+  // Handle array input manually as it's not a simple key-value for Zod to pick up from basic object mapping
   const usedItemIds = formData.getAll("used_items") as string[]
 
-  if (!dishName) return
-
-  // 1. Log the Meal
+  // 2. Log the Meal
   const { error: mealError } = await supabase
     .from("cooking_history")
     .insert({
       user_id: user.id,
-      dish_name: dishName,
-      rating: parseInt(rating) || 0,
-      notes: notes || "",
+      dish_name,
+      rating,
+      notes,
       cooked_at: new Date().toISOString()
     })
 
@@ -35,11 +51,10 @@ export async function logMeal(formData: FormData) {
     throw new Error("Failed to log meal")
   }
 
-  // 2. Smart Inventory Management
+  // 3. Smart Inventory Management (Defensive Delete)
   if (usedItemIds.length > 0) {
-    // For the MVP, checking the box means "I used this up."
-    // FUTURE UPGRADE: Check formData.get(`amount_used_${id}`) to deduct instead of delete.
-    
+    // SECURITY: We explicitly limit the delete to items owned by 'user.id'
+    // This prevents a malicious user from sending IDs belonging to others.
     const { error: pantryError } = await supabase
       .from("pantry_items")
       .delete()
