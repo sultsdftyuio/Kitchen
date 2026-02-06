@@ -69,6 +69,7 @@ export async function POST(req: Request) {
     })
     
     // FIX: Cast to 'any' to bypass TS error while keeping the correct Protocol for the frontend
+    // This MUST be toDataStreamResponse() for useChat to work.
     return (result as any).toDataStreamResponse()
 
   } catch (error: any) {

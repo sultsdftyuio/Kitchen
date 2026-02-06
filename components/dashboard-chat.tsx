@@ -18,7 +18,7 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Cast to any to bypass build types, but use safety checks below for runtime
+  // FIX: Cast useChat() to 'any' to bypass the build-time type error.
   const { messages, input, setInput, handleInputChange, handleSubmit, isLoading, error, reload } = useChat() as any
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
