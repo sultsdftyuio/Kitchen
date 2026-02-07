@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     const [pantryRes, profileRes] = await Promise.all([
         supabase
           .from("pantry_items")
-          .select("name, quantity") // Ensure these columns exist in your DB
+          .select("name, quantity") 
           .eq("user_id", user.id),
         supabase
           .from("profiles")
@@ -92,7 +92,9 @@ export async function POST(req: Request) {
 
     // 4. Stream Response
     console.log(`[API/Chat ${requestId}] 🌊 Starting Stream with model: gpt-5-nano`)
-    const coreMessages = convertToModelMessages(messages)
+    
+    // FIXED: Added 'await' here to resolve the Promise
+    const coreMessages = await convertToModelMessages(messages)
 
     const result = streamText({
       model: openai("gpt-5-nano"), 
@@ -103,7 +105,6 @@ export async function POST(req: Request) {
       },
     })
     
-    // FIXED: Cast to 'any' to bypass the build error while using the correct Runtime method
     console.log(`[API/Chat ${requestId}] 📤 Returning DataStreamResponse`)
     return (result as any).toDataStreamResponse()
 
