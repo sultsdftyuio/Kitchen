@@ -1,7 +1,7 @@
 // components/dashboard-chat.tsx
 "use client"
 
-import { useChat } from "@ai-sdk/react"
+import { useChat } from "@ai-sdk/react" // Ensure this package is installed, or use 'ai/react'
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
 import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
@@ -18,15 +18,14 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Cast options to 'any' to bypass the TypeScript error regarding 'api'.
-  // We also cast the result to 'any' to access 'append' without issues.
+  // FIX: Destructure with default values to prevent 'undefined' errors
   const { 
     messages, 
     append, 
     reload, 
     status, 
     error, 
-    input, 
+    input = "", // Default to empty string
     setInput,
     handleInputChange,
     handleSubmit,
@@ -194,7 +193,7 @@ export function DashboardChat({
       <div className="p-4 bg-white border-t-2 border-border z-20">
         <form onSubmit={handleSubmit} className="relative group/input">
           <input
-            value={input}
+            value={input || ""} // FIX: Ensure value is never undefined
             onChange={handleInputChange} 
             placeholder="Ask Chef..."
             disabled={isLoading}
@@ -202,7 +201,8 @@ export function DashboardChat({
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            // FIX: Safe-check input before trimming to prevent crash
+            disabled={isLoading || !input?.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}

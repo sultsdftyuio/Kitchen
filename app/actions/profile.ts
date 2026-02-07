@@ -17,25 +17,28 @@ export async function updateProfile(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
+  // FIX: Safely extract values. formData.get() returns 'File | string | null'.
+  // Using ?.toString() ensures we pass 'string | undefined' to Zod.
+  // Passing 'null' to z.string() causes validation to fail.
   const rawData = {
-    dietary_restrictions: formData.get("dietary_restrictions"),
-    skill_level: formData.get("skill_level"),
-    kitchen_equipment: formData.get("kitchen_equipment"),
+    dietary_restrictions: formData.get("dietary_restrictions")?.toString(),
+    skill_level: formData.get("skill_level")?.toString(),
+    kitchen_equipment: formData.get("kitchen_equipment")?.toString(),
   }
 
   const result = ProfileSchema.safeParse(rawData)
 
   if (!result.success) {
+    console.error("Profile validation failed:", result.error.flatten())
     throw new Error("Invalid profile data")
   }
 
-  // Safe to insert
   const { dietary_restrictions, skill_level, kitchen_equipment } = result.data
 
   const { error } = await supabase
     .from("profiles")
     .upsert({
-      id: user.id, // FORCE the user ID from the session. Never trust the client for IDs.
+      id: user.id, // FORCE the user ID from the session.
       dietary_restrictions: dietary_restrictions || "",
       skill_level: skill_level || "Beginner",
       kitchen_equipment: kitchen_equipment || "",
