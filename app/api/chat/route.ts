@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText, convertToCoreMessages } from "ai"
+import { streamText, convertToModelMessages } from "ai"
 import { createClient } from "@/utils/supabase/server"
 
 export const maxDuration = 30
@@ -18,7 +18,6 @@ export async function POST(req: Request) {
     }
 
     // 2. Fetch Context
-    // Note: Schema uses 'item_name' and 'quantity'
     const [pantryRes, profileRes] = await Promise.all([
         supabase
           .from("pantry_items")
@@ -75,16 +74,16 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    // FIXED: Use convertToCoreMessages (sync) for Vercel AI SDK 3.3+
-    const coreMessages = convertToCoreMessages(messages)
+    // FIXED: AI SDK 6.0 uses convertToModelMessages and it is async
+    const coreMessages = await convertToModelMessages(messages)
 
     const result = streamText({
-      model: openai("gpt-5-nano"), // Keeping your specified model
+      model: openai("gpt-4o"), // or your preferred model
       system: systemPrompt,
       messages: coreMessages,
     })
     
-    // FIXED: Use toDataStreamResponse for compatibility with useChat
+    // FIXED: Use toDataStreamResponse for proper client-side handling
     return result.toDataStreamResponse()
 
   } catch (error: any) {
