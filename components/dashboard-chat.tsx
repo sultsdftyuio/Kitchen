@@ -3,7 +3,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
@@ -18,13 +18,13 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Double 'as any' cast.
-  // 1. Cast the options object to 'any' to suppress "Object literal may only specify known properties".
-  // 2. Cast the hook result to 'any' to suppress "Property 'append' does not exist".
+  // 1. Manually manage input state to fix typing issues
+  const [localInput, setLocalInput] = useState("")
+
   const chatHelpers = useChat({
     api: "/api/chat",
-    onError: (err: any) => console.error("Chat error:", err),
-  } as any) as any 
+    onError: (err: any) => console.error("Chat client error:", err),
+  } as any) as any
 
   const { 
     messages, 
@@ -32,14 +32,9 @@ export function DashboardChat({
     reload, 
     status, 
     error, 
-    input, 
-    setInput,
-    handleInputChange,
-    handleSubmit,
     isLoading: hookIsLoading 
   } = chatHelpers
   
-  // Robust loading check
   const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -50,26 +45,31 @@ export function DashboardChat({
     }
   }, [messages, status]) 
 
+  // 2. Custom submit handler
+  const handleSend = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    if (!localInput.trim()) return
+
+    const messageContent = localInput
+    setLocalInput("") // Clear input immediately for better UX
+
+    if (typeof append === 'function') {
+      await append({ role: 'user', content: messageContent })
+    }
+  }
+
   const handleChipClick = async (label: string) => {
-      // Safe check
-      if (typeof append === 'function') {
-        await append({ role: 'user', content: label })
-      }
+    if (typeof append === 'function') {
+      await append({ role: 'user', content: label })
+    }
   }
   
   return (
     <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden relative group z-10">
       
-      {/* DECORATIVE: Kitchen Background Pattern */}
-      <div className="absolute top-0 left-0 w-full h-32 bg-tangerine/10 opacity-50 pointer-events-none z-0" 
-           style={{ backgroundImage: 'radial-gradient(#F97316 1px, transparent 1px)', backgroundSize: '10px 10px' }}>
-      </div>
-
-      {/* HEADER: The Kitchen Pass */}
+      {/* HEADER */}
       <div className="relative z-10 p-6 pb-2 border-b-2 border-border/10">
         <div className="flex flex-col items-center justify-center text-center space-y-3">
-            
-            {/* Animated Chef Avatar */}
             <div className={cn(
                 "relative w-20 h-20 bg-cream rounded-full border-2 border-border flex items-center justify-center shadow-md",
                 isLoading ? "animate-bounce" : error ? "animate-none bg-red-100 border-red-300" : "animate-float"
@@ -81,12 +81,7 @@ export function DashboardChat({
                     {isLoading ? "Cooking..." : error ? "Error!" : "Ready!"}
                 </div>
                 {error ? <AlertCircle className="w-10 h-10 text-red-500" /> : <ChefHat className="w-10 h-10 text-coffee" />}
-                
-                {isLoading && (
-                    <Flame className="absolute -bottom-1 -right-1 w-6 h-6 text-orange-500 animate-pulse" />
-                )}
             </div>
-
             <div>
                 <h2 className="font-serif text-2xl font-bold text-coffee">Chef AI</h2>
                 <p className="text-xs font-medium text-coffee-dark/60 uppercase tracking-wider">
@@ -95,7 +90,6 @@ export function DashboardChat({
             </div>
         </div>
 
-        {/* Quick Actions Bar */}
         <div className="flex justify-center mt-4 pb-2">
             <button 
                 onClick={() => onLogRecipe("")}
@@ -107,10 +101,8 @@ export function DashboardChat({
         </div>
       </div>
 
-      {/* CHAT AREA: The Counter */}
+      {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
-        
-        {/* Empty State / Welcome Screen */}
         {(!messages || messages.length === 0) && !error && (
           <div className="mt-8 text-center space-y-6 animate-in fade-in zoom-in duration-500">
             <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
@@ -120,7 +112,6 @@ export function DashboardChat({
                 <p className="font-medium text-coffee text-lg">"What ingredients are we working with today?"</p>
                 <p className="text-sm text-coffee-dark/50 mt-1">I can see your pantry. Ask me anything!</p>
             </div>
-            
             <div className="grid grid-cols-2 gap-2 px-4">
               {PROMPT_CHIPS.map((chip) => (
                 <button
@@ -136,17 +127,13 @@ export function DashboardChat({
           </div>
         )}
         
-        {/* Message Stream */}
         {messages?.map((m: any) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
-             
-             {/* Chef Icon for AI messages */}
              {m.role !== 'user' && (
                  <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
                     <ChefHat className="w-3 h-3 text-tangerine" />
                  </div>
              )}
-
              <div className={cn(
                "max-w-[85%] p-4 text-sm shadow-sm relative",
                m.role === 'user' 
@@ -160,7 +147,6 @@ export function DashboardChat({
           </div>
         ))}
 
-        {/* Loading Indicator bubble */}
         {isLoading && (
             <div className="flex justify-start items-end gap-2">
                <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
@@ -174,7 +160,6 @@ export function DashboardChat({
             </div>
         )}
 
-        {/* Error Message Display */}
         {error && (
             <div className="flex justify-center my-4 animate-in fade-in slide-in-from-bottom-2">
                 <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-4 max-w-[90%] text-sm text-center shadow-sm">
@@ -192,25 +177,23 @@ export function DashboardChat({
                 </div>
             </div>
         )}
-        
         <div ref={messagesEndRef} />
       </div>
 
       {/* INPUT AREA */}
       <div className="p-4 bg-white border-t-2 border-border z-20">
-        <form onSubmit={handleSubmit} className="relative group/input">
+        <form onSubmit={handleSend} className="relative group/input">
           <input
-            // FIX: Ensure value is never undefined
-            value={input || ""} 
-            onChange={handleInputChange} 
+            // 3. Bind to local state 'localInput'
+            value={localInput}
+            onChange={(e) => setLocalInput(e.target.value)}
             placeholder="Ask Chef..."
-            disabled={isLoading}
+            disabled={isLoading} 
             className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />
           <button
             type="submit"
-            // FIX: Safe-check input before trimming
-            disabled={isLoading || !input?.trim()}
+            disabled={isLoading || !localInput.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}

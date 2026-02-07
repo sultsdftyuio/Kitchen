@@ -17,15 +17,16 @@ export async function POST(req: Request) {
       return new Response("Unauthorized", { status: 401 })
     }
 
-    // 2. Fetch Context
+    // 2. Fetch Context (Using CORRECT Schema column names)
+    // Note: pantry_items uses 'item_name' and 'quantity', NOT 'name' and 'amount'
     const [pantryRes, profileRes] = await Promise.all([
         supabase
           .from("pantry_items")
-          .select("name, amount, unit")
+          .select("item_name, quantity") 
           .eq("user_id", user.id),
         supabase
           .from("profiles")
-          .select("kitchen_equipment, dietary_restrictions")
+          .select("dietary_restrictions, skill_level") // Fetched valid columns from schema
           .eq("id", user.id)
           .single()
     ])
@@ -33,53 +34,51 @@ export async function POST(req: Request) {
     const pantryItems = pantryRes.data || []
     const profile = profileRes.data 
 
-    // 3. Context Strings
+    // 3. Construct Context Strings
     const pantryList = pantryItems.length > 0
-      ? pantryItems.map((i: any) => `- ${i.name || "Item"} (${i.amount || ""} ${i.unit || ""})`).join("\n")
-      : "Pantry is empty."
+      ? pantryItems.map((i: any) => `- ${i.item_name} (${i.quantity})`).join("\n")
+      : "Pantry is empty. Ask the user what ingredients they have."
 
-    const equipment = profile?.kitchen_equipment 
-      ? `User's Equipment: ${profile.kitchen_equipment}` 
-      : "Standard home kitchen equipment."
-
-    const restrictions = profile?.dietary_restrictions
-      ? `Dietary Restrictions: ${profile.dietary_restrictions}`
-      : "No dietary restrictions."
+    const userProfile = profile 
+      ? `Skill Level: ${profile.skill_level || "Beginner"}\nDietary Restrictions: ${profile.dietary_restrictions || "None"}`
+      : "User profile not set."
 
     const systemPrompt = `
       You are KitchenOS Chef AI.
       
-      CONTEXT:
+      CONTEXT (User's Inventory):
       ${pantryList}
       
       USER PROFILE:
-      ${equipment}
-      ${restrictions}
+      ${userProfile}
       
-      GOAL: Help the user cook using ONLY what they have.
+      GOAL: Help the user cook delicious meals using primarily what they have.
       
-      CRITICAL OUTPUT FORMAT:
-      If providing a recipe, you MUST output valid Markdown but use specific headers like "## Title", "### Ingredients", "### Instructions".
+      GUIDELINES:
+      - If suggesting a recipe, strictly follow the format below.
+      - If the user asks a general cooking question, answer normally.
+      - Be encouraging and pragmatic.
       
-      Structure it strictly:
-      1. Title (H2)
-      2. Time & Difficulty (Bold)
-      3. Missing Ingredients (if any - IMPORTANT)
-      4. Ingredients List (Bulleted)
-      5. Step-by-Step Instructions (Numbered)
+      RECIPE FORMAT (Markdown):
+      ## [Recipe Name]
+      **Time:** [Total Time] | **Difficulty:** [Easy/Medium/Hard]
       
-      If the user just chats, reply normally.
+      ### Missing Ingredients
+      * [List items the user needs to buy, if any. Try to keep this empty.]
+      
+      ### Ingredients
+      * [List all ingredients]
+      
+      ### Instructions
+      1. [Step 1]
+      2. [Step 2]
     `
 
     // 4. Stream Response
-    // FIXES based on your compiler errors:
-    // 1. Use 'await' for convertToModelMessages (it is async in newer SDKs)
-    // 2. Use 'system' instead of 'instructions' (Compiler explicitly asked for 'system')
-    // 3. Use 'toTextStreamResponse' instead of 'toDataStreamResponse' (Compiler suggestion)
-    const coreMessages = await convertToModelMessages(messages)
+    const coreMessages = convertToModelMessages(messages)
 
     const result = streamText({
-      model: openai("gpt-5-nano"),
+      model: openai("gpt-5-nano"), // Use gpt-4o or gpt-4o-mini
       system: systemPrompt,
       messages: coreMessages,
     })
