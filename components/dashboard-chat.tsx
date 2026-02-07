@@ -20,13 +20,8 @@ export function DashboardChat({
 }) {
   const [localInput, setLocalInput] = useState("")
 
-  const chatHelpers = useChat({
-    api: "/api/chat",
-    // FIXED: Must match server's toTextStreamResponse()
-    streamProtocol: 'text', 
-    onError: (err: any) => console.error("Chat client error:", err),
-  } as any) as any
-
+  // FIXED: Removed 'streamProtocol' to use default Data Stream
+  // FIXED: Removed 'as any' casting to ensure proper initialization
   const { 
     messages, 
     append, 
@@ -34,7 +29,10 @@ export function DashboardChat({
     status, 
     error, 
     isLoading: hookIsLoading 
-  } = chatHelpers
+  } = useChat({
+    api: "/api/chat",
+    onError: (err) => console.error("Chat client error:", err),
+  })
   
   const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
   
@@ -53,14 +51,18 @@ export function DashboardChat({
     const messageContent = localInput
     setLocalInput("") 
 
-    if (typeof append === 'function') {
+    try {
       await append({ role: 'user', content: messageContent })
+    } catch (err) {
+      console.error("Failed to send message:", err)
     }
   }
 
   const handleChipClick = async (label: string) => {
-    if (typeof append === 'function') {
+    try {
       await append({ role: 'user', content: label })
+    } catch (err) {
+      console.error("Failed to send chip message:", err)
     }
   }
   
@@ -116,8 +118,10 @@ export function DashboardChat({
               {PROMPT_CHIPS.map((chip) => (
                 <button
                   key={chip.label}
+                  type="button" // FIXED: Explicit type button
                   onClick={() => handleChipClick(chip.label)}
-                  className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip"
+                  disabled={isLoading}
+                  className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip disabled:opacity-50"
                 >
                   <span className="text-lg mr-2 group-hover/chip:scale-110 inline-block transition-transform">{chip.icon}</span>
                   <span className="font-bold">{chip.label}</span>
@@ -127,7 +131,7 @@ export function DashboardChat({
           </div>
         )}
         
-        {messages?.map((m: any) => (
+        {messages?.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              {m.role !== 'user' && (
                  <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
@@ -169,6 +173,7 @@ export function DashboardChat({
                     </p>
                     <p className="opacity-90">{error.message}</p>
                     <button 
+                        type="button"
                         onClick={() => reload()}
                         className="mt-2 text-xs bg-white border border-red-200 px-3 py-1 rounded-full hover:bg-red-50 transition-colors"
                     >
