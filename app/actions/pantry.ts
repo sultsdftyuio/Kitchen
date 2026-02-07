@@ -19,9 +19,9 @@ export async function addToPantry(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) throw new Error('You must be logged in.')
 
-  // 2. Input Validation (Defensive)
+  // 2. Input Validation
   const rawData = {
-    item_name: formData.get('item_name'),
+    item_name: formData.get('item_name'), // Input name from the UI form
     amount: formData.get('amount'),
     unit: formData.get('unit'),
   }
@@ -29,7 +29,6 @@ export async function addToPantry(formData: FormData) {
   const result = PantryItemSchema.safeParse(rawData)
 
   if (!result.success) {
-    // Return the specific validation error if needed, or throw generic
     console.error("Validation Error:", result.error.flatten())
     throw new Error("Invalid input data")
   }
@@ -37,12 +36,14 @@ export async function addToPantry(formData: FormData) {
   const { item_name, amount, unit } = result.data
 
   // 3. Database Operation
+  // FIXED: Insert into 'name' column using 'item_name' from form
   const { error } = await supabase.from('pantry_items').insert({
     user_id: user.id,
-    name: item_name,
-    amount: amount,
-    unit: unit,
-    quantity: `${amount} ${unit}`, // Legacy support
+    name: item_name,               // DB Column: name
+    amount: amount,                // DB Column: amount
+    unit: unit,                    // DB Column: unit
+    quantity: `${amount} ${unit}`, // Legacy/Display column
+    category: 'pantry',
     added_at: new Date().toISOString(),
   })
 
@@ -60,7 +61,6 @@ export async function deleteFromPantry(itemId: number) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Unauthorized')
 
-  // Enforce User Ownership in the query
   const { error } = await supabase
     .from('pantry_items')
     .delete()

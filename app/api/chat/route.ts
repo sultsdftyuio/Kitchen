@@ -18,10 +18,11 @@ export async function POST(req: Request) {
     }
 
     // 2. Fetch Context
+    // FIXED: Select 'name' to match schema
     const [pantryRes, profileRes] = await Promise.all([
         supabase
           .from("pantry_items")
-          .select("item_name, quantity") 
+          .select("name, quantity, amount, unit") 
           .eq("user_id", user.id),
         supabase
           .from("profiles")
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
 
     // 3. Construct Context Strings
     const pantryList = pantryItems.length > 0
-      ? pantryItems.map((i: any) => `- ${i.item_name} (${i.quantity})`).join("\n")
+      ? pantryItems.map((i: any) => `- ${i.name} (${i.amount || 1} ${i.unit || 'pcs'})`).join("\n")
       : "Pantry is empty. Ask the user what ingredients they have."
 
     const userProfile = profile 
@@ -74,16 +75,15 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    // We use convertToModelMessages as requested by previous errors
     const coreMessages = await convertToModelMessages(messages)
 
     const result = streamText({
-      model: openai("gpt-4o"), 
+      model: openai("gpt-5-nano"), 
       system: systemPrompt,
       messages: coreMessages,
     })
     
-    // FIXED: Changed to toTextStreamResponse() to match your environment's types
+    // FIXED: Use Text Stream to avoid build errors
     return result.toTextStreamResponse()
 
   } catch (error: any) {
