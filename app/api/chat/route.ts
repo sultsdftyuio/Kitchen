@@ -14,50 +14,27 @@ export async function POST(req: Request) {
     const body = await req.json()
     const { messages } = body
     console.log(`[API/Chat ${requestId}] 📨 Received ${messages?.length || 0} messages`)
-    if (messages && messages.length > 0) {
-      console.log(`[API/Chat ${requestId}] Last message:`, messages[messages.length - 1])
-    }
 
     // 1. Auth Check
-    console.log(`[API/Chat ${requestId}] 🔐 Checking Auth...`)
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
-    if (authError) {
-      console.error(`[API/Chat ${requestId}] ❌ Auth Error:`, authError)
-      return new Response(JSON.stringify({ error: "Auth Error" }), { status: 401 })
-    }
-
-    if (!user) {
-      console.warn(`[API/Chat ${requestId}] ❌ No user found in session`)
+    if (authError || !user) {
+      console.error(`[API/Chat ${requestId}] ❌ Auth Error or No User`, authError)
       return new Response("Unauthorized", { status: 401 })
     }
-    console.log(`[API/Chat ${requestId}] ✅ Authenticated User ID:`, user.id)
 
-    // 2. Fetch Context (Safe Select)
-    console.log(`[API/Chat ${requestId}] 📦 Fetching Pantry & Profile...`)
+    // 2. Fetch Context
+    console.log(`[API/Chat ${requestId}] 📦 Fetching Context for user ${user.id}...`)
     const [pantryRes, profileRes] = await Promise.all([
-        supabase
-          .from("pantry_items")
-          .select("name, quantity") 
-          .eq("user_id", user.id),
-        supabase
-          .from("profiles")
-          .select("dietary_restrictions, skill_level")
-          .eq("id", user.id)
-          .single()
+        supabase.from("pantry_items").select("name, quantity").eq("user_id", user.id),
+        supabase.from("profiles").select("dietary_restrictions, skill_level").eq("id", user.id).single()
     ])
-
-    if (pantryRes.error) console.error(`[API/Chat ${requestId}] ⚠️ Pantry Fetch Error:`, pantryRes.error)
-    if (profileRes.error) console.error(`[API/Chat ${requestId}] ⚠️ Profile Fetch Error:`, profileRes.error)
 
     const pantryItems = pantryRes.data || []
     const profile = profileRes.data 
-    
-    console.log(`[API/Chat ${requestId}] 🍎 Pantry Items Found:`, pantryItems.length)
-    console.log(`[API/Chat ${requestId}] 👤 Profile Found:`, profile ? "Yes" : "No")
+    console.log(`[API/Chat ${requestId}] 🍎 Pantry items: ${pantryItems.length}`)
 
-    // 3. Construct Context Strings
     const pantryList = pantryItems.length > 0
       ? pantryItems.map((i: any) => `- ${i.name} (${i.quantity})`).join("\n")
       : "Pantry is empty. Ask the user what ingredients they have."
@@ -68,34 +45,19 @@ export async function POST(req: Request) {
 
     const systemPrompt = `
       You are KitchenOS Chef AI.
-      
-      CONTEXT (User's Inventory):
-      ${pantryList}
-      
-      USER PROFILE:
-      ${userProfile}
-      
+      CONTEXT (User's Inventory): ${pantryList}
+      USER PROFILE: ${userProfile}
       GOAL: Help the user cook delicious meals using primarily what they have.
-      
-      RECIPE FORMAT (Markdown):
-      ## [Recipe Name]
-      **Time:** [Total Time] | **Difficulty:** [Easy/Medium/Hard]
-      
-      ### Ingredients
-      * [List ingredients]
-      
-      ### Instructions
-      1. [Step 1]
     `
-    
-    console.log(`[API/Chat ${requestId}] 🤖 System Prompt constructed (Length: ${systemPrompt.length})`)
 
-    // 4. Stream Response
-    console.log(`[API/Chat ${requestId}] 🌊 Starting Stream with model: gpt-5-nano`)
-    
-    // FIXED: Added 'await' here to resolve the Promise
+    // 3. Prepare Messages
+    // CRITICAL FIX: Added 'await' here.
+    console.log(`[API/Chat ${requestId}] 🔄 Converting messages...`)
     const coreMessages = await convertToModelMessages(messages)
 
+    // 4. Stream Response
+    console.log(`[API/Chat ${requestId}] 🌊 Starting Stream (Model: gpt-5-nano)...`)
+    
     const result = streamText({
       model: openai("gpt-5-nano"), 
       system: systemPrompt,
@@ -105,8 +67,7 @@ export async function POST(req: Request) {
       },
     })
     
-    console.log(`[API/Chat ${requestId}] 📤 Returning DataStreamResponse`)
-    return (result as any).toDataStreamResponse()
+    return result.toDataStreamResponse()
 
   } catch (error: any) {
     console.error(`[API/Chat ${requestId}] 💥 FATAL ERROR:`, error)

@@ -2,7 +2,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle } from "lucide-react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Terminal } from "lucide-react"
 import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
@@ -18,93 +18,99 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  const [localInput, setLocalInput] = useState("")
-
-  // DEBUG: Track render cycles
-  // console.log("[UI/Chat] Render Cycle")
-
-  // FIXED: Cast to 'any' to bypass TypeScript build error with 'append'
-  const chatHelpers = useChat({
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  // 1. Initialize Hook without casting to 'any' initially to catch type errors
+  const chatHook = useChat({
     api: "/api/chat",
-    onError: (err: any) => {
-        console.error("[UI/Chat] 🚨 Hook Error:", err)
-    },
-    onFinish: (message: any) => {
-        console.log("[UI/Chat] ✅ Stream Finished. Full message:", message)
-    },
-    onResponse: (response: any) => {
-        console.log("[UI/Chat] 📡 Response received from API. Status:", response.status)
-    }
-  } as any) as any
+    onError: (err) => console.error("[UI/Chat] 🚨 Hook Error:", err),
+    onFinish: (msg) => console.log("[UI/Chat] ✅ Stream Finished", msg),
+    onResponse: (res) => console.log("[UI/Chat] 📡 Response:", res.status)
+  })
 
+  // 2. Destructure with safety checks
   const { 
     messages, 
+    input,
+    setInput,
     append, 
+    handleSubmit,
     reload, 
     status, 
     error, 
-    isLoading: hookIsLoading 
-  } = chatHelpers
-  
-  const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
-  
-  // DEBUG: Monitor status changes
+  } = chatHook
+
+  const isLoading = status === 'submitted' || status === 'streaming'
+
+  // 3. DEBUG: Inspect the hook immediately
   useEffect(() => {
-    console.log(`[UI/Chat] 📊 Status changed: ${status}, isLoading: ${isLoading}`)
-    if (error) console.error("[UI/Chat] ❌ Current Error State:", error)
-  }, [status, isLoading, error])
+    console.group("[UI/Chat] Hook Inspection")
+    console.log("Keys available:", Object.keys(chatHook))
+    console.log("Has append?", typeof append === 'function')
+    console.log("Has handleSubmit?", typeof handleSubmit === 'function')
+    console.groupEnd()
+  }, [])
 
-  // DEBUG: Monitor message updates
-  useEffect(() => {
-    if (messages && messages.length > 0) {
-        console.log(`[UI/Chat] 💬 Messages updated. Count: ${messages.length}`)
-        // console.log("[UI/Chat] Latest message:", messages[messages.length - 1])
-    }
-  }, [messages])
-
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
+  // Auto-scroll
   useEffect(() => {
     if (messages?.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages, status]) 
 
-  const handleSend = async (e?: React.FormEvent) => {
-    e?.preventDefault()
-    if (!localInput.trim()) {
-        console.log("[UI/Chat] ⚠️ Attempted to send empty message")
+  // 4. Enhanced Send Function
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return
+
+    console.log(`[UI/Chat] 🚀 Attempting to send: "${content}"`)
+
+    // Strategy A: Try 'append' (Direct Message Injection)
+    if (typeof append === 'function') {
+      try {
+        console.log("[UI/Chat] 👉 Using 'append' strategy")
+        await append({ role: 'user', content })
         return
+      } catch (e) {
+        console.error("[UI/Chat] ❌ 'append' failed:", e)
+      }
+    } 
+
+    // Strategy B: Try 'handleSubmit' (Form Simulation)
+    // This requires setting the input state first, then firing the event
+    if (typeof setInput === 'function' && typeof handleSubmit === 'function') {
+      console.log("[UI/Chat] 👉 Using 'handleSubmit' fallback strategy")
+      setInput(content)
+      // We need to yield to render cycle so 'input' updates before submitting
+      setTimeout(() => {
+        // Create a fake form event
+        const fakeEvent = { preventDefault: () => {} } as React.FormEvent
+        handleSubmit(fakeEvent)
+      }, 0)
+      return
     }
 
-    const messageContent = localInput
-    console.log(`[UI/Chat] 📤 Sending user message: "${messageContent}"`)
+    console.error("[UI/Chat] 💀 ALL SEND STRATEGIES FAILED. Hook is broken.")
+  }
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim()) return
     
-    setLocalInput("") 
-
-    try {
-        if (typeof append === 'function') {
-            await append({ role: 'user', content: messageContent })
-            console.log("[UI/Chat] 📨 Append called successfully")
-        } else {
-            console.error("[UI/Chat] ❌ 'append' function is missing from useChat")
+    // Log what we are trying to do
+    console.log("[UI/Chat] 📝 Manual Form Submit triggered")
+    
+    if (typeof handleSubmit === 'function') {
+        handleSubmit(e)
+    } else {
+        console.error("[UI/Chat] ❌ handleSubmit is missing!")
+        // Attempt fallback to append if input is set
+        if (input && typeof append === 'function') {
+            append({ role: 'user', content: input })
+            setInput('')
         }
-    } catch (err) {
-        console.error("[UI/Chat] 💥 Error calling append:", err)
     }
   }
 
-  const handleChipClick = async (label: string) => {
-    console.log(`[UI/Chat] 🖱️ Chip clicked: "${label}"`)
-    try {
-        if (typeof append === 'function') {
-            await append({ role: 'user', content: label })
-        }
-    } catch (err) {
-        console.error("[UI/Chat] 💥 Error calling append via chip:", err)
-    }
-  }
-  
   return (
     <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden relative group z-10">
       
@@ -130,20 +136,20 @@ export function DashboardChat({
                 </p>
             </div>
         </div>
-
-        <div className="flex justify-center mt-4 pb-2">
-            <button 
-                onClick={() => onLogRecipe("")}
-                className="text-xs font-bold text-coffee/70 hover:text-tangerine hover:bg-white flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-transparent hover:border-border transition-all"
-            >
-                <PlusCircle className="w-3.5 h-3.5" /> 
-                Log a Meal Manually
-            </button>
-        </div>
       </div>
 
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
+        
+        {/* DEBUG INFO PANEL (Remove in production) */}
+        <div className="bg-slate-100 border border-slate-300 p-2 rounded text-[10px] text-slate-600 font-mono mb-4">
+            <p className="font-bold flex gap-2 items-center"><Terminal className="w-3 h-3"/> Debug Status:</p>
+            <p>Msg Count: {messages?.length || 0}</p>
+            <p>Append: {typeof append === 'function' ? '✅' : '❌'}</p>
+            <p>Submit: {typeof handleSubmit === 'function' ? '✅' : '❌'}</p>
+            <p>Status: {status}</p>
+        </div>
+
         {(!messages || messages.length === 0) && !error && (
           <div className="mt-8 text-center space-y-6 animate-in fade-in zoom-in duration-500">
             <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
@@ -151,14 +157,13 @@ export function DashboardChat({
             </div>
             <div className="px-6">
                 <p className="font-medium text-coffee text-lg">"What ingredients are we working with today?"</p>
-                <p className="text-sm text-coffee-dark/50 mt-1">I can see your pantry. Ask me anything!</p>
             </div>
             <div className="grid grid-cols-2 gap-2 px-4">
               {PROMPT_CHIPS.map((chip) => (
                 <button
                   key={chip.label}
                   type="button" 
-                  onClick={() => handleChipClick(chip.label)}
+                  onClick={() => sendMessage(chip.label)}
                   disabled={isLoading}
                   className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip disabled:opacity-50"
                 >
@@ -170,7 +175,7 @@ export function DashboardChat({
           </div>
         )}
         
-        {messages?.map((m: any) => (
+        {messages?.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              {m.role !== 'user' && (
                  <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
@@ -211,8 +216,8 @@ export function DashboardChat({
                         Oops, something burned.
                     </p>
                     <p className="opacity-90">{error.message}</p>
-                    <div className="text-xs mt-2 p-2 bg-white border border-red-100 rounded">
-                        Check console for details
+                    <div className="text-xs mt-2 p-2 bg-white border border-red-100 rounded text-left overflow-auto max-h-20">
+                        {JSON.stringify(error)}
                     </div>
                     <button 
                         type="button"
@@ -229,17 +234,17 @@ export function DashboardChat({
 
       {/* INPUT AREA */}
       <div className="p-4 bg-white border-t-2 border-border z-20">
-        <form onSubmit={handleSend} className="relative group/input">
+        <form onSubmit={handleFormSubmit} className="relative group/input">
           <input
-            value={localInput}
-            onChange={(e) => setLocalInput(e.target.value)}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Ask Chef..."
             disabled={isLoading} 
             className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={isLoading || !localInput.trim()}
+            disabled={isLoading || !input.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}
