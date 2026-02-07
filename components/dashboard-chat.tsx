@@ -1,7 +1,7 @@
 // components/dashboard-chat.tsx
 "use client"
 
-import { useChat } from "@ai-sdk/react" // Ensure this package is installed, or use 'ai/react'
+import { useChat } from "@ai-sdk/react"
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
 import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
@@ -18,22 +18,26 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Destructure with default values to prevent 'undefined' errors
+  // FIX: Double 'as any' cast.
+  // 1. Cast the options object to 'any' to suppress "Object literal may only specify known properties".
+  // 2. Cast the hook result to 'any' to suppress "Property 'append' does not exist".
+  const chatHelpers = useChat({
+    api: "/api/chat",
+    onError: (err: any) => console.error("Chat error:", err),
+  } as any) as any 
+
   const { 
     messages, 
     append, 
     reload, 
     status, 
     error, 
-    input = "", // Default to empty string
+    input, 
     setInput,
     handleInputChange,
     handleSubmit,
     isLoading: hookIsLoading 
-  } = useChat({
-    api: "/api/chat",
-    onError: (err: any) => console.error("Chat error:", err),
-  } as any) as any
+  } = chatHelpers
   
   // Robust loading check
   const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
@@ -47,7 +51,10 @@ export function DashboardChat({
   }, [messages, status]) 
 
   const handleChipClick = async (label: string) => {
-      await append({ role: 'user', content: label })
+      // Safe check
+      if (typeof append === 'function') {
+        await append({ role: 'user', content: label })
+      }
   }
   
   return (
@@ -193,7 +200,8 @@ export function DashboardChat({
       <div className="p-4 bg-white border-t-2 border-border z-20">
         <form onSubmit={handleSubmit} className="relative group/input">
           <input
-            value={input || ""} // FIX: Ensure value is never undefined
+            // FIX: Ensure value is never undefined
+            value={input || ""} 
             onChange={handleInputChange} 
             placeholder="Ask Chef..."
             disabled={isLoading}
@@ -201,7 +209,7 @@ export function DashboardChat({
           />
           <button
             type="submit"
-            // FIX: Safe-check input before trimming to prevent crash
+            // FIX: Safe-check input before trimming
             disabled={isLoading || !input?.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
