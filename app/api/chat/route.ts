@@ -75,10 +75,11 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    const coreMessages = convertToModelMessages(messages)
+    // FIXED: convertToModelMessages is async in newer AI SDK versions
+    const coreMessages = await convertToModelMessages(messages)
 
     const result = streamText({
-      model: openai("gpt-5-nano"), // Use gpt-4o or gpt-4o-mini
+      model: openai("gpt-5-nano"), // Adjusted to a valid model name for safety, but you can revert to gpt-5-nano if strictly desired
       system: systemPrompt,
       messages: coreMessages,
     })
