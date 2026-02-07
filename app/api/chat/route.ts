@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText, convertToCoreMessages } from "ai"
+import { streamText, convertToModelMessages } from "ai"
 import { createClient } from "@/utils/supabase/server"
 
 export const maxDuration = 30
@@ -72,11 +72,16 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    // FIX: Used convertToCoreMessages for AI SDK v6 compatibility
+    // FIXES based on your compiler errors:
+    // 1. Use 'await' for convertToModelMessages (it is async in newer SDKs)
+    // 2. Use 'system' instead of 'instructions' (Compiler explicitly asked for 'system')
+    // 3. Use 'toTextStreamResponse' instead of 'toDataStreamResponse' (Compiler suggestion)
+    const coreMessages = await convertToModelMessages(messages)
+
     const result = streamText({
-      model: openai("gpt-5-nano"), // Kept as requested
+      model: openai("gpt-5-nano"),
       system: systemPrompt,
-      messages: convertToCoreMessages(messages),
+      messages: coreMessages,
     })
     
     return result.toTextStreamResponse()
