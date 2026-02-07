@@ -74,17 +74,17 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    // FIXED: AI SDK 6.0 uses convertToModelMessages and it is async
+    // We use convertToModelMessages as requested by previous errors
     const coreMessages = await convertToModelMessages(messages)
 
     const result = streamText({
-      model: openai("gpt-4o"), // or your preferred model
+      model: openai("gpt-4o"), 
       system: systemPrompt,
       messages: coreMessages,
     })
     
-    // FIXED: Use toDataStreamResponse for proper client-side handling
-    return result.toDataStreamResponse()
+    // FIXED: Changed to toTextStreamResponse() to match your environment's types
+    return result.toTextStreamResponse()
 
   } catch (error: any) {
     console.error("Chat API Error:", error)
