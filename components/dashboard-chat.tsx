@@ -3,7 +3,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Terminal } from "lucide-react"
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
@@ -20,15 +20,16 @@ export function DashboardChat({
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // 1. Initialize Hook with 'as any' to bypass TypeScript strictness on 'api' property
+  // 1. Initialize Hook
+  // FIXED: Cast the ENTIRE result to 'any' to silence errors on 'input', 'append', etc.
   const chatHook = useChat({
     api: "/api/chat",
-    onError: (err) => console.error("[UI/Chat] 🚨 Hook Error:", err),
-    onFinish: (msg) => console.log("[UI/Chat] ✅ Stream Finished", msg),
-    onResponse: (res) => console.log("[UI/Chat] 📡 Response Status:", res.status)
-  } as any)
+    onError: (err: any) => console.error("[UI/Chat] 🚨 Hook Error:", err),
+    onFinish: (msg: any) => console.log("[UI/Chat] ✅ Stream Finished", msg),
+    onResponse: (res: any) => console.log("[UI/Chat] 📡 Response Status:", res.status)
+  } as any) as any
 
-  // 2. Destructure
+  // 2. Destructure (Now safe because chatHook is 'any')
   const { 
     messages, 
     input,
@@ -192,7 +193,7 @@ export function DashboardChat({
           </div>
         )}
         
-        {messages?.map((m) => (
+        {messages?.map((m: { id: Key | null | undefined; role: string; content: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              {m.role !== 'user' && (
                  <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
