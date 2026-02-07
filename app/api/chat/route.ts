@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText, convertToModelMessages, Message } from "ai"
+import { streamText, convertToModelMessages } from "ai"
 import { createClient } from "@/utils/supabase/server"
 import { z } from "zod"
 

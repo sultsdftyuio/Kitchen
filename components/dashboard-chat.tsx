@@ -20,15 +20,15 @@ export function DashboardChat({
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // 1. Initialize Hook without casting to 'any' initially to catch type errors
+  // 1. Initialize Hook with full debug callbacks
   const chatHook = useChat({
     api: "/api/chat",
     onError: (err) => console.error("[UI/Chat] 🚨 Hook Error:", err),
     onFinish: (msg) => console.log("[UI/Chat] ✅ Stream Finished", msg),
-    onResponse: (res) => console.log("[UI/Chat] 📡 Response:", res.status)
+    onResponse: (res) => console.log("[UI/Chat] 📡 Response Status:", res.status)
   })
 
-  // 2. Destructure with safety checks
+  // 2. Destructure
   const { 
     messages, 
     input,
@@ -42,7 +42,7 @@ export function DashboardChat({
 
   const isLoading = status === 'submitted' || status === 'streaming'
 
-  // 3. DEBUG: Inspect the hook immediately
+  // 3. DEBUG: Inspect the hook on mount
   useEffect(() => {
     console.group("[UI/Chat] Hook Inspection")
     console.log("Keys available:", Object.keys(chatHook))
@@ -58,7 +58,7 @@ export function DashboardChat({
     }
   }, [messages, status]) 
 
-  // 4. Enhanced Send Function
+  // 4. Enhanced Send Function with Explicit Strategies
   const sendMessage = async (content: string) => {
     if (!content.trim()) return
 
@@ -67,47 +67,43 @@ export function DashboardChat({
     // Strategy A: Try 'append' (Direct Message Injection)
     if (typeof append === 'function') {
       try {
-        console.log("[UI/Chat] 👉 Using 'append' strategy")
+        console.log("[UI/Chat] 👉 Strategy A: Using 'append'")
         await append({ role: 'user', content })
         return
       } catch (e) {
-        console.error("[UI/Chat] ❌ 'append' failed:", e)
+        console.error("[UI/Chat] ❌ Strategy A failed:", e)
       }
-    } 
+    } else {
+        console.warn("[UI/Chat] ⚠️ append() function is missing")
+    }
 
     // Strategy B: Try 'handleSubmit' (Form Simulation)
-    // This requires setting the input state first, then firing the event
     if (typeof setInput === 'function' && typeof handleSubmit === 'function') {
-      console.log("[UI/Chat] 👉 Using 'handleSubmit' fallback strategy")
+      console.log("[UI/Chat] 👉 Strategy B: Using 'handleSubmit' fallback")
       setInput(content)
-      // We need to yield to render cycle so 'input' updates before submitting
+      
+      // Yield to render cycle so 'input' state updates before submitting
       setTimeout(() => {
-        // Create a fake form event
         const fakeEvent = { preventDefault: () => {} } as React.FormEvent
         handleSubmit(fakeEvent)
+        console.log("[UI/Chat] 📨 Fallback submit fired")
       }, 10)
       return
     }
 
-    console.error("[UI/Chat] 💀 ALL SEND STRATEGIES FAILED. Hook is broken.")
+    console.error("[UI/Chat] 💀 ALL STRATEGIES FAILED. Hook is broken.")
   }
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim()) return
     
-    // Log what we are trying to do
     console.log("[UI/Chat] 📝 Manual Form Submit triggered")
     
     if (typeof handleSubmit === 'function') {
         handleSubmit(e)
     } else {
-        console.error("[UI/Chat] ❌ handleSubmit is missing!")
-        // Attempt fallback to append if input is set
-        if (input && typeof append === 'function') {
-            append({ role: 'user', content: input })
-            setInput('')
-        }
+        console.error("[UI/Chat] ❌ handleSubmit is missing on form event!")
     }
   }
 
@@ -136,27 +132,42 @@ export function DashboardChat({
                 </p>
             </div>
         </div>
+
+        <div className="flex justify-center mt-4 pb-2">
+            <button 
+                onClick={() => onLogRecipe("")}
+                className="text-xs font-bold text-coffee/70 hover:text-tangerine hover:bg-white flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-transparent hover:border-border transition-all"
+            >
+                <PlusCircle className="w-3.5 h-3.5" /> 
+                Log a Meal Manually
+            </button>
+        </div>
       </div>
 
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
         
-        {/* DEBUG INFO PANEL (Remove in production) */}
-        <div className="bg-slate-100 border border-slate-300 p-2 rounded text-[10px] text-slate-600 font-mono mb-4">
-            <p className="font-bold flex gap-2 items-center"><Terminal className="w-3 h-3"/> Debug Status:</p>
-            <p>Msg Count: {messages?.length || 0}</p>
-            <p>Append: {typeof append === 'function' ? '✅' : '❌'}</p>
-            <p>Submit: {typeof handleSubmit === 'function' ? '✅' : '❌'}</p>
-            <p>Status: {status}</p>
+        {/* === DEBUG INFO PANEL === */}
+        <div className="bg-slate-100 border border-slate-300 p-3 rounded-md text-[10px] text-slate-600 font-mono mb-4 shadow-inner">
+            <p className="font-bold flex gap-2 items-center border-b border-slate-300 pb-1 mb-1">
+                <Terminal className="w-3 h-3"/> Debug Console
+            </p>
+            <div className="grid grid-cols-2 gap-x-4">
+                <p>Status: <span className="font-bold text-blue-600">{status}</span></p>
+                <p>Msgs: {messages?.length || 0}</p>
+                <p>Append: {typeof append === 'function' ? '✅ Ready' : '❌ Missing'}</p>
+                <p>Submit: {typeof handleSubmit === 'function' ? '✅ Ready' : '❌ Missing'}</p>
+            </div>
         </div>
 
         {(!messages || messages.length === 0) && !error && (
-          <div className="mt-8 text-center space-y-6 animate-in fade-in zoom-in duration-500">
+          <div className="mt-4 text-center space-y-6 animate-in fade-in zoom-in duration-500">
             <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
                 <Utensils className="w-8 h-8 text-coffee/40" />
             </div>
             <div className="px-6">
                 <p className="font-medium text-coffee text-lg">"What ingredients are we working with today?"</p>
+                <p className="text-sm text-coffee-dark/50 mt-1">I can see your pantry. Ask me anything!</p>
             </div>
             <div className="grid grid-cols-2 gap-2 px-4">
               {PROMPT_CHIPS.map((chip) => (
@@ -216,7 +227,8 @@ export function DashboardChat({
                         Oops, something burned.
                     </p>
                     <p className="opacity-90">{error.message}</p>
-                    <div className="text-xs mt-2 p-2 bg-white border border-red-100 rounded text-left overflow-auto max-h-20">
+                    {/* DEBUG ERROR DUMP */}
+                    <div className="text-xs mt-2 p-2 bg-white border border-red-100 rounded text-left overflow-auto max-h-20 font-mono">
                         {JSON.stringify(error)}
                     </div>
                     <button 
