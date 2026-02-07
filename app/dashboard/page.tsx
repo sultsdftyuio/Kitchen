@@ -15,8 +15,9 @@ export default async function Dashboard() {
       .from("pantry_items")
       .select("*")
       .eq("user_id", user.id)
-      .not("name", "is", null) 
-      .neq("name", "")
+      // FIXED: Schema uses 'item_name', not 'name'
+      .not("item_name", "is", null) 
+      .neq("item_name", "")
       .order("added_at", { ascending: false }),
     
     supabase
@@ -45,7 +46,7 @@ export default async function Dashboard() {
       userEmail={user.email || "Chef"} 
       pantryItems={pantryItems}
       history={history}
-      profile={profile} // Passing the full profile now
+      profile={profile}
       stats={{
         pantryCount: pantryItems.length,
         mealsCooked: history.length

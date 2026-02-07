@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText, convertToModelMessages } from "ai"
+import { streamText, convertToCoreMessages } from "ai"
 import { createClient } from "@/utils/supabase/server"
 
 export const maxDuration = 30
@@ -17,8 +17,8 @@ export async function POST(req: Request) {
       return new Response("Unauthorized", { status: 401 })
     }
 
-    // 2. Fetch Context (Using CORRECT Schema column names)
-    // Note: pantry_items uses 'item_name' and 'quantity', NOT 'name' and 'amount'
+    // 2. Fetch Context
+    // Note: Schema uses 'item_name' and 'quantity'
     const [pantryRes, profileRes] = await Promise.all([
         supabase
           .from("pantry_items")
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
           .eq("user_id", user.id),
         supabase
           .from("profiles")
-          .select("dietary_restrictions, skill_level") // Fetched valid columns from schema
+          .select("dietary_restrictions, skill_level")
           .eq("id", user.id)
           .single()
     ])
@@ -75,16 +75,17 @@ export async function POST(req: Request) {
     `
 
     // 4. Stream Response
-    // FIXED: convertToModelMessages is async in newer AI SDK versions
-    const coreMessages = await convertToModelMessages(messages)
+    // FIXED: Use convertToCoreMessages (sync) for Vercel AI SDK 3.3+
+    const coreMessages = convertToCoreMessages(messages)
 
     const result = streamText({
-      model: openai("gpt-5-nano"), // Adjusted to a valid model name for safety, but you can revert to gpt-5-nano if strictly desired
+      model: openai("gpt-5-nano"), // Keeping your specified model
       system: systemPrompt,
       messages: coreMessages,
     })
     
-    return result.toTextStreamResponse()
+    // FIXED: Use toDataStreamResponse for compatibility with useChat
+    return result.toDataStreamResponse()
 
   } catch (error: any) {
     console.error("Chat API Error:", error)
