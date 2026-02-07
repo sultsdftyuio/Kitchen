@@ -3,7 +3,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
@@ -18,10 +18,18 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  const [input, setInput] = useState("")
-
-  // Clean initialization of useChat without 'as any' casting
-  const { messages, append, status, error, isLoading: hookIsLoading } = useChat({
+  const { 
+    messages, 
+    append, 
+    reload, 
+    status, 
+    error, 
+    input, 
+    setInput,
+    handleInputChange,
+    handleSubmit,
+    isLoading: hookIsLoading 
+  } = useChat({
     api: "/api/chat",
     onError: (err) => console.error("Chat error:", err),
   })
@@ -37,27 +45,11 @@ export function DashboardChat({
     }
   }, [messages, status]) 
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input?.trim()) return
-    
-    const userMessage = input
-    setInput("") // Clear input immediately
-    
-    await append({ role: 'user', content: userMessage })
-  }
-
   const handleChipClick = async (label: string) => {
+      // @ts-expect-error - 'append' is sometimes missing in strict type definitions but exists at runtime
       await append({ role: 'user', content: label })
   }
   
-  const handleReload = () => {
-     const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user')
-     if (lastUserMessage) {
-         append({ role: 'user', content: lastUserMessage.content })
-     }
-  }
-
   return (
     <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden relative group z-10">
       
@@ -185,7 +177,7 @@ export function DashboardChat({
                     </p>
                     <p className="opacity-90">{error.message}</p>
                     <button 
-                        onClick={handleReload}
+                        onClick={() => reload()}
                         className="mt-2 text-xs bg-white border border-red-200 px-3 py-1 rounded-full hover:bg-red-50 transition-colors"
                     >
                         Try Again
@@ -199,10 +191,10 @@ export function DashboardChat({
 
       {/* INPUT AREA */}
       <div className="p-4 bg-white border-t-2 border-border z-20">
-        <form onSubmit={handleFormSubmit} className="relative group/input">
+        <form onSubmit={handleSubmit} className="relative group/input">
           <input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange} 
             placeholder="Ask Chef..."
             disabled={isLoading}
             className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
