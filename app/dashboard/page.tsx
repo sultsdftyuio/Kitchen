@@ -9,14 +9,13 @@ export default async function Dashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/")
 
-  // Parallel Fetching for Performance
+  // Parallel Fetching
   const [pantryRes, historyRes, profileRes] = await Promise.all([
     supabase
       .from("pantry_items")
-      .select("*")
+      .select("*") // Select all to get IDs, etc.
       .eq("user_id", user.id)
-      // FIXED: Schema uses 'item_name', not 'name'
-      .not("item_name", "is", null) 
+      .not("item_name", "is", null) // Correct DB column
       .neq("item_name", "")
       .order("added_at", { ascending: false }),
     
@@ -33,7 +32,12 @@ export default async function Dashboard() {
       .single()
   ])
 
-  const pantryItems = pantryRes.data || []
+  // Map DB 'item_name' to UI 'name'
+  const pantryItems = (pantryRes.data || []).map((item: any) => ({
+    ...item,
+    name: item.item_name // <--- CRITICAL FIX: UI expects 'name'
+  }))
+
   const history = historyRes.data || []
   const profile = profileRes.data || { 
     dietary_restrictions: null, 

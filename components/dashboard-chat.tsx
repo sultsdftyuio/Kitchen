@@ -2,7 +2,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { ArrowUp, Sparkles, ChefHat, PlusCircle, Flame, Utensils, AlertCircle } from "lucide-react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle } from "lucide-react"
 import { useRef, useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 
@@ -18,11 +18,12 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // 1. Manually manage input state to fix typing issues
   const [localInput, setLocalInput] = useState("")
 
   const chatHelpers = useChat({
     api: "/api/chat",
+    // CRITICAL FIX: Match the server's response format
+    streamProtocol: 'text', 
     onError: (err: any) => console.error("Chat client error:", err),
   } as any) as any
 
@@ -45,13 +46,12 @@ export function DashboardChat({
     }
   }, [messages, status]) 
 
-  // 2. Custom submit handler
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault()
     if (!localInput.trim()) return
 
     const messageContent = localInput
-    setLocalInput("") // Clear input immediately for better UX
+    setLocalInput("") 
 
     if (typeof append === 'function') {
       await append({ role: 'user', content: messageContent })
@@ -184,7 +184,6 @@ export function DashboardChat({
       <div className="p-4 bg-white border-t-2 border-border z-20">
         <form onSubmit={handleSend} className="relative group/input">
           <input
-            // 3. Bind to local state 'localInput'
             value={localInput}
             onChange={(e) => setLocalInput(e.target.value)}
             placeholder="Ask Chef..."
