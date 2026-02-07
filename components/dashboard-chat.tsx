@@ -85,7 +85,7 @@ export function DashboardChat({
         // Create a fake form event
         const fakeEvent = { preventDefault: () => {} } as React.FormEvent
         handleSubmit(fakeEvent)
-      }, 0)
+      }, 10)
       return
     }
 
