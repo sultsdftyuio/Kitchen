@@ -20,11 +20,21 @@ export function DashboardChat({
 }) {
   const [localInput, setLocalInput] = useState("")
 
+  // DEBUG: Track render cycles
+  // console.log("[UI/Chat] Render Cycle")
+
   // FIXED: Cast to 'any' to bypass TypeScript build error with 'append'
-  // FIXED: Removed streamProtocol to use default Data Stream
   const chatHelpers = useChat({
     api: "/api/chat",
-    onError: (err: any) => console.error("Chat client error:", err),
+    onError: (err: any) => {
+        console.error("[UI/Chat] 🚨 Hook Error:", err)
+    },
+    onFinish: (message: any) => {
+        console.log("[UI/Chat] ✅ Stream Finished. Full message:", message)
+    },
+    onResponse: (response: any) => {
+        console.log("[UI/Chat] 📡 Response received from API. Status:", response.status)
+    }
   } as any) as any
 
   const { 
@@ -38,6 +48,20 @@ export function DashboardChat({
   
   const isLoading = status === 'submitted' || status === 'streaming' || hookIsLoading
   
+  // DEBUG: Monitor status changes
+  useEffect(() => {
+    console.log(`[UI/Chat] 📊 Status changed: ${status}, isLoading: ${isLoading}`)
+    if (error) console.error("[UI/Chat] ❌ Current Error State:", error)
+  }, [status, isLoading, error])
+
+  // DEBUG: Monitor message updates
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+        console.log(`[UI/Chat] 💬 Messages updated. Count: ${messages.length}`)
+        // console.log("[UI/Chat] Latest message:", messages[messages.length - 1])
+    }
+  }, [messages])
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,19 +72,36 @@ export function DashboardChat({
 
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!localInput.trim()) return
+    if (!localInput.trim()) {
+        console.log("[UI/Chat] ⚠️ Attempted to send empty message")
+        return
+    }
 
     const messageContent = localInput
+    console.log(`[UI/Chat] 📤 Sending user message: "${messageContent}"`)
+    
     setLocalInput("") 
 
-    if (typeof append === 'function') {
-      await append({ role: 'user', content: messageContent })
+    try {
+        if (typeof append === 'function') {
+            await append({ role: 'user', content: messageContent })
+            console.log("[UI/Chat] 📨 Append called successfully")
+        } else {
+            console.error("[UI/Chat] ❌ 'append' function is missing from useChat")
+        }
+    } catch (err) {
+        console.error("[UI/Chat] 💥 Error calling append:", err)
     }
   }
 
   const handleChipClick = async (label: string) => {
-    if (typeof append === 'function') {
-      await append({ role: 'user', content: label })
+    console.log(`[UI/Chat] 🖱️ Chip clicked: "${label}"`)
+    try {
+        if (typeof append === 'function') {
+            await append({ role: 'user', content: label })
+        }
+    } catch (err) {
+        console.error("[UI/Chat] 💥 Error calling append via chip:", err)
     }
   }
   
@@ -116,7 +157,7 @@ export function DashboardChat({
               {PROMPT_CHIPS.map((chip) => (
                 <button
                   key={chip.label}
-                  type="button" // FIXED: Prevent form submit
+                  type="button" 
                   onClick={() => handleChipClick(chip.label)}
                   disabled={isLoading}
                   className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip disabled:opacity-50"
@@ -170,6 +211,9 @@ export function DashboardChat({
                         Oops, something burned.
                     </p>
                     <p className="opacity-90">{error.message}</p>
+                    <div className="text-xs mt-2 p-2 bg-white border border-red-100 rounded">
+                        Check console for details
+                    </div>
                     <button 
                         type="button"
                         onClick={() => reload()}
