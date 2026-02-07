@@ -3,7 +3,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Terminal } from "lucide-react"
-import { useRef, useEffect, Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react"
+import { useRef, useEffect, useState, Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
@@ -28,17 +28,41 @@ export function DashboardChat({
     onResponse: (res: any) => console.log("[UI/Chat] 📡 Response Status:", res.status)
   } as any) as any
 
-  // 2. Destructure with DEFAULTS to prevent 'undefined' crashes
+  // 2. Destructure with Defaults
   const { 
     messages = [], 
-    input = "", 
-    setInput,
+    input,          // Might be undefined
+    setInput,       // Might be undefined
     append, 
     handleSubmit,
     reload, 
     status = 'idle', 
     error, 
   } = chatHook
+
+  // 3. Robust Input State Management
+  // We use local state to ensure the UI never crashes or freezes, 
+  // even if 'useChat' fails to provide 'input' or 'setInput'.
+  const [localInput, setLocalInput] = useState("")
+  
+  // The actual value to display in the input box
+  const displayInput = typeof input === 'string' ? input : localInput
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVal = e.target.value
+    
+    // Always update local state so the user sees what they type
+    setLocalInput(newVal)
+    
+    // Safely attempt to update the hook's state
+    if (typeof setInput === 'function') {
+      try {
+        setInput(newVal)
+      } catch (err) {
+        console.warn("[UI/Chat] setInput failed, using local state only")
+      }
+    }
+  }
 
   const isLoading = status === 'submitted' || status === 'streaming'
 
@@ -51,9 +75,7 @@ export function DashboardChat({
 
   // 4. Enhanced Send Function
   const sendMessage = async (content: string) => {
-    // Defensive check: ensure content exists
     if (!content || !content.trim()) return
-
     if (isLoading) return
 
     console.log(`[UI/Chat] 🚀 Attempting to send: "${content}"`)
@@ -62,6 +84,8 @@ export function DashboardChat({
     if (typeof append === 'function') {
       try {
         await append({ role: 'user', content })
+        // Clear local input after successful send if manual
+        setLocalInput("") 
         return
       } catch (e) {
         console.error("[UI/Chat] ❌ Strategy A failed:", e)
@@ -81,11 +105,14 @@ export function DashboardChat({
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    // CRITICAL FIX: Handle case where input is undefined
-    if (!input || !input.trim()) return
+    
+    // Use displayInput (the safe value)
+    if (!displayInput.trim()) return
     
     if (typeof handleSubmit === 'function') {
         handleSubmit(e)
+        // Hook usually clears its own input, but we clear local just in case
+        setLocalInput("") 
     }
   }
 
@@ -213,15 +240,15 @@ export function DashboardChat({
       <div className="p-4 bg-white border-t-2 border-border z-20">
         <form onSubmit={handleFormSubmit} className="relative group/input">
           <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
+            value={displayInput}
+            onChange={handleInputChange}
             placeholder="Ask Chef..."
             disabled={isLoading} 
             className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />
           <button
             type="submit"
-            disabled={isLoading || !input?.trim()}
+            disabled={isLoading || !displayInput.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}
