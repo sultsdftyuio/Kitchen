@@ -18,9 +18,8 @@ export function DashboardChat({
 }: { 
   onLogRecipe: (name: string) => void 
 }) {
-  // FIX: Aggressively cast both inputs and outputs to 'any'.
-  // This bypasses the build errors regarding 'api' (input) and 'append' (output)
-  // which are missing from the strict types but valid at runtime.
+  // FIX: Cast options to 'any' to bypass the TypeScript error regarding 'api'.
+  // We also cast the result to 'any' to access 'append' without issues.
   const { 
     messages, 
     append, 
