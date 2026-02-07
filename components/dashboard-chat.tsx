@@ -22,8 +22,8 @@ export function DashboardChat({
 
   const chatHelpers = useChat({
     api: "/api/chat",
-    // CRITICAL FIX: Match the server's response format
-    streamProtocol: 'text', 
+    // FIXED: Strictly required to match the server's toTextStreamResponse()
+    streamProtocol: 'text',
     onError: (err: any) => console.error("Chat client error:", err),
   } as any) as any
 
