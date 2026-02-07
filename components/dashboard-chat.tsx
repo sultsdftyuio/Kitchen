@@ -3,7 +3,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Terminal } from "lucide-react"
-import { useRef, useEffect, useState, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
+import { useRef, useEffect, Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
@@ -20,8 +20,7 @@ export function DashboardChat({
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // 1. Initialize Hook
-  // FIXED: Cast the ENTIRE result to 'any' to silence errors on 'input', 'append', etc.
+  // 1. Initialize Hook with defensive handling
   const chatHook = useChat({
     api: "/api/chat",
     onError: (err: any) => console.error("[UI/Chat] 🚨 Hook Error:", err),
@@ -29,28 +28,19 @@ export function DashboardChat({
     onResponse: (res: any) => console.log("[UI/Chat] 📡 Response Status:", res.status)
   } as any) as any
 
-  // 2. Destructure (Now safe because chatHook is 'any')
+  // 2. Destructure with DEFAULTS to prevent 'undefined' crashes
   const { 
-    messages, 
-    input,
+    messages = [], 
+    input = "", 
     setInput,
     append, 
     handleSubmit,
     reload, 
-    status, 
+    status = 'idle', 
     error, 
   } = chatHook
 
   const isLoading = status === 'submitted' || status === 'streaming'
-
-  // 3. DEBUG: Inspect the hook on mount
-  useEffect(() => {
-    console.group("[UI/Chat] Hook Inspection")
-    console.log("Keys available:", Object.keys(chatHook))
-    console.log("Has append?", typeof append === 'function')
-    console.log("Has handleSubmit?", typeof handleSubmit === 'function')
-    console.groupEnd()
-  }, [])
 
   // Auto-scroll
   useEffect(() => {
@@ -59,58 +49,43 @@ export function DashboardChat({
     }
   }, [messages, status]) 
 
-  // 4. Enhanced Send Function with Explicit Strategies
+  // 4. Enhanced Send Function
   const sendMessage = async (content: string) => {
-    if (!content.trim()) return
+    // Defensive check: ensure content exists
+    if (!content || !content.trim()) return
 
-    // Prevent double sending if already loading
-    if (isLoading) {
-        console.warn("[UI/Chat] ⚠️ Cannot send: Chat is loading")
-        return
-    }
+    if (isLoading) return
 
     console.log(`[UI/Chat] 🚀 Attempting to send: "${content}"`)
 
-    // Strategy A: Try 'append' (Direct Message Injection)
+    // Strategy A: Try 'append'
     if (typeof append === 'function') {
       try {
-        console.log("[UI/Chat] 👉 Strategy A: Using 'append'")
         await append({ role: 'user', content })
         return
       } catch (e) {
         console.error("[UI/Chat] ❌ Strategy A failed:", e)
       }
-    } else {
-        console.warn("[UI/Chat] ⚠️ append() function is missing")
-    }
+    } 
 
-    // Strategy B: Try 'handleSubmit' (Form Simulation)
+    // Strategy B: Try 'handleSubmit' fallback
     if (typeof setInput === 'function' && typeof handleSubmit === 'function') {
-      console.log("[UI/Chat] 👉 Strategy B: Using 'handleSubmit' fallback")
       setInput(content)
-      
-      // Yield to render cycle so 'input' state updates before submitting
       setTimeout(() => {
         const fakeEvent = { preventDefault: () => {} } as React.FormEvent
         handleSubmit(fakeEvent)
-        console.log("[UI/Chat] 📨 Fallback submit fired")
       }, 10)
       return
     }
-
-    console.error("[UI/Chat] 💀 ALL STRATEGIES FAILED. Hook is broken.")
   }
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim()) return
-    
-    console.log("[UI/Chat] 📝 Manual Form Submit triggered")
+    // CRITICAL FIX: Handle case where input is undefined
+    if (!input || !input.trim()) return
     
     if (typeof handleSubmit === 'function') {
         handleSubmit(e)
-    } else {
-        console.error("[UI/Chat] ❌ handleSubmit is missing on form event!")
     }
   }
 
@@ -154,19 +129,6 @@ export function DashboardChat({
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
         
-        {/* === DEBUG INFO PANEL === */}
-        <div className="bg-slate-100 border border-slate-300 p-3 rounded-md text-[10px] text-slate-600 font-mono mb-4 shadow-inner">
-            <p className="font-bold flex gap-2 items-center border-b border-slate-300 pb-1 mb-1">
-                <Terminal className="w-3 h-3"/> Debug Console
-            </p>
-            <div className="grid grid-cols-2 gap-x-4">
-                <p>Status: <span className="font-bold text-blue-600">{status}</span></p>
-                <p>Msgs: {messages?.length || 0}</p>
-                <p>Append: {typeof append === 'function' ? '✅ Ready' : '❌ Missing'}</p>
-                <p>Submit: {typeof handleSubmit === 'function' ? '✅ Ready' : '❌ Missing'}</p>
-            </div>
-        </div>
-
         {(!messages || messages.length === 0) && !error && (
           <div className="mt-4 text-center space-y-6 animate-in fade-in zoom-in duration-500">
             <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
@@ -234,10 +196,6 @@ export function DashboardChat({
                         Oops, something burned.
                     </p>
                     <p className="opacity-90">{error.message}</p>
-                    {/* DEBUG ERROR DUMP */}
-                    <div className="text-xs mt-2 p-2 bg-white border border-red-100 rounded text-left overflow-auto max-h-20 font-mono">
-                        {JSON.stringify(error)}
-                    </div>
                     <button 
                         type="button"
                         onClick={() => reload()}
@@ -263,7 +221,7 @@ export function DashboardChat({
           />
           <button
             type="submit"
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !input?.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}

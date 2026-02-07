@@ -8,8 +8,8 @@ import { z } from 'zod'
 // Define the validation schema
 const PantryItemSchema = z.object({
   item_name: z.string().trim().min(1, "Item name is required").max(100, "Name too long"),
-  amount: z.coerce.number().positive("Amount must be positive").default(1),
-  unit: z.string().trim().default('pcs'),
+  // Allow 'quantity' as a string to match the form input (e.g., "2", "500g", "1 bunch")
+  quantity: z.string().trim().min(1, "Quantity is required").default("1"),
 })
 
 export async function addToPantry(formData: FormData) {
@@ -20,10 +20,10 @@ export async function addToPantry(formData: FormData) {
   if (authError || !user) throw new Error('You must be logged in.')
 
   // 2. Input Validation
+  // We explicitly check for 'quantity' which is what your form sends
   const rawData = {
-    item_name: formData.get('item_name'), // Input name from the UI form
-    amount: formData.get('amount'),
-    unit: formData.get('unit'),
+    item_name: formData.get('item_name'), 
+    quantity: formData.get('quantity'), 
   }
 
   const result = PantryItemSchema.safeParse(rawData)
@@ -33,16 +33,21 @@ export async function addToPantry(formData: FormData) {
     throw new Error("Invalid input data")
   }
 
-  const { item_name, amount, unit } = result.data
+  const { item_name, quantity } = result.data
 
   // 3. Database Operation
-  // FIXED: Insert into 'name' column using 'item_name' from form
+  // Parsing the quantity for the structured columns (optional, but good for data hygiene)
+  // Simple heuristic: "2 kg" -> amount: 2, unit: "kg"
+  const numericMatch = quantity.match(/^(\d+(\.\d+)?)\s*(.*)$/)
+  const amount = numericMatch ? parseFloat(numericMatch[1]) : 1
+  const unit = numericMatch && numericMatch[3] ? numericMatch[3].trim() : 'pcs'
+
   const { error } = await supabase.from('pantry_items').insert({
     user_id: user.id,
-    name: item_name,               // DB Column: name
-    amount: amount,                // DB Column: amount
-    unit: unit,                    // DB Column: unit
-    quantity: `${amount} ${unit}`, // Legacy/Display column
+    name: item_name,
+    amount: amount,
+    unit: unit,
+    quantity: quantity, // The display string
     category: 'pantry',
     added_at: new Date().toISOString(),
   })
