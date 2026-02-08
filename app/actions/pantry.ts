@@ -20,10 +20,13 @@ export async function addToPantry(formData: FormData) {
   if (authError || !user) throw new Error('You must be logged in.')
 
   // 2. Input Validation
-  // We explicitly check for 'quantity' which is what your form sends
+  // Fix: Handle null/undefined quantity by defaulting to "1" explicitly before Zod
+  const rawQuantity = formData.get('quantity');
+  const safeQuantity = rawQuantity ? rawQuantity.toString() : "1";
+
   const rawData = {
     item_name: formData.get('item_name'), 
-    quantity: formData.get('quantity'), 
+    quantity: safeQuantity, 
   }
 
   const result = PantryItemSchema.safeParse(rawData)

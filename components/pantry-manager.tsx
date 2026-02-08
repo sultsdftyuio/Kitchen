@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils"
 // --- Types ---
 type PantryItem = {
   id: number
-  name: string | null // FIXED: Matches DB column 'name'
+  name: string | null 
   quantity: string
   added_at: string
 }
@@ -114,7 +114,12 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
     formRef.current?.reset()
 
     // 3. Send to server
-    await addToPantry(formData)
+    try {
+        await addToPantry(formData)
+    } catch (err) {
+        console.error("Failed to add item:", err)
+        // Ideally show a toast error here
+    }
   }
 
   // Robust Filtering on Optimistic Data
@@ -181,14 +186,22 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
             </form>
 
             <div className="flex flex-wrap gap-2 mt-4">
-                {["Eggs 🥚", "Milk 🥛", "Bread 🍞", "Pasta 🍝", "Rice 🍚"].map(chip => (
+                {["Eggs (12)", "Milk (1L)", "Bread (Loaf)", "Pasta (500g)", "Rice (1kg)"].map(chip => (
                     <button
                         key={chip}
                         type="button"
                         onClick={() => {
                             const input = formRef.current?.querySelector('input[name="item_name"]') as HTMLInputElement
-                            if (input) {
-                                input.value = chip.split(' ')[0]
+                            const qtyInput = formRef.current?.querySelector('input[name="quantity"]') as HTMLInputElement
+                            if (input && qtyInput) {
+                                // Split "Milk (1L)" -> Name: Milk, Qty: 1L
+                                const parts = chip.match(/^(.*)\s\((.*)\)$/)
+                                if (parts) {
+                                    input.value = parts[1]
+                                    qtyInput.value = parts[2]
+                                } else {
+                                    input.value = chip
+                                }
                                 input.focus()
                             }
                         }}
