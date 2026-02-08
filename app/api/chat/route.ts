@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 import { openai } from "@ai-sdk/openai"
-import { streamText, convertToModelMessages } from "ai"
+import { streamText, convertToCoreMessages } from "ai"
 import { createClient } from "@/utils/supabase/server"
 import { z } from "zod"
 
@@ -115,9 +115,8 @@ export async function POST(req: Request) {
 
     console.log(`[API/Chat ${requestId}] 🧠 System prompt built. History items: ${history.length}`)
 
-    // 6. Prepare Messages
-    // Ensure we await this as per AI SDK requirements
-    const coreMessages = await convertToModelMessages(messages)
+    // 6. Prepare Messages using the correct SDK utility
+    const coreMessages = convertToCoreMessages(messages)
 
     // 7. Stream Response
     console.log(`[API/Chat ${requestId}] 🌊 Streaming response (gpt-5-nano)...`)
@@ -126,18 +125,16 @@ export async function POST(req: Request) {
       model: openai("gpt-5-nano"), // Strictly using the requested model
       system: systemPrompt,
       messages: coreMessages,
-      temperature: 0.7, // Balanced creativity and coherence
+      temperature: 0.7,
       onFinish: (event) => {
         console.log(`[API/Chat ${requestId}] 🏁 Stream completed. Usage: ${event.usage.totalTokens} tokens.`)
       },
     })
     
-    // Cast to 'any' to avoid build-time type mismatches with specific SDK versions
-    return (result as any).toDataStreamResponse()
+    return result.toDataStreamResponse()
 
   } catch (error: any) {
     console.error(`[API/Chat ${requestId}] 💥 Error:`, error)
-    // Return a JSON error that the client can parse
     return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), { 
       status: 500,
       headers: { "Content-Type": "application/json" }

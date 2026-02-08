@@ -2,8 +2,8 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Terminal } from "lucide-react"
-import { useRef, useEffect, useState, Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle } from "lucide-react"
+import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
@@ -20,99 +20,37 @@ export function DashboardChat({
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // 1. Initialize Hook with defensive handling
-  const chatHook = useChat({
-    api: "/api/chat",
-    onError: (err: any) => console.error("[UI/Chat] 🚨 Hook Error:", err),
-    onFinish: (msg: any) => console.log("[UI/Chat] ✅ Stream Finished", msg),
-    onResponse: (res: any) => console.log("[UI/Chat] 📡 Response Status:", res.status)
-  } as any) as any
-
-  // 2. Destructure with Defaults
+  // 1. Initialize Hook (Standard Usage)
   const { 
-    messages = [], 
-    input,          // Might be undefined
-    setInput,       // Might be undefined
-    append, 
-    handleSubmit,
-    reload, 
-    status = 'idle', 
-    error, 
-  } = chatHook
-
-  // 3. Robust Input State Management
-  // We use local state to ensure the UI never crashes or freezes, 
-  // even if 'useChat' fails to provide 'input' or 'setInput'.
-  const [localInput, setLocalInput] = useState("")
-  
-  // The actual value to display in the input box
-  const displayInput = typeof input === 'string' ? input : localInput
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = e.target.value
-    
-    // Always update local state so the user sees what they type
-    setLocalInput(newVal)
-    
-    // Safely attempt to update the hook's state
-    if (typeof setInput === 'function') {
-      try {
-        setInput(newVal)
-      } catch (err) {
-        console.warn("[UI/Chat] setInput failed, using local state only")
-      }
-    }
-  }
+    messages, 
+    input, 
+    handleInputChange, 
+    handleSubmit, 
+    append,
+    status,
+    error,
+    reload 
+  } = useChat({
+    api: "/api/chat",
+    onError: (err) => console.error("[UI/Chat] 🚨 Hook Error:", err),
+  })
 
   const isLoading = status === 'submitted' || status === 'streaming'
 
-  // Auto-scroll
+  // Auto-scroll to bottom
   useEffect(() => {
     if (messages?.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages, status]) 
 
-  // 4. Enhanced Send Function
-  const sendMessage = async (content: string) => {
-    if (!content || !content.trim()) return
+  // 2. Chip Click Handler
+  const handleChipClick = async (label: string) => {
     if (isLoading) return
-
-    console.log(`[UI/Chat] 🚀 Attempting to send: "${content}"`)
-
-    // Strategy A: Try 'append'
-    if (typeof append === 'function') {
-      try {
-        await append({ role: 'user', content })
-        // Clear local input after successful send if manual
-        setLocalInput("") 
-        return
-      } catch (e) {
-        console.error("[UI/Chat] ❌ Strategy A failed:", e)
-      }
-    } 
-
-    // Strategy B: Try 'handleSubmit' fallback
-    if (typeof setInput === 'function' && typeof handleSubmit === 'function') {
-      setInput(content)
-      setTimeout(() => {
-        const fakeEvent = { preventDefault: () => {} } as React.FormEvent
-        handleSubmit(fakeEvent)
-      }, 10)
-      return
-    }
-  }
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Use displayInput (the safe value)
-    if (!displayInput.trim()) return
-    
-    if (typeof handleSubmit === 'function') {
-        handleSubmit(e)
-        // Hook usually clears its own input, but we clear local just in case
-        setLocalInput("") 
+    try {
+      await append({ role: 'user', content: label })
+    } catch (e) {
+      console.error("[UI/Chat] Chip send failed:", e)
     }
   }
 
@@ -170,7 +108,7 @@ export function DashboardChat({
                 <button
                   key={chip.label}
                   type="button" 
-                  onClick={() => sendMessage(chip.label)}
+                  onClick={() => handleChipClick(chip.label)}
                   disabled={isLoading}
                   className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip disabled:opacity-50"
                 >
@@ -182,7 +120,7 @@ export function DashboardChat({
           </div>
         )}
         
-        {messages?.map((m: { id: Key | null | undefined; role: string; content: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }) => (
+        {messages?.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              {m.role !== 'user' && (
                  <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
@@ -238,9 +176,9 @@ export function DashboardChat({
 
       {/* INPUT AREA */}
       <div className="p-4 bg-white border-t-2 border-border z-20">
-        <form onSubmit={handleFormSubmit} className="relative group/input">
+        <form onSubmit={handleSubmit} className="relative group/input">
           <input
-            value={displayInput}
+            value={input}
             onChange={handleInputChange}
             placeholder="Ask Chef..."
             disabled={isLoading} 
@@ -248,7 +186,7 @@ export function DashboardChat({
           />
           <button
             type="submit"
-            disabled={isLoading || !displayInput.trim()}
+            disabled={isLoading || !input.trim()}
             className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
             {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}
