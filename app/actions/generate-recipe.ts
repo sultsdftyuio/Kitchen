@@ -40,7 +40,7 @@ export async function generateRecipeAction(userPrompt: string) {
 
   // 2. Call AI with Structured Output
   const { object: recipe } = await generateObject({
-    model: openai("gpt-4o"), // Use a smart model for reasoning
+    model: openai("gpt-5-nano"), // Use a smart model for reasoning
     schema: RecipeSchema,
     prompt: `
       You are a professional chef. 
