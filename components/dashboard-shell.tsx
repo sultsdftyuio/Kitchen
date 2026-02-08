@@ -7,8 +7,7 @@ import PantryUI from "@/app/pantry/pantry-ui"
 import { CookingHistory } from "@/components/cooking-history"
 import { ProfileSettings } from "@/components/profile-settings"
 import { signOut } from "@/app/actions/auth"
-import { Package, UtensilsCrossed, ChefHat, LogOut, Loader2, Sword, Shield } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Package, UtensilsCrossed, ChefHat, LogOut, Loader2 } from "lucide-react"
 
 export function DashboardShell({ 
   userEmail, 
@@ -38,70 +37,114 @@ export function DashboardShell({
       setIsSigningOut(true)
       await signOut()
     } catch (error) {
+      console.error("Sign out failed", error)
       setIsSigningOut(false)
     }
   }
 
   return (
-    <main className="min-h-screen bg-[#FDFCF0] p-4 sm:p-6 lg:p-8 font-sans">
+    <main className="min-h-screen bg-cream p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* GAME HEADER */}
-        <header className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b-4 border-coffee/10">
-          <div className="flex items-center gap-4">
-              <div className="bg-tangerine p-3 rounded-2xl border-4 border-coffee hard-shadow rotate-3">
-                  <ChefHat className="text-white w-8 h-8" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-black text-coffee uppercase tracking-tighter">
-                    Kitchen<span className="text-tangerine underline decoration-8 decoration-yellow-400 underline-offset-[-2px]">OS</span>
+        {/* Top Navigation / Header */}
+        <header className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-6 border-b-2 border-coffee/5">
+          
+          {/* Brand & User Greeting */}
+          <div className="space-y-2 flex-1">
+            <div className="flex items-center gap-2">
+                <div className="bg-tangerine p-2 rounded-lg border-2 border-black hard-shadow-sm rotate-3">
+                    <ChefHat className="text-white w-6 h-6" />
+                </div>
+                <h1 className="font-serif text-4xl font-black text-coffee tracking-tight">
+                Kitchen<span className="text-tangerine">OS</span>
                 </h1>
-                <p className="text-xs font-black text-coffee/40 uppercase tracking-[0.2em]">Player: {userEmail.split('@')[0]}</p>
-              </div>
+            </div>
+            <p className="text-coffee-dark/70 font-medium pl-1">
+                Welcome back, <span className="font-bold text-coffee underline decoration-tangerine decoration-2 underline-offset-2">{userEmail.split('@')[0]}</span>
+            </p>
           </div>
           
-          <div className="flex items-center gap-3">
-             <div className="bg-white px-4 py-2 rounded-xl border-4 border-coffee hard-shadow flex items-center gap-3">
-                <div className="w-8 h-8 bg-yellow-400 border-2 border-coffee rounded flex items-center justify-center font-black">P</div>
-                <div className="text-sm font-black text-coffee">{stats.pantryCount} ITEMS</div>
+          {/* Stats & Controls Cluster */}
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-4 w-full md:w-auto">
+             
+             {/* Stat: Pantry */}
+             <div className="flex-1 md:flex-none bg-white px-5 py-3 rounded-2xl border-2 border-border hard-shadow flex items-center gap-4 hover:-translate-y-1 transition-transform cursor-default">
+                <div className="bg-butter p-2 rounded-xl text-coffee border-2 border-border/10">
+                    <Package className="w-5 h-5" />
+                </div>
+                <div>
+                    <p className="text-[10px] text-coffee-dark/60 font-black uppercase tracking-wider">In Pantry</p>
+                    <p className="text-2xl font-black text-coffee leading-none">{stats.pantryCount}</p>
+                </div>
              </div>
-             <div className="bg-white px-4 py-2 rounded-xl border-4 border-coffee hard-shadow flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-400 border-2 border-coffee rounded flex items-center justify-center font-black text-white">M</div>
-                <div className="text-sm font-black text-coffee">{stats.mealsCooked} MEALS</div>
+
+             {/* Stat: Cooked */}
+             <div className="flex-1 md:flex-none bg-white px-5 py-3 rounded-2xl border-2 border-border hard-shadow flex items-center gap-4 hover:-translate-y-1 transition-transform cursor-default">
+                <div className="bg-lavender p-2 rounded-xl text-coffee border-2 border-border/10">
+                    <UtensilsCrossed className="w-5 h-5" />
+                </div>
+                <div>
+                    <p className="text-[10px] text-coffee-dark/60 font-black uppercase tracking-wider">Cooked</p>
+                    <p className="text-2xl font-black text-coffee leading-none">{stats.mealsCooked}</p>
+                </div>
              </div>
-             <ProfileSettings initialProfile={profile} />
-             <button onClick={handleSignOut} className="bg-red-100 p-2.5 rounded-xl border-4 border-coffee text-red-600 hover:bg-red-200 transition-colors">
-                <LogOut className="w-6 h-6 stroke-[3px]" />
-             </button>
+
+             {/* Vertical Divider */}
+             <div className="hidden md:block w-px h-12 bg-border/20 mx-2"></div>
+
+             {/* User Actions */}
+             <div className="flex items-center gap-2">
+                <ProfileSettings initialProfile={profile} />
+                
+                {/* FIX: Replaced <form> with <button onClick> to prevent "p is not a function" error */}
+                <button 
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="bg-white p-2 sm:p-3 rounded-xl border-2 border-border hard-shadow hover:translate-y-1 hover:shadow-none transition-all text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  title="Sign Out"
+                >
+                  {isSigningOut ? (
+                    <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                  ) : (
+                    <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
+                  )}
+                </button>
+             </div>
+
           </div>
         </header>
 
-        <div className="grid lg:grid-cols-12 gap-8">
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
           
-          {/* INVENTORY & QUEST LOG (Left Side) */}
-          <div className="lg:col-span-7 space-y-6 order-2 lg:order-1">
-            <div className="flex gap-4 mb-8">
+          {/* MAIN CONTENT AREA (Left Side) */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* Tab Switcher */}
+            <div className="bg-white/50 p-1.5 rounded-2xl border-2 border-transparent w-full sm:w-fit flex gap-2">
                 <button
                     onClick={() => setActiveTab('pantry')}
-                    className={cn(
-                        "flex-1 py-4 rounded-2xl font-black text-lg uppercase tracking-tight border-4 transition-all hard-shadow",
-                        activeTab === 'pantry' ? "bg-coffee text-white border-coffee -translate-y-1 shadow-none" : "bg-white text-coffee border-coffee hover:bg-cream"
-                    )}
+                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${
+                        activeTab === 'pantry' 
+                        ? 'bg-coffee text-white border-coffee shadow-md' 
+                        : 'bg-white text-coffee/60 border-border hover:text-coffee hover:border-coffee/50'
+                    }`}
                 >
-                    🎒 Inventory
+                    My Pantry
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
-                    className={cn(
-                        "flex-1 py-4 rounded-2xl font-black text-lg uppercase tracking-tight border-4 transition-all hard-shadow",
-                        activeTab === 'history' ? "bg-tangerine text-white border-coffee -translate-y-1 shadow-none" : "bg-white text-coffee border-coffee hover:bg-cream"
-                    )}
+                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${
+                        activeTab === 'history' 
+                        ? 'bg-tangerine text-white border-tangerine shadow-md' 
+                        : 'bg-white text-coffee/60 border-border hover:text-coffee hover:border-coffee/50'
+                    }`}
                 >
-                    📜 Quest Log
+                    Cooking History
                 </button>
             </div>
 
-            <div className="bg-white border-4 border-coffee rounded-[2rem] p-6 hard-shadow-lg min-h-[600px]">
+            {/* Content Container */}
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
                 {activeTab === 'pantry' ? (
                     <PantryUI items={pantryItems} />
                 ) : (
@@ -114,15 +157,14 @@ export function DashboardShell({
             </div>
           </div>
 
-          {/* THE CHEF (Right Side Sidebar) */}
-          <aside className="lg:col-span-5 order-1 lg:order-2">
-             <div className="sticky top-8">
-                <DashboardChat onLogRecipe={handleLogRecipe} />
+          {/* SIDEBAR: Chef Chat (Right Side) */}
+          <aside className="lg:col-span-4 lg:sticky lg:top-8 z-20">
+             <div className="relative">
+                {/* Decorative Elements behind chat */}
+                <div className="absolute -top-6 -right-6 w-24 h-24 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+                <div className="absolute -bottom-8 -left-4 w-24 h-24 bg-tangerine rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
                 
-                {/* Game Tip Footer */}
-                <div className="mt-4 bg-yellow-100 border-2 border-dashed border-coffee/30 p-3 rounded-xl text-center">
-                    <p className="text-[10px] font-bold text-coffee/60 uppercase">Tip: Tell the chef you want a "15-minute speedrun" for fast recipes!</p>
-                </div>
+                <DashboardChat onLogRecipe={handleLogRecipe} />
              </div>
           </aside>
 

@@ -2,15 +2,15 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { ArrowUp, Sparkles, ChefHat, User, AlertCircle, PlusCircle } from "lucide-react"
-import { useRef, useEffect, useState } from "react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Terminal } from "lucide-react"
+import { useRef, useEffect, useState, Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react"
 import { cn } from "@/lib/utils"
 
 const PROMPT_CHIPS = [
   { label: "What can I cook?", icon: "🍳" },
-  { label: "15-min speedrun", icon: "⏱️" },
+  { label: "15-min recipe", icon: "⏱️" },
   { label: "Use my eggs", icon: "🥚" },
-  { label: "Healthy buff", icon: "🥗" }
+  { label: "Something healthy", icon: "🥗" }
 ]
 
 export function DashboardChat({ 
@@ -20,34 +20,47 @@ export function DashboardChat({
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // --- 1. ROBUST LOGIC (NUCLEAR TYPE FIX) ---
-  // We explicitly cast the CONFIG and the RESULT to 'any'.
-  // This bypasses the "api does not exist" and "input does not exist" errors
-  // because we know these properties exist at runtime in the SDK.
-  const {
-    messages = [],
-    input = "",
-    setInput,
-    append,
-    handleSubmit,
-    reload,
-    status = 'idle',
-    error,
-  } = useChat({
+  // 1. Initialize Hook with defensive handling
+  const chatHook = useChat({
     api: "/api/chat",
-    onError: (err: any) => console.error("[GameEngine] 🚨 Hook Error:", err),
-  } as any) as any 
+    onError: (err: any) => console.error("[UI/Chat] 🚨 Hook Error:", err),
+    onFinish: (msg: any) => console.log("[UI/Chat] ✅ Stream Finished", msg),
+    onResponse: (res: any) => console.log("[UI/Chat] 📡 Response Status:", res.status)
+  } as any) as any
 
-  // Local state prevents UI freezing if hook is slow
+  // 2. Destructure with Defaults
+  const { 
+    messages = [], 
+    input,          // Might be undefined
+    setInput,       // Might be undefined
+    append, 
+    handleSubmit,
+    reload, 
+    status = 'idle', 
+    error, 
+  } = chatHook
+
+  // 3. Robust Input State Management
+  // We use local state to ensure the UI never crashes or freezes, 
+  // even if 'useChat' fails to provide 'input' or 'setInput'.
   const [localInput, setLocalInput] = useState("")
-  // Fallback to local input if SDK input is undefined (safety check)
+  
+  // The actual value to display in the input box
   const displayInput = typeof input === 'string' ? input : localInput
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVal = e.target.value
+    
+    // Always update local state so the user sees what they type
     setLocalInput(newVal)
+    
+    // Safely attempt to update the hook's state
     if (typeof setInput === 'function') {
-      try { setInput(newVal) } catch (err) { /* ignore */ }
+      try {
+        setInput(newVal)
+      } catch (err) {
+        console.warn("[UI/Chat] setInput failed, using local state only")
+      }
     }
   }
 
@@ -60,133 +73,128 @@ export function DashboardChat({
     }
   }, [messages, status]) 
 
+  // 4. Enhanced Send Function
   const sendMessage = async (content: string) => {
     if (!content || !content.trim()) return
     if (isLoading) return
 
-    // Try 'append' first
+    console.log(`[UI/Chat] 🚀 Attempting to send: "${content}"`)
+
+    // Strategy A: Try 'append'
     if (typeof append === 'function') {
       try {
         await append({ role: 'user', content })
+        // Clear local input after successful send if manual
         setLocalInput("") 
         return
-      } catch (e) { console.error(e) }
+      } catch (e) {
+        console.error("[UI/Chat] ❌ Strategy A failed:", e)
+      }
     } 
 
-    // Fallback to 'handleSubmit'
+    // Strategy B: Try 'handleSubmit' fallback
     if (typeof setInput === 'function' && typeof handleSubmit === 'function') {
       setInput(content)
       setTimeout(() => {
         const fakeEvent = { preventDefault: () => {} } as React.FormEvent
         handleSubmit(fakeEvent)
       }, 10)
+      return
     }
   }
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Use displayInput (the safe value)
     if (!displayInput.trim()) return
+    
     if (typeof handleSubmit === 'function') {
         handleSubmit(e)
+        // Hook usually clears its own input, but we clear local just in case
         setLocalInput("") 
     }
   }
 
-  // --- 2. GAME UI ---
   return (
-    <div className="flex flex-col h-[750px] bg-amber-50 rounded-[2rem] border-4 border-coffee hard-shadow-lg overflow-hidden relative font-sans group z-10">
+    <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden relative group z-10">
       
-      {/* GAME HEADER: NPC STAGE */}
-      <div className="bg-white border-b-4 border-coffee p-6 relative overflow-hidden">
-        {/* Background Grid Pattern */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none" 
-             style={{ backgroundImage: 'radial-gradient(#4a3f35 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-        
-        <div className="relative z-10 flex flex-col items-center">
-            {/* NPC Avatar - Reacts to State */}
+      {/* HEADER */}
+      <div className="relative z-10 p-6 pb-2 border-b-2 border-border/10">
+        <div className="flex flex-col items-center justify-center text-center space-y-3">
             <div className={cn(
-                "relative w-24 h-24 bg-white rounded-full border-4 border-coffee flex items-center justify-center transition-all duration-300 shadow-[4px_4px_0px_0px_rgba(74,63,53,1)]",
-                isLoading ? "animate-bounce scale-110" : "animate-float",
-                error ? "bg-red-200" : "bg-white"
+                "relative w-20 h-20 bg-cream rounded-full border-2 border-border flex items-center justify-center shadow-md",
+                isLoading ? "animate-bounce" : error ? "animate-none bg-red-100 border-red-300" : "animate-float"
             )}>
-                {/* Status Badge */}
                 <div className={cn(
-                  "absolute -bottom-2 -right-4 font-black text-[10px] px-3 py-1 rounded-full border-2 border-coffee uppercase tracking-tighter shadow-sm z-20",
-                  isLoading ? "bg-tangerine text-white" : error ? "bg-red-500 text-white" : "bg-yellow-400 text-coffee"
+                  "absolute -top-2 -right-2 text-white text-xs font-bold px-2 py-0.5 rounded-full border-2 border-border transform rotate-12",
+                  error ? "bg-red-500" : "bg-tangerine"
                 )}>
-                    {isLoading ? "Cooking..." : error ? "Burnt!" : "LVL. 99 Chef"}
+                    {isLoading ? "Cooking..." : error ? "Error!" : "Ready!"}
                 </div>
-                
-                {error ? <AlertCircle className="w-12 h-12 text-red-500" /> : <ChefHat className={cn("w-12 h-12 transition-colors", isLoading ? "text-tangerine" : "text-coffee")} />}
+                {error ? <AlertCircle className="w-10 h-10 text-red-500" /> : <ChefHat className="w-10 h-10 text-coffee" />}
             </div>
+            <div>
+                <h2 className="font-serif text-2xl font-bold text-coffee">Chef AI</h2>
+                <p className="text-xs font-medium text-coffee-dark/60 uppercase tracking-wider">
+                    {isLoading ? "Chopping & Sautéing..." : error ? "Kitchen Fire!" : "Waiting for orders"}
+                </p>
+            </div>
+        </div>
 
-            <div className="mt-4 text-center">
-                <h2 className="font-serif text-2xl font-black text-coffee uppercase italic tracking-tight">Master Chef AI</h2>
-                <div className="flex gap-1 justify-center mt-1">
-                    {[1,2,3,4,5].map(i => <div key={i} className="w-2 h-2 bg-tangerine border border-coffee rotate-45" />)}
-                </div>
-            </div>
-
-            <div className="flex justify-center mt-3">
-                <button 
-                    onClick={() => onLogRecipe("")}
-                    className="text-[10px] font-bold text-coffee/60 hover:text-tangerine hover:bg-white flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-transparent hover:border-border transition-all"
-                >
-                    <PlusCircle className="w-3 h-3" /> 
-                    Manual Log
-                </button>
-            </div>
+        <div className="flex justify-center mt-4 pb-2">
+            <button 
+                onClick={() => onLogRecipe("")}
+                className="text-xs font-bold text-coffee/70 hover:text-tangerine hover:bg-white flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-transparent hover:border-border transition-all"
+            >
+                <PlusCircle className="w-3.5 h-3.5" /> 
+                Log a Meal Manually
+            </button>
         </div>
       </div>
 
-      {/* DIALOGUE AREA (QUEST LOG) */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FDFCF0]">
+      {/* CHAT AREA */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
         
         {(!messages || messages.length === 0) && !error && (
-          <div className="space-y-4 animate-in fade-in zoom-in duration-500 mt-4">
-            <div className="bg-white border-4 border-coffee p-4 rounded-2xl relative hard-shadow-sm mx-2">
-                <p className="font-bold text-coffee text-center italic">
-                    "Welcome back, Player! The kitchen is stocked. Select a quest below or check your inventory."
-                </p>
-                {/* Speech bubble pointer */}
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-l-4 border-t-4 border-coffee rotate-45 transform" />
+          <div className="mt-4 text-center space-y-6 animate-in fade-in zoom-in duration-500">
+            <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
+                <Utensils className="w-8 h-8 text-coffee/40" />
             </div>
-            
-            <div className="grid grid-cols-2 gap-3 px-2">
+            <div className="px-6">
+                <p className="font-medium text-coffee text-lg">"What ingredients are we working with today?"</p>
+                <p className="text-sm text-coffee-dark/50 mt-1">I can see your pantry. Ask me anything!</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 px-4">
               {PROMPT_CHIPS.map((chip) => (
                 <button
                   key={chip.label}
                   type="button" 
                   onClick={() => sendMessage(chip.label)}
                   disabled={isLoading}
-                  className="bg-white border-2 border-coffee p-3 rounded-xl font-bold text-xs hover:-translate-y-1 hover:bg-yellow-50 hover:shadow-[2px_2px_0px_0px_rgba(74,63,53,1)] transition-all flex items-center gap-2 text-coffee disabled:opacity-50"
+                  className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip disabled:opacity-50"
                 >
-                  <span className="text-xl">{chip.icon}</span> 
-                  <span>{chip.label}</span>
+                  <span className="text-lg mr-2 group-hover/chip:scale-110 inline-block transition-transform">{chip.icon}</span>
+                  <span className="font-bold">{chip.label}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
         
-        {/* Messages Loop */}
-        {messages?.map((m: any) => (
-          <div key={m.id} className={cn(
-            "flex flex-col mb-4",
-            m.role === 'user' ? "items-end" : "items-start"
-          )}>
+        {messages?.map((m: { id: Key | null | undefined; role: string; content: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }) => (
+          <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
+             {m.role !== 'user' && (
+                 <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
+                    <ChefHat className="w-3 h-3 text-tangerine" />
+                 </div>
+             )}
              <div className={cn(
-               "max-w-[85%] p-3 font-medium text-sm border-4 border-coffee shadow-[4px_4px_0px_0px_rgba(74,63,53,0.1)]",
+               "max-w-[85%] p-4 text-sm shadow-sm relative",
                m.role === 'user' 
-                  ? "bg-coffee text-white rounded-2xl rounded-tr-none" 
-                  : "bg-white text-coffee rounded-2xl rounded-tl-none"
+                 ? "bg-coffee text-white rounded-2xl rounded-br-none border-2 border-transparent" 
+                 : "bg-cream text-coffee rounded-2xl rounded-bl-none border-2 border-border"
              )}>
-               <div className="flex items-center gap-2 mb-2 border-b-2 border-white/20 pb-1">
-                 {m.role === 'user' ? <User className="w-3 h-3" /> : <ChefHat className="w-3 h-3 text-tangerine" />}
-                 <span className="text-[10px] font-black uppercase tracking-widest opacity-80">
-                    {m.role === 'user' ? "Player" : "Chef NPC"}
-                 </span>
-               </div>
                <div className="whitespace-pre-wrap leading-relaxed">
                  {m.content}
                </div>
@@ -195,9 +203,15 @@ export function DashboardChat({
         ))}
 
         {isLoading && (
-            <div className="flex items-center gap-2 bg-white/80 border-2 border-coffee px-4 py-2 rounded-full w-fit animate-pulse mx-auto">
-                <Sparkles className="w-4 h-4 text-tangerine animate-spin" />
-                <span className="text-xs font-bold text-coffee uppercase">Rolling for recipe...</span>
+            <div className="flex justify-start items-end gap-2">
+               <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
+                    <ChefHat className="w-3 h-3 text-tangerine" />
+               </div>
+               <div className="bg-cream border-2 border-border text-coffee rounded-2xl rounded-bl-none p-4 py-3 text-sm flex gap-1.5 shadow-sm items-center">
+                 <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce"></span>
+                 <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce delay-100"></span>
+                 <span className="w-2 h-2 bg-coffee/40 rounded-full animate-bounce delay-200"></span>
+               </div>
             </div>
         )}
 
@@ -206,7 +220,7 @@ export function DashboardChat({
                 <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-4 max-w-[90%] text-sm text-center shadow-sm">
                     <p className="font-bold flex items-center justify-center gap-2 mb-1">
                         <AlertCircle className="w-4 h-4" /> 
-                        Quest Failed
+                        Oops, something burned.
                     </p>
                     <p className="opacity-90">{error.message}</p>
                     <button 
@@ -222,22 +236,22 @@ export function DashboardChat({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* INPUT AREA (ACTION BAR) */}
-      <div className="p-4 bg-white border-t-4 border-coffee z-20">
-        <form onSubmit={handleFormSubmit} className="relative flex gap-2">
+      {/* INPUT AREA */}
+      <div className="p-4 bg-white border-t-2 border-border z-20">
+        <form onSubmit={handleFormSubmit} className="relative group/input">
           <input
             value={displayInput}
             onChange={handleInputChange}
-            placeholder="Enter command..."
+            placeholder="Ask Chef..."
             disabled={isLoading} 
-            className="flex-1 bg-cream px-4 py-3 rounded-xl border-4 border-coffee focus:outline-none focus:border-tangerine font-bold text-coffee placeholder:text-coffee/30 transition-colors disabled:opacity-50"
+            className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />
           <button
             type="submit"
             disabled={isLoading || !displayInput.trim()}
-            className="bg-tangerine p-3 rounded-xl border-4 border-coffee shadow-[2px_2px_0px_0px_rgba(74,63,53,1)] hover:translate-y-1 hover:shadow-none active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="absolute right-2 top-2 bottom-2 aspect-square bg-tangerine text-white rounded-lg border-2 border-border hover:translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:hover:translate-y-0 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
           >
-            {isLoading ? <Sparkles className="w-6 h-6 text-white animate-spin" /> : <ArrowUp className="w-6 h-6 text-white stroke-[3px]" />}
+            {isLoading ? <Sparkles className="w-5 h-5 animate-spin" /> : <ArrowUp className="w-6 h-6" />}
           </button>
         </form>
       </div>
