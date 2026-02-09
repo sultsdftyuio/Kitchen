@@ -1,4 +1,5 @@
-import { Flame } from "lucide-react"; // footer.tsx
+import { Flame } from "lucide-react";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -27,7 +28,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <a
-                  href="#features"
+                  href="/#features"
                   className="text-cream/70 hover:text-tangerine transition-colors"
                 >
                   Features
@@ -35,7 +36,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#how-it-works"
+                  href="/#how-it-works"
                   className="text-cream/70 hover:text-tangerine transition-colors"
                 >
                   How It Works
@@ -56,20 +57,20 @@ export function Footer() {
             <h4 className="font-semibold text-cream mb-4">Company</h4>
             <ul className="space-y-3">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/privacy"
                   className="text-cream/70 hover:text-tangerine transition-colors"
                 >
-                  About
-                </a>
+                  Privacy Policy
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/terms"
                   className="text-cream/70 hover:text-tangerine transition-colors"
                 >
-                  Blog
-                </a>
+                  Terms of Service
+                </Link>
               </li>
               <li>
                 <a
