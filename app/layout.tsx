@@ -4,11 +4,11 @@ import type { Metadata } from "next";
 import { Playfair_Display, Work_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { CookieBanner } from "@/components/cookie-banner";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 import "./globals.css";
 
-// 1. Font Configurations
+// 1. Font Configurations (Keep your elegant choice)
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif",
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
     description: "Turn your leftovers into feasts with AI-powered cooking coaching.",
     siteName: "KernelCook",
   },
-  // Replace 'your-google-verification-code' with the actual code from Search Console
-  verification: {
-    google: "your-google-verification-code", 
-  },
+  // Add your Google Search Console verification code here later
+  // verification: {
+  //   google: "your-google-verification-code",
+  // },
 };
 
 export default function RootLayout({
@@ -55,7 +55,7 @@ export default function RootLayout({
         className={`${playfair.variable} ${workSans.variable} font-sans antialiased flex min-h-screen flex-col`}
       >
         {/* Navigation Bar (Appears on all pages) */}
-        <Navbar />
+        <Navbar user={null} />
 
         {/* Main Content Area */}
         <main className="flex-1">
