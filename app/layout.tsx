@@ -4,11 +4,9 @@ import type { Metadata } from "next";
 import { Playfair_Display, Work_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { CookieBanner } from "@/components/cookie-banner";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
 import "./globals.css";
 
-// 1. Font Configurations (Keep your elegant choice)
+// 1. Font Configurations
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif",
@@ -38,7 +36,6 @@ export const metadata: Metadata = {
     description: "Turn your leftovers into feasts with AI-powered cooking coaching.",
     siteName: "KernelCook",
   },
-  // Add your Google Search Console verification code here later
   // verification: {
   //   google: "your-google-verification-code",
   // },
@@ -54,16 +51,11 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${workSans.variable} font-sans antialiased flex min-h-screen flex-col`}
       >
-        {/* Navigation Bar (Appears on all pages) */}
-        <Navbar user={null} />
-
-        {/* Main Content Area */}
-        <main className="flex-1">
+        {/* Main Content Area - Navbar and Footer are deliberately removed from here 
+            so they don't bleed into the /dashboard or auth pages */}
+        <main className="flex-1 flex flex-col">
           {children}
         </main>
-
-        {/* Footer (Appears on all pages) */}
-        <Footer />
 
         {/* Global Overlays & Analytics */}
         <CookieBanner />
@@ -71,4 +63,4 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
+} 

@@ -15,20 +15,21 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   return (
-    <main className="min-h-screen bg-cream font-sans text-coffee selection:bg-tangerine/30">
+    <div className="min-h-screen bg-cream font-sans text-coffee selection:bg-tangerine/30 flex flex-col">
+      {/* Landing Page Navbar */}
       <Navbar user={user} />
       
-      <Hero />
-      
-      <FeaturesBento />
-      
-      <HowItWorks />
+      {/* Page Content */}
+      <main className="flex-1">
+        <Hero />
+        <FeaturesBento />
+        <HowItWorks />
+        <RoastSection />
+        <Testimonials /> 
+      </main>
 
-      <RoastSection />
-      
-      <Testimonials /> 
-
+      {/* Landing Page Footer */}
       <Footer />
-    </main>
+    </div>
   );
 }
