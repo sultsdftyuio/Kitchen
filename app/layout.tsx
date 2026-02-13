@@ -8,7 +8,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import "./globals.css";
 
-// 1. Font Configurations (Keep your elegant choice)
+// 1. Font Configurations
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif",
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
     description: "Turn your leftovers into feasts with AI-powered cooking coaching.",
     siteName: "KernelCook",
   },
-  // Add your Google Search Console verification code here later
-  // verification: {
-  //   google: "your-google-verification-code",
-  // },
+  // Replace 'your-google-verification-code' with the actual code from Search Console
+  verification: {
+    google: "your-google-verification-code", 
+  },
 };
 
 export default function RootLayout({
