@@ -1,44 +1,47 @@
+// app/layout.tsx
 import React from "react";
 import type { Metadata } from "next";
 import { Playfair_Display, Work_Sans } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { CookieBanner } from "@/components/cookie-banner";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 import "./globals.css";
 
-// Font configurations
-const _playfair = Playfair_Display({
+// 1. Font Configurations (Keep your elegant choice)
+const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-serif",
 });
 
-const _workSans = Work_Sans({
+const workSans = Work_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
-// Metadata for SEO and sharing
+// 2. SEO Metadata for KernelCook
 export const metadata: Metadata = {
-  title: "KitchenOS - AI Cooking Assistant",
-  description:
-    "The first culinary AI that cooks with heart, not just algorithms. Turn your leftovers into feasts.",
-  generator: "v0.app",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
+  metadataBase: new URL("https://kernelcook.com"),
+  title: {
+    default: "KernelCook | AI Culinary Inventory & Coaching",
+    template: "%s | KernelCook",
   },
+  description:
+    "The first culinary AI that cooks with heart. Manage your pantry, get AI recipe suggestions, and turn leftovers into feasts.",
+  keywords: ["cooking", "pantry manager", "AI recipes", "kitchen organization", "culinary ai"],
+  authors: [{ name: "KernelCook Team" }],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://kernelcook.com",
+    title: "KernelCook | AI Culinary Assistant",
+    description: "Turn your leftovers into feasts with AI-powered cooking coaching.",
+    siteName: "KernelCook",
+  },
+  // Add your Google Search Console verification code here later
+  // verification: {
+  //   google: "your-google-verification-code",
+  // },
 };
 
 export default function RootLayout({
@@ -47,14 +50,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${_playfair.variable} ${_workSans.variable} font-sans antialiased`}
+        className={`${playfair.variable} ${workSans.variable} font-sans antialiased flex min-h-screen flex-col`}
       >
-        {/* Main Application Content */}
-        {children}
+        {/* Navigation Bar (Appears on all pages) */}
+        <Navbar />
 
-        {/* Global Components (overlays, analytics, etc.) */}
+        {/* Main Content Area */}
+        <main className="flex-1">
+          {children}
+        </main>
+
+        {/* Footer (Appears on all pages) */}
+        <Footer />
+
+        {/* Global Overlays & Analytics */}
         <CookieBanner />
         <Analytics />
       </body>

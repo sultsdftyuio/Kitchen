@@ -104,7 +104,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* Terms Checkbox */}
+          {/* Terms Checkbox - FIXED LINKS */}
           <div className="flex items-start gap-3 pt-2 px-1">
             <div className="flex items-center h-5">
               <input
@@ -117,11 +117,11 @@ export default function SignupPage() {
             </div>
             <label htmlFor="terms" className="text-sm text-coffee-dark/80 cursor-pointer select-none">
               I agree to the{" "}
-              <Link href="#" className="font-bold text-coffee hover:underline">
+              <Link href="/terms" className="font-bold text-coffee hover:underline">
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link href="#" className="font-bold text-coffee hover:underline">
+              <Link href="/privacy" className="font-bold text-coffee hover:underline">
                 Privacy Policy
               </Link>
             </label>
