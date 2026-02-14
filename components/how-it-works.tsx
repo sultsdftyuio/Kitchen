@@ -29,7 +29,7 @@ export function HowItWorks() {
       <div className="text-center mb-16">
         <h2 className="text-4xl font-serif font-bold text-coffee mb-4">From pantry to plate in 3 steps.</h2>
         <p className="text-lg text-coffee/70 max-w-2xl mx-auto">
-          No more scrolling through endless recipe blogs. KitchenOS gets straight to the point.
+          No more scrolling through endless recipe blogs. kernelcook gets straight to the point.
         </p>
       </div>
 

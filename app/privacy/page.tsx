@@ -95,19 +95,19 @@ export default async function PrivacyPolicy() {
             <div className="bg-coffee/5 p-8 rounded-3xl border border-coffee/10">
               <h4 className="font-bold text-red-600 uppercase text-sm tracking-wide mb-4">Strict Liability Waiver</h4>
               <p className="font-medium text-lg mb-6">
-                KitchenOS utilizes Large Language Models ("LLMs") to generate recipes. By using this service, you acknowledge and accept:
+                kernelcook utilizes Large Language Models ("LLMs") to generate recipes. By using this service, you acknowledge and accept:
               </p>
               <ul className="space-y-4">
                 <li className="flex gap-4 items-start">
                   <span className="font-serif font-bold text-tangerine text-xl">A.</span>
                   <div>
-                    <strong>"Hallucination" Risk:</strong> The AI may generate information that is factually incorrect, dangerous, or chemically impossible. KitchenOS makes no warranties regarding accuracy, completeness, or safety of any output.
+                    <strong>"Hallucination" Risk:</strong> The AI may generate information that is factually incorrect, dangerous, or chemically impossible. kernelcook makes no warranties regarding accuracy, completeness, or safety of any output.
                   </div>
                 </li>
                 <li className="flex gap-4 items-start">
                   <span className="font-serif font-bold text-tangerine text-xl">B.</span>
                   <div>
-                    <strong>Food Safety:</strong> You are solely responsible for verifying that ingredients are cooked to safe internal temperatures. KitchenOS is not responsible for foodborne illness, undercooked food, or cross-contamination suggestions.
+                    <strong>Food Safety:</strong> You are solely responsible for verifying that ingredients are cooked to safe internal temperatures. kernelcook is not responsible for foodborne illness, undercooked food, or cross-contamination suggestions.
                   </div>
                 </li>
                 <li className="flex gap-4 items-start">
@@ -119,7 +119,7 @@ export default async function PrivacyPolicy() {
                 <li className="flex gap-4 items-start">
                   <span className="font-serif font-bold text-tangerine text-xl">D.</span>
                   <div>
-                    <strong>Medical Advice:</strong> KitchenOS does not provide medical or nutritional advice. Dietary information provided by the AI is an estimate only and should not be relied upon for medical conditions (e.g., diabetes, hypertension).
+                    <strong>Medical Advice:</strong> kernelcook does not provide medical or nutritional advice. Dietary information provided by the AI is an estimate only and should not be relied upon for medical conditions (e.g., diabetes, hypertension).
                   </div>
                 </li>
               </ul>
@@ -167,7 +167,7 @@ export default async function PrivacyPolicy() {
               <h2 className="!my-0">3. Artificial Intelligence Processing</h2>
             </div>
             <p>
-              KitchenOS utilizes <strong>OpenAI</strong> and other LLM providers. Here is how we protect your data during this process:
+              kernelcook utilizes <strong>OpenAI</strong> and other LLM providers. Here is how we protect your data during this process:
             </p>
             <ul className="list-disc pl-6 space-y-3 mt-4">
               <li>
@@ -258,7 +258,7 @@ export default async function PrivacyPolicy() {
             <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
               <p className="font-bold text-red-800 mb-2">Strict Age Restriction</p>
               <p className="text-sm text-red-700/80">
-                KitchenOS is not intended for use by anyone under the age of 13 (or 16 in certain European jurisdictions). We do not knowingly collect personally identifiable information from children. If you are a parent or guardian and you are aware that your child has provided us with Personal Data, please contact us immediately so we can expunge the data.
+                kernelcook is not intended for use by anyone under the age of 13 (or 16 in certain European jurisdictions). We do not knowingly collect personally identifiable information from children. If you are a parent or guardian and you are aware that your child has provided us with Personal Data, please contact us immediately so we can expunge the data.
               </p>
             </div>
           </section>
@@ -273,7 +273,7 @@ export default async function PrivacyPolicy() {
               Your information, including Personal Data, is processed at the Company's operating offices and in any other places where the parties involved in the processing are located. It means that this information may be transferred to — and maintained on — computers located outside of your state, province, country, or other governmental jurisdiction where the data protection laws may differ than those from your jurisdiction.
             </p>
             <p className="mt-4">
-              By using KitchenOS, you consent to the transfer of your data to the <strong>United States</strong> and other regions where our cloud providers (Supabase, Vercel, OpenAI) operate.
+              By using kernelcook, you consent to the transfer of your data to the <strong>United States</strong> and other regions where our cloud providers (Supabase, Vercel, OpenAI) operate.
             </p>
           </section>
 
@@ -290,7 +290,7 @@ export default async function PrivacyPolicy() {
               </div>
               <div>
                 <h3 className="text-lg font-bold">CCPA / CPRA (California)</h3>
-                <p className="text-sm">KitchenOS does not "sell" your personal data as defined by the CCPA. You have the right to request disclosure of data collection categories, request deletion, and non-discrimination for exercising these rights.</p>
+                <p className="text-sm">kernelcook does not "sell" your personal data as defined by the CCPA. You have the right to request disclosure of data collection categories, request deletion, and non-discrimination for exercising these rights.</p>
               </div>
             </div>
           </section>
@@ -302,7 +302,7 @@ export default async function PrivacyPolicy() {
               <h2 className="!my-0 text-3xl">10. Limitation of Liability</h2>
             </div>
             <div className="uppercase font-mono text-xs bg-coffee text-cream p-6 rounded-xl leading-relaxed">
-              TO THE MAXIMUM EXTENT PERMITTED BY LAW, KITCHENOS AND ITS DEVELOPERS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM (A) YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICE; (B) ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON THE SERVICE; (C) ANY CONTENT OBTAINED FROM THE SERVICE; OR (D) UNAUTHORIZED ACCESS, USE, OR ALTERATION OF YOUR TRANSMISSIONS OR CONTENT. IN NO EVENT SHALL THE AGGREGATE LIABILITY OF KITCHENOS EXCEED THE GREATER OF ONE HUNDRED U.S. DOLLARS (U.S. $100.00) OR THE AMOUNT YOU PAID KITCHENOS, IF ANY, IN THE PAST SIX MONTHS.
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, kernelcook AND ITS DEVELOPERS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES, WHETHER INCURRED DIRECTLY OR INDIRECTLY, OR ANY LOSS OF DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM (A) YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICE; (B) ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON THE SERVICE; (C) ANY CONTENT OBTAINED FROM THE SERVICE; OR (D) UNAUTHORIZED ACCESS, USE, OR ALTERATION OF YOUR TRANSMISSIONS OR CONTENT. IN NO EVENT SHALL THE AGGREGATE LIABILITY OF kernelcook EXCEED THE GREATER OF ONE HUNDRED U.S. DOLLARS (U.S. $100.00) OR THE AMOUNT YOU PAID kernelcook, IF ANY, IN THE PAST SIX MONTHS.
             </div>
           </section>
 
@@ -331,7 +331,7 @@ export default async function PrivacyPolicy() {
               <h2 className="!my-0 text-3xl">12. User Generated Content (UGC)</h2>
             </div>
             <p>
-              By uploading content (including but not limited to pantry photos, recipe notes, ratings, or profile images) to KitchenOS, you grant us a worldwide, non-exclusive, royalty-free, fully paid, right and license (with the right to sublicense) to host, store, transfer, display, perform, reproduce, modify for the purpose of formatting for display, and distribute your Content, in whole or in part, in any media formats.
+              By uploading content (including but not limited to pantry photos, recipe notes, ratings, or profile images) to kernelcook, you grant us a worldwide, non-exclusive, royalty-free, fully paid, right and license (with the right to sublicense) to host, store, transfer, display, perform, reproduce, modify for the purpose of formatting for display, and distribute your Content, in whole or in part, in any media formats.
             </p>
             <p className="mt-4">
               You represent and warrant that: (i) you own the Content or otherwise have the right to grant the license set forth in this section, and (ii) the posting of your Content does not violate the privacy rights, publicity rights, copyrights, contract rights or any other rights of any person.
@@ -345,10 +345,10 @@ export default async function PrivacyPolicy() {
               <h2 className="!my-0 text-3xl">13. DMCA & Copyright Policy</h2>
             </div>
             <p>
-              KitchenOS respects the intellectual property rights of others. It is our policy to respond to any claim that Content posted on the Service infringes a copyright or other intellectual property infringement of any person.
+              kernelcook respects the intellectual property rights of others. It is our policy to respond to any claim that Content posted on the Service infringes a copyright or other intellectual property infringement of any person.
             </p>
             <p className="mt-4">
-              If you are a copyright owner, or authorized on behalf of one, and you believe that the copyrighted work has been copied in a way that constitutes copyright infringement that is taking place through the Service, you must submit your notice in writing to <a href="mailto:legal@kitchenos.dev" className="text-tangerine hover:underline">legal@kitchenos.dev</a> and include in your notice a detailed description of the alleged infringement.
+              If you are a copyright owner, or authorized on behalf of one, and you believe that the copyrighted work has been copied in a way that constitutes copyright infringement that is taking place through the Service, you must submit your notice in writing to <a href="mailto:legal@kernelcook.dev" className="text-tangerine hover:underline">legal@kernelcook.dev</a> and include in your notice a detailed description of the alleged infringement.
             </p>
           </section>
 
@@ -402,7 +402,7 @@ export default async function PrivacyPolicy() {
                 <strong>Severability:</strong> If any provision of these Terms is held to be unenforceable or invalid, such provision will be changed and interpreted to accomplish the objectives of such provision to the greatest extent possible under applicable law and the remaining provisions will continue in full force and effect.
               </li>
               <li>
-                <strong>Force Majeure:</strong> KitchenOS shall not be liable for any failure to perform its obligations hereunder where such failure results from any cause beyond KitchenOS's reasonable control, including, without limitation, mechanical, electronic or communications failure or degradation (including "line-noise" interference), acts of God, pandemics, or third-party service outages (e.g., AWS, OpenAI, Vercel).
+                <strong>Force Majeure:</strong> kernelcook shall not be liable for any failure to perform its obligations hereunder where such failure results from any cause beyond kernelcook's reasonable control, including, without limitation, mechanical, electronic or communications failure or degradation (including "line-noise" interference), acts of God, pandemics, or third-party service outages (e.g., AWS, OpenAI, Vercel).
               </li>
               <li>
                 <strong>Governing Law:</strong> These Terms shall be governed and construed in accordance with the laws of the State of Delaware, United States, without regard to its conflict of law provisions.
@@ -431,7 +431,7 @@ export default async function PrivacyPolicy() {
               <h2 className="!my-0 text-3xl">18. Entire Agreement</h2>
             </div>
             <p>
-              These Terms, together with the Privacy Policy and any other legal notices published by KitchenOS on the Service, shall constitute the entire agreement between you and KitchenOS concerning the Service.
+              These Terms, together with the Privacy Policy and any other legal notices published by kernelcook on the Service, shall constitute the entire agreement between you and kernelcook concerning the Service.
             </p>
           </section>
 
@@ -443,14 +443,14 @@ export default async function PrivacyPolicy() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="mailto:legal@kitchenos.dev" 
+                href="mailto:legal@kernelcook.dev" 
                 className="inline-flex items-center gap-2 px-8 py-3 bg-coffee text-cream rounded-full font-bold hover:bg-tangerine transition-colors"
               >
                 <FileText className="w-4 h-4" />
-                legal@kitchenos.dev
+                legal@kernelcook.dev
               </a>
               <a 
-                href="mailto:privacy@kitchenos.dev" 
+                href="mailto:privacy@kernelcook.dev" 
                 className="inline-flex items-center gap-2 px-8 py-3 bg-white text-coffee border border-coffee/20 rounded-full font-bold hover:bg-coffee/5 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />

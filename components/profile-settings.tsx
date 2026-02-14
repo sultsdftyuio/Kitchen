@@ -36,7 +36,7 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
                 <div className="bg-tangerine p-2 rounded-lg text-white">
                   <ChefHat className="w-5 h-5" />
                 </div>
-                <h2 className="font-serif text-2xl font-bold text-cream">KitchenOS Config</h2>
+                <h2 className="font-serif text-2xl font-bold text-cream">kernelcook Config</h2>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-cream/80 hover:text-white">
                 <X className="w-6 h-6" />

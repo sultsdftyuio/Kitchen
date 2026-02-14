@@ -37,7 +37,7 @@ export function Hero() {
           
           {/* Subheadline */}
           <p className="max-w-xl text-lg md:text-xl text-coffee/80 mb-10 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            KitchenOS remembers your tastes, tracks your ingredients, and helps you turn random pantry leftovers into Michelin-worthy meals.
+            kernelcook remembers your tastes, tracks your ingredients, and helps you turn random pantry leftovers into Michelin-worthy meals.
           </p>
 
           {/* Calls to Action */}

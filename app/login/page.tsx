@@ -36,7 +36,7 @@ export default function LoginPage() {
             <Flame className="w-8 h-8 text-white" />
           </div>
           <h1 className="font-serif text-4xl font-bold text-coffee mb-2">
-            KitchenOS
+            kernelcook
           </h1>
           <p className="text-coffee-dark/80 text-lg">
             Welcome back, Chef.

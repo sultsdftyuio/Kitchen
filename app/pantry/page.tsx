@@ -33,7 +33,7 @@ export default async function PantryPage() {
   // 3. Render
   return (
     <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-2">KitchenOS Pantry</h1>
+      <h1 className="text-3xl font-bold mb-2">kernelcook Pantry</h1>
       <p className="text-muted-foreground mb-8">Manage your ingredients to generate recipes.</p>
       
       <PantryUI items={pantryItems ?? []} />

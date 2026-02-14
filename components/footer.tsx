@@ -13,7 +13,7 @@ export function Footer() {
                 <Flame className="w-5 h-5 text-white" />
               </div>
               <span className="font-serif text-2xl font-bold text-cream">
-                KitchenOS
+                kernelcook
               </span>
             </div>
             <p className="text-cream/80 max-w-sm leading-relaxed">
@@ -91,7 +91,7 @@ export function Footer() {
               {"Made with ❤️ and 🧈 (Butter)."}
             </p>
             <p className="text-cream/60 text-sm">
-              © 2026 KitchenOS. All rights reserved.
+              © 2026 kernelcook. All rights reserved.
             </p>
           </div>
         </div>

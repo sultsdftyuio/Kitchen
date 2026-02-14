@@ -21,7 +21,7 @@ export function FeaturesBento() {
             </div>
             <CardTitle className="text-2xl font-serif text-coffee">AI Recipe Generation</CardTitle>
             <CardDescription className="text-coffee/80 text-base max-w-md mt-2">
-              Tell KitchenOS what's in your pantry, your dietary restrictions, and your skill level. Get a personalized, step-by-step recipe in seconds.
+              Tell kernelcook what's in your pantry, your dietary restrictions, and your skill level. Get a personalized, step-by-step recipe in seconds.
             </CardDescription>
           </CardHeader>
         </Card>

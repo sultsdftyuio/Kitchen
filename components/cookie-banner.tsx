@@ -40,7 +40,7 @@ export function CookieBanner() {
           <div className="space-y-2">
             <h4 className="font-bold text-lg">We use cookies (and butter)</h4>
             <p className="text-sm text-cream/80 max-w-2xl leading-relaxed">
-              KitchenOS uses cookies to improve your experience, track analytics, and keep you signed in. By continuing, you agree to our 
+              kernelcook uses cookies to improve your experience, track analytics, and keep you signed in. By continuing, you agree to our 
               <Link href="/privacy" className="text-tangerine hover:underline mx-1 font-bold">Privacy Policy</Link> 
               and 
               <Link href="/terms" className="text-tangerine hover:underline mx-1 font-bold">Terms of Service</Link>.

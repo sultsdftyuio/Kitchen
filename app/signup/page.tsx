@@ -65,7 +65,7 @@ export default function SignupPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="chef@kitchenos.com"
+                placeholder="chef@kernelcook.com"
                 required
                 className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-border bg-cream/30 focus:border-tangerine focus:ring-0 outline-none transition-colors text-coffee"
               />

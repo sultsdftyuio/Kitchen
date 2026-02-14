@@ -77,7 +77,7 @@ export async function POST(req: Request) {
 
     // 5. Construct Advanced System Prompt
     const systemPrompt = `
-      You are KitchenOS Chef AI, a world-class culinary expert and encouraging coach.
+      You are kernelcook Chef AI, a world-class culinary expert and encouraging coach.
       
       === 👤 USER PROFILE ===
       - **Skill Level:** ${skillLevel}

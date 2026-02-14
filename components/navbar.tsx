@@ -24,7 +24,7 @@ export function Navbar({ user }: NavbarProps) {
               <Flame className="w-5 h-5 text-white" />
             </div>
             <span className="font-serif text-2xl font-bold text-coffee">
-              KitchenOS
+              kernelcook
             </span>
           </Link>
 

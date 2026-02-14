@@ -39,7 +39,7 @@ export default async function TermsOfService() {
               <ul className="space-y-2 list-disc pl-4">
                 <li><strong>AI Risk:</strong> Our AI may "hallucinate" dangerous or inaccurate recipes. You use it at your own risk.</li>
                 <li><strong>Food Safety:</strong> You are responsible for checking internal temperatures and allergens.</li>
-                <li><strong>Eligibility:</strong> You must be 18+ to use KitchenOS.</li>
+                <li><strong>Eligibility:</strong> You must be 18+ to use kernelcook.</li>
               </ul>
               <ul className="space-y-2 list-disc pl-4">
                 <li><strong>Liability:</strong> Our liability is limited to $100 or what you paid us.</li>
@@ -131,7 +131,7 @@ export default async function TermsOfService() {
             <div className="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-xl">
               <p className="font-bold text-red-700 mb-2 uppercase text-sm tracking-wide">Significant Risk Warning</p>
               <p className="text-red-900/80 mb-4">
-                KitchenOS uses Large Language Models (LLMs) to generate recipes, cooking advice, and inventory suggestions ("AI Output"). AI Output is probabilistic and may be inaccurate, misleading, or offensive.
+                kernelcook uses Large Language Models (LLMs) to generate recipes, cooking advice, and inventory suggestions ("AI Output"). AI Output is probabilistic and may be inaccurate, misleading, or offensive.
               </p>
               <ul className="space-y-3 text-red-900/80 text-sm list-disc pl-5">
                 <li><strong>No Food Safety Guarantee:</strong> The AI may suggest cooking times or temperatures that are unsafe. You are solely responsible for following USDA/FDA guidelines for food safety (e.g., internal temperatures for meat).</li>
@@ -181,7 +181,7 @@ export default async function TermsOfService() {
             </p>
             <ul className="list-disc pl-6 space-y-2 mt-4">
               <li><strong>Ownership:</strong> You retain copyright and any other proprietary rights that you may hold in the User Content that you post to the Service.</li>
-              <li><strong>License:</strong> By posting User Content, you grant KitchenOS a worldwide, non-exclusive, royalty-free, fully paid, transferable, and sublicensable right to use, reproduce, modify, adapt, publish, prepare derivative works of, distribute, and publicly display your User Content in connection with the Service.</li>
+              <li><strong>License:</strong> By posting User Content, you grant kernelcook a worldwide, non-exclusive, royalty-free, fully paid, transferable, and sublicensable right to use, reproduce, modify, adapt, publish, prepare derivative works of, distribute, and publicly display your User Content in connection with the Service.</li>
               <li><strong>Responsibility:</strong> You are solely responsible for your User Content and the consequences of posting or publishing it. We do not endorse any User Content or any opinion, recommendation, or advice expressed therein.</li>
             </ul>
           </section>
@@ -193,10 +193,10 @@ export default async function TermsOfService() {
               <h2 className="!my-0 text-3xl">6. Intellectual Property Rights</h2>
             </div>
             <p>
-              The Service and its original content (excluding User Content), features, and functionality are and will remain the exclusive property of KitchenOS and its licensors.
+              The Service and its original content (excluding User Content), features, and functionality are and will remain the exclusive property of kernelcook and its licensors.
             </p>
             <p className="mt-4">
-              The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of KitchenOS.
+              The Service is protected by copyright, trademark, and other laws of both the United States and foreign countries. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of kernelcook.
             </p>
           </section>
 
@@ -237,7 +237,7 @@ export default async function TermsOfService() {
               <h2 className="!my-0 text-3xl">9. Limitation of Liability</h2>
             </div>
             <div className="uppercase font-mono text-xs bg-coffee text-cream p-8 rounded-xl leading-relaxed">
-              IN NO EVENT SHALL KITCHENOS, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR AFFILIATES, BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM (I) YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICE; (II) ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON THE SERVICE; (III) ANY CONTENT OBTAINED FROM THE SERVICE; AND (IV) UNAUTHORIZED ACCESS, USE OR ALTERATION OF YOUR TRANSMISSIONS OR CONTENT, WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE) OR ANY OTHER LEGAL THEORY, WHETHER OR NOT WE HAVE BEEN INFORMED OF THE POSSIBILITY OF SUCH DAMAGE.
+              IN NO EVENT SHALL kernelcook, ITS DIRECTORS, EMPLOYEES, PARTNERS, AGENTS, SUPPLIERS, OR AFFILIATES, BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL OR PUNITIVE DAMAGES, INCLUDING WITHOUT LIMITATION, LOSS OF PROFITS, DATA, USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, RESULTING FROM (I) YOUR ACCESS TO OR USE OF OR INABILITY TO ACCESS OR USE THE SERVICE; (II) ANY CONDUCT OR CONTENT OF ANY THIRD PARTY ON THE SERVICE; (III) ANY CONTENT OBTAINED FROM THE SERVICE; AND (IV) UNAUTHORIZED ACCESS, USE OR ALTERATION OF YOUR TRANSMISSIONS OR CONTENT, WHETHER BASED ON WARRANTY, CONTRACT, TORT (INCLUDING NEGLIGENCE) OR ANY OTHER LEGAL THEORY, WHETHER OR NOT WE HAVE BEEN INFORMED OF THE POSSIBILITY OF SUCH DAMAGE.
             </div>
           </section>
 
@@ -248,7 +248,7 @@ export default async function TermsOfService() {
               <h2 className="!my-0 text-3xl">10. Indemnification</h2>
             </div>
             <p>
-              You agree to defend, indemnify, and hold harmless KitchenOS and its licensee and licensors, and their employees, contractors, agents, officers, and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of:
+              You agree to defend, indemnify, and hold harmless kernelcook and its licensee and licensors, and their employees, contractors, agents, officers, and directors, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees), resulting from or arising out of:
             </p>
             <ul className="list-disc pl-6 space-y-2 mt-4">
               <li>Your use and access of the Service, by you or any person using your account and password;</li>
@@ -268,7 +268,7 @@ export default async function TermsOfService() {
               Your use of the Service is at your sole risk. The Service is provided on an "AS IS" and "AS AVAILABLE" basis. The Service is provided without warranties of any kind, whether express or implied, including, but not limited to, implied warranties of merchantability, fitness for a particular purpose, non-infringement, or course of performance.
             </p>
             <p className="mt-4">
-              KitchenOS its subsidiaries, affiliates, and its licensors do not warrant that a) the Service will function uninterrupted, secure or available at any particular time or location; b) any errors or defects will be corrected; c) the Service is free of viruses or other harmful components; or d) the results of using the Service will meet your requirements.
+              kernelcook its subsidiaries, affiliates, and its licensors do not warrant that a) the Service will function uninterrupted, secure or available at any particular time or location; b) any errors or defects will be corrected; c) the Service is free of viruses or other harmful components; or d) the results of using the Service will meet your requirements.
             </p>
           </section>
 
@@ -297,7 +297,7 @@ export default async function TermsOfService() {
                 <strong>Dispute Resolution:</strong> Any dispute, controversy or claim arising out of, relating to or in connection with this contract, including the breach, termination or validity thereof, shall be finally resolved by arbitration.
               </p>
               <p className="mb-4">
-                <strong>Class Action Waiver:</strong> YOU AND KITCHENOS AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY, AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING.
+                <strong>Class Action Waiver:</strong> YOU AND kernelcook AGREE THAT EACH MAY BRING CLAIMS AGAINST THE OTHER ONLY IN YOUR OR ITS INDIVIDUAL CAPACITY, AND NOT AS A PLAINTIFF OR CLASS MEMBER IN ANY PURPORTED CLASS OR REPRESENTATIVE PROCEEDING.
               </p>
               <p>
                 <strong>Jury Trial Waiver:</strong> You and we waive any constitutional and statutory rights to go to court and have a trial in front of a judge or a jury.
@@ -349,10 +349,10 @@ export default async function TermsOfService() {
               We are happy to clarify any questions you may have regarding our terms of service or legal obligations.
             </p>
             <a 
-              href="mailto:legal@kitchenos.dev" 
+              href="mailto:legal@kernelcook.dev" 
               className="inline-flex items-center justify-center px-8 py-3 bg-coffee text-cream rounded-full font-bold hover:bg-tangerine transition-colors"
             >
-              legal@kitchenos.dev
+              legal@kernelcook.dev
             </a>
           </div>
 
