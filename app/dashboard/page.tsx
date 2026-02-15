@@ -9,13 +9,12 @@ export default async function Dashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/")
 
-  // Parallel Fetching
+  // Parallel Fetching - Left completely untouched as requested
   const [pantryRes, historyRes, profileRes] = await Promise.all([
     supabase
       .from("pantry_items")
       .select("*")
       .eq("user_id", user.id)
-      // FIXED: Schema uses 'name'
       .not("name", "is", null) 
       .neq("name", "")
       .order("added_at", { ascending: false }),
@@ -33,9 +32,8 @@ export default async function Dashboard() {
       .single()
   ])
 
-  // Map for UI consistency (Handle quantity splitting if needed)
+  // Map for UI consistency - Left completely untouched
   const pantryItems = (pantryRes.data || []).map((item: any) => {
-    // Attempt to parse "amount unit" from quantity string if amount is missing
     let amt = item.amount;
     let unit = item.unit;
     
@@ -49,7 +47,7 @@ export default async function Dashboard() {
 
     return {
       ...item,
-      name: item.name, // Matches DB column
+      name: item.name, 
       amount: amt || 1,
       unit: unit || 'pcs'
     }

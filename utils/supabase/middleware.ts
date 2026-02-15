@@ -30,20 +30,37 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is.
-  // If you're creating a new Response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
+  // Fetch user to verify active session
+  const { data: { user } } = await supabase.auth.getUser()
 
-  await supabase.auth.getUser()
+  const { pathname } = request.nextUrl
+
+  // 1. Define Route Boundaries
+  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/signup') || pathname.startsWith('/forgot-password')
+  const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/pantry') || pathname.startsWith('/recipes')
+
+  // 2. Enforce Access Rules
+  if (!user && isProtectedRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
+  }
+
+  if (user && isAuthRoute) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
+    return NextResponse.redirect(url)
+  }
+
+  // 3. Inject Strict Security Headers
+  // Prevents Clickjacking (embedding your app in an iframe)
+  supabaseResponse.headers.set('X-Frame-Options', 'DENY')
+  // Prevents MIME-type sniffing
+  supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
+  // Enforces strict HTTPS
+  supabaseResponse.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  // Controls how much referrer info is sent when navigating away
+  supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 
   return supabaseResponse
 }

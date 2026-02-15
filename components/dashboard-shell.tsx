@@ -3,11 +3,11 @@
 
 import { useState } from "react"
 import { DashboardChat } from "@/components/dashboard-chat"
-import PantryUI from "@/app/pantry/pantry-ui" 
+import { PantryManager } from "@/components/pantry-manager" 
 import { CookingHistory } from "@/components/cooking-history"
 import { ProfileSettings } from "@/components/profile-settings"
 import { signOut } from "@/app/actions/auth"
-import { Package, UtensilsCrossed, ChefHat, LogOut, Loader2 } from "lucide-react"
+import { Package, UtensilsCrossed, ChefHat, LogOut, Loader2, Sparkles } from "lucide-react"
 
 export function DashboardShell({ 
   userEmail, 
@@ -42,101 +42,111 @@ export function DashboardShell({
     }
   }
 
+  const userName = userEmail.split('@')[0]
+
   return (
-    <main className="min-h-screen bg-cream p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <main className="min-h-screen bg-cream selection:bg-tangerine selection:text-white pb-20">
+      
+      {/* Hero Banner Area */}
+      <div className="w-full bg-coffee relative overflow-hidden flex items-center pt-8 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-tangerine rounded-full mix-blend-overlay filter blur-3xl opacity-40 translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-yellow-400 rounded-full mix-blend-overlay filter blur-3xl opacity-20 -translate-x-1/2 translate-y-1/2"></div>
         
-        {/* Top Navigation / Header */}
-        <header className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6 pb-6 border-b-2 border-coffee/5">
+        <div className="max-w-7xl w-full mx-auto flex items-center gap-4 relative z-10">
+          <div className="bg-tangerine p-3 rounded-2xl border-2 border-black hard-shadow-sm rotate-[-4deg] group-hover:rotate-0 transition-transform">
+              <ChefHat className="text-white w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="font-serif text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Kitchen<span className="text-tangerine">OS</span>
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 -mt-10 relative z-20">
+        
+        {/* Control Panel (Stats & Settings) */}
+        <header className="bg-white p-4 sm:p-6 rounded-3xl border-2 border-border hard-shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           
-          {/* Brand & User Greeting */}
-          <div className="space-y-2 flex-1">
-            <div className="flex items-center gap-2">
-                <div className="bg-tangerine p-2 rounded-lg border-2 border-black hard-shadow-sm rotate-3">
-                    <ChefHat className="text-white w-6 h-6" />
-                </div>
-                <h1 className="font-serif text-4xl font-black text-coffee tracking-tight">
-                Kitchen<span className="text-tangerine">OS</span>
-                </h1>
-            </div>
-            <p className="text-coffee-dark/70 font-medium pl-1">
-                Welcome back, <span className="font-bold text-coffee underline decoration-tangerine decoration-2 underline-offset-2">{userEmail.split('@')[0]}</span>
+          <div className="space-y-1 flex-1">
+            <p className="text-coffee-dark/60 font-bold uppercase tracking-wider text-xs flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-tangerine" /> Welcome back,
+            </p>
+            <p className="text-2xl font-black text-coffee truncate">
+              Chef {userName.charAt(0).toUpperCase() + userName.slice(1)}
             </p>
           </div>
           
-          {/* Stats & Controls Cluster */}
-          <div className="flex flex-wrap md:flex-nowrap items-center gap-4 w-full md:w-auto">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 w-full lg:w-auto">
              
              {/* Stat: Pantry */}
-             <div className="flex-1 md:flex-none bg-white px-5 py-3 rounded-2xl border-2 border-border hard-shadow flex items-center gap-4 hover:-translate-y-1 transition-transform cursor-default">
-                <div className="bg-butter p-2 rounded-xl text-coffee border-2 border-border/10">
+             <div className="flex-1 sm:flex-none bg-butter/30 px-5 py-3 rounded-2xl border-2 border-border/50 flex items-center gap-4 hover:-translate-y-1 transition-transform">
+                <div className="bg-butter p-2.5 rounded-xl text-coffee border-2 border-border/10">
                     <Package className="w-5 h-5" />
                 </div>
                 <div>
-                    <p className="text-[10px] text-coffee-dark/60 font-black uppercase tracking-wider">In Pantry</p>
+                    <p className="text-[10px] text-coffee/60 font-black uppercase tracking-wider">In Pantry</p>
                     <p className="text-2xl font-black text-coffee leading-none">{stats.pantryCount}</p>
                 </div>
              </div>
 
              {/* Stat: Cooked */}
-             <div className="flex-1 md:flex-none bg-white px-5 py-3 rounded-2xl border-2 border-border hard-shadow flex items-center gap-4 hover:-translate-y-1 transition-transform cursor-default">
-                <div className="bg-lavender p-2 rounded-xl text-coffee border-2 border-border/10">
+             <div className="flex-1 sm:flex-none bg-lavender/30 px-5 py-3 rounded-2xl border-2 border-border/50 flex items-center gap-4 hover:-translate-y-1 transition-transform">
+                <div className="bg-lavender p-2.5 rounded-xl text-coffee border-2 border-border/10">
                     <UtensilsCrossed className="w-5 h-5" />
                 </div>
                 <div>
-                    <p className="text-[10px] text-coffee-dark/60 font-black uppercase tracking-wider">Cooked</p>
+                    <p className="text-[10px] text-coffee/60 font-black uppercase tracking-wider">Cooked</p>
                     <p className="text-2xl font-black text-coffee leading-none">{stats.mealsCooked}</p>
                 </div>
              </div>
 
-             {/* Vertical Divider */}
-             <div className="hidden md:block w-px h-12 bg-border/20 mx-2"></div>
+             <div className="hidden sm:block w-px h-10 bg-border/20 mx-2"></div>
 
              {/* User Actions */}
              <div className="flex items-center gap-2">
                 <ProfileSettings initialProfile={profile} />
                 
-                {/* FIX: Replaced <form> with <button onClick> to prevent "p is not a function" error */}
                 <button 
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  className="bg-white p-2 sm:p-3 rounded-xl border-2 border-border hard-shadow hover:translate-y-1 hover:shadow-none transition-all text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  className="bg-white p-3 rounded-xl border-2 border-border hover:border-red-400 hard-shadow hover:translate-y-[2px] hover:shadow-none transition-all text-red-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-50"
                   title="Sign Out"
                 >
                   {isSigningOut ? (
-                    <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <LogOut className="w-5 h-5" />
                   )}
                 </button>
              </div>
-
           </div>
         </header>
 
         <div className="grid lg:grid-cols-12 gap-8 items-start">
           
-          {/* MAIN CONTENT AREA (Left Side) */}
+          {/* MAIN CONTENT AREA */}
           <div className="lg:col-span-8 space-y-6">
             
             {/* Tab Switcher */}
-            <div className="bg-white/50 p-1.5 rounded-2xl border-2 border-transparent w-full sm:w-fit flex gap-2">
+            <div className="bg-white/80 backdrop-blur-md p-1.5 rounded-2xl border-2 border-border/50 shadow-sm w-full sm:w-fit flex gap-1 relative z-10">
                 <button
                     onClick={() => setActiveTab('pantry')}
-                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${
+                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
                         activeTab === 'pantry' 
-                        ? 'bg-coffee text-white border-coffee shadow-md' 
-                        : 'bg-white text-coffee/60 border-border hover:text-coffee hover:border-coffee/50'
+                        ? 'bg-coffee text-white hard-shadow-sm scale-100' 
+                        : 'bg-transparent text-coffee/50 hover:text-coffee hover:bg-muted/50 scale-95'
                     }`}
                 >
                     My Pantry
                 </button>
                 <button
                     onClick={() => setActiveTab('history')}
-                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all border-2 ${
+                    className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
                         activeTab === 'history' 
-                        ? 'bg-tangerine text-white border-tangerine shadow-md' 
-                        : 'bg-white text-coffee/60 border-border hover:text-coffee hover:border-coffee/50'
+                        ? 'bg-coffee text-white hard-shadow-sm scale-100' 
+                        : 'bg-transparent text-coffee/50 hover:text-coffee hover:bg-muted/50 scale-95'
                     }`}
                 >
                     Cooking History
@@ -144,9 +154,9 @@ export function DashboardShell({
             </div>
 
             {/* Content Container */}
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+            <div className="min-h-[500px] animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'pantry' ? (
-                    <PantryUI items={pantryItems} />
+                    <PantryManager items={pantryItems} />
                 ) : (
                     <CookingHistory 
                         initialHistory={history} 
@@ -157,12 +167,11 @@ export function DashboardShell({
             </div>
           </div>
 
-          {/* SIDEBAR: Chef Chat (Right Side) */}
+          {/* SIDEBAR: Chef Chat */}
           <aside className="lg:col-span-4 lg:sticky lg:top-8 z-20">
              <div className="relative">
-                {/* Decorative Elements behind chat */}
-                <div className="absolute -top-6 -right-6 w-24 h-24 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-                <div className="absolute -bottom-8 -left-4 w-24 h-24 bg-tangerine rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+                <div className="absolute -top-6 -right-6 w-32 h-32 bg-yellow-300/40 rounded-full mix-blend-multiply filter blur-2xl animate-pulse"></div>
+                <div className="absolute -bottom-8 -left-4 w-32 h-32 bg-tangerine/40 rounded-full mix-blend-multiply filter blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
                 
                 <DashboardChat onLogRecipe={handleLogRecipe} />
              </div>
