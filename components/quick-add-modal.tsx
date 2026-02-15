@@ -4,7 +4,7 @@
 import { useState } from "react"
 import { addPantryItem } from "@/app/actions/pantry"
 import { addCookingHistory } from "@/app/actions/history"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner" // UPDATED IMPORT
 import { X, Package, UtensilsCrossed, Loader2 } from "lucide-react"
 
 export function QuickAddModal({ 
@@ -18,7 +18,6 @@ export function QuickAddModal({
 }) {
   const [activeTab, setActiveTab] = useState<'ingredient' | 'meal'>(defaultTab)
   const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
 
   if (!isOpen) return null
 
@@ -44,9 +43,9 @@ export function QuickAddModal({
     setIsLoading(false)
 
     if (result.error) {
-      toast({ title: "Error", description: result.error, variant: "destructive" })
+      toast.error("Error", { description: result.error }) // UPDATED TOAST
     } else {
-      toast({ title: "Added!", description: `${amount}x ${itemName} added to pantry.` })
+      toast.success("Added!", { description: `${amount}x ${itemName} added to pantry.` }) // UPDATED TOAST
       setItemName("")
       setAmount("1")
       onClose()
@@ -67,9 +66,9 @@ export function QuickAddModal({
     setIsLoading(false)
 
     if (result.error) {
-      toast({ title: "Error", description: result.error, variant: "destructive" })
+      toast.error("Error", { description: result.error }) // UPDATED TOAST
     } else {
-      toast({ title: "Logged!", description: `${dishName} added to history.` })
+      toast.success("Logged!", { description: `${dishName} added to history.` }) // UPDATED TOAST
       setDishName("")
       setRating(5)
       setNotes("")
@@ -78,7 +77,7 @@ export function QuickAddModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl w-full max-w-md border-2 border-border hard-shadow-lg overflow-hidden animate-in zoom-in-95 duration-200">
         
         {/* Header */}
