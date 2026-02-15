@@ -2,9 +2,9 @@
 "use client"
 
 import { useState } from "react"
-import { addPantryItem } from "@/app/actions/pantry"
-import { addCookingHistory } from "@/app/actions/history"
-import { toast } from "sonner" // UPDATED IMPORT
+import { addToPantry } from "@/app/actions/pantry"
+import { logMeal } from "@/app/actions/history"
+import { toast } from "sonner" 
 import { X, Package, UtensilsCrossed, Loader2 } from "lucide-react"
 
 export function QuickAddModal({ 
@@ -39,16 +39,16 @@ export function QuickAddModal({
     formData.append("item_name", itemName)
     formData.append("quantity", amount)
 
-    const result = await addPantryItem(formData)
-    setIsLoading(false)
-
-    if (result.error) {
-      toast.error("Error", { description: result.error }) // UPDATED TOAST
-    } else {
-      toast.success("Added!", { description: `${amount}x ${itemName} added to pantry.` }) // UPDATED TOAST
+    try {
+      await addToPantry(formData)
+      toast.success("Added!", { description: `${amount}x ${itemName} added to pantry.` }) 
       setItemName("")
       setAmount("1")
       onClose()
+    } catch (err: any) {
+      toast.error("Error", { description: err.message || "Failed to add ingredient" }) 
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -62,17 +62,17 @@ export function QuickAddModal({
     formData.append("rating", rating.toString())
     formData.append("notes", notes)
 
-    const result = await addCookingHistory(formData)
-    setIsLoading(false)
-
-    if (result.error) {
-      toast.error("Error", { description: result.error }) // UPDATED TOAST
-    } else {
-      toast.success("Logged!", { description: `${dishName} added to history.` }) // UPDATED TOAST
+    try {
+      await logMeal(formData)
+      toast.success("Logged!", { description: `${dishName} added to history.` }) 
       setDishName("")
       setRating(5)
       setNotes("")
       onClose()
+    } catch (err: any) {
+      toast.error("Error", { description: err.message || "Failed to log meal" }) 
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -91,6 +91,7 @@ export function QuickAddModal({
         {/* Tab Switcher */}
         <div className="flex border-b-2 border-border">
           <button 
+            type="button"
             onClick={() => setActiveTab('ingredient')}
             className={`flex-1 py-3 font-bold text-sm flex items-center justify-center gap-2 transition-colors ${activeTab === 'ingredient' ? 'bg-butter text-coffee' : 'bg-muted/30 text-coffee/50 hover:bg-muted/50'}`}
           >
@@ -98,6 +99,7 @@ export function QuickAddModal({
           </button>
           <div className="w-0.5 bg-border"></div>
           <button 
+            type="button"
             onClick={() => setActiveTab('meal')}
             className={`flex-1 py-3 font-bold text-sm flex items-center justify-center gap-2 transition-colors ${activeTab === 'meal' ? 'bg-lavender text-coffee' : 'bg-muted/30 text-coffee/50 hover:bg-muted/50'}`}
           >

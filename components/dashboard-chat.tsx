@@ -1,10 +1,9 @@
 // components/dashboard-chat.tsx
 "use client"
 
-// FIXED: Correct Vercel AI SDK import
 import { useChat } from "ai/react" 
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle } from "lucide-react"
-import { useRef, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
+import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
 export function DashboardChat({ 
@@ -18,7 +17,6 @@ export function DashboardChat({
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // FIXED: Using standard `isLoading` instead of experimental `status`
   const { 
     messages, 
     input, 
@@ -30,7 +28,7 @@ export function DashboardChat({
     reload 
   } = useChat({
     api: "/api/chat",
-    onError: (err: any) => console.error("[UI/Chat] 🚨 Hook Error:", err),
+    onError: (err) => console.error("[UI/Chat] 🚨 Hook Error:", err),
   })
 
   // Auto-scroll to bottom
@@ -78,7 +76,6 @@ export function DashboardChat({
     ]
   }
 
-  // FIXED: Provide a unique ID when appending to avoid React key warnings and SDK errors
   const handleChipClick = async (label: string) => {
     if (isLoading) return
     try {
@@ -167,7 +164,7 @@ export function DashboardChat({
           </div>
         )}
         
-        {messages?.map((m: { id: Key | null | undefined; role: string; content: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }) => (
+        {messages?.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              {m.role !== 'user' && (
                  <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
@@ -185,7 +182,7 @@ export function DashboardChat({
                </div>
                
                {/* Extract Recipe Button Logic that was accidentally removed earlier */}
-               {m.role === 'assistant' && m.content.toLowerCase().includes('recipe') && (
+               {m.role === 'assistant' && m.content && m.content.toLowerCase().includes('recipe') && (
                   <button 
                     onClick={() => onLogRecipe("Generated Recipe")}
                     className="mt-3 flex items-center gap-1 text-xs font-bold bg-white/50 hover:bg-white text-coffee px-3 py-1.5 rounded-lg border border-border/20 transition-colors w-full justify-center"
