@@ -1,58 +1,98 @@
 // components/dashboard-chat.tsx
 "use client"
 
-import { useChat } from "@ai-sdk/react"
+// FIXED: Correct Vercel AI SDK import
+import { useChat } from "ai/react" 
 import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle } from "lucide-react"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
 import { cn } from "@/lib/utils"
 
-const PROMPT_CHIPS = [
-  { label: "What can I cook?", icon: "🍳" },
-  { label: "15-min recipe", icon: "⏱️" },
-  { label: "Use my eggs", icon: "🥚" },
-  { label: "Something healthy", icon: "🥗" }
-]
-
 export function DashboardChat({ 
-  onLogRecipe 
+  onLogRecipe,
+  pantryCount = 0,
+  activeTab = 'overview'
 }: { 
   onLogRecipe: (name: string) => void 
+  pantryCount?: number
+  activeTab?: string
 }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
-  // 1. Initialize Hook (Standard Usage)
+  // FIXED: Using standard `isLoading` instead of experimental `status`
   const { 
     messages, 
     input, 
     handleInputChange, 
     handleSubmit, 
     append,
-    status,
+    isLoading,
     error,
     reload 
   } = useChat({
     api: "/api/chat",
-    onError: (err) => console.error("[UI/Chat] 🚨 Hook Error:", err),
+    onError: (err: any) => console.error("[UI/Chat] 🚨 Hook Error:", err),
   })
-
-  const isLoading = status === 'submitted' || status === 'streaming'
 
   // Auto-scroll to bottom
   useEffect(() => {
     if (messages?.length > 0) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
     }
-  }, [messages, status]) 
+  }, [messages, isLoading]) 
 
-  // 2. Chip Click Handler
+  // Dynamic Contextual Chips
+  const getSuggestionChips = () => {
+    if (pantryCount === 0) {
+      return [
+        { label: "What are good pantry staples?", icon: "🛒" },
+        { label: "Easy beginner meals", icon: "🍳" },
+        { label: "Healthy grocery list", icon: "🥗" },
+        { label: "Budget-friendly items", icon: "💰" }
+      ]
+    }
+    
+    if (activeTab === 'pantry') {
+      return [
+        { label: "What can I make right now?", icon: "✨" },
+        { label: "I need a quick snack", icon: "🥨" },
+        { label: "Use my oldest ingredients", icon: "♻️" },
+        { label: "Sweet or dessert ideas?", icon: "🍰" }
+      ]
+    }
+
+    if (activeTab === 'history') {
+      return [
+        { label: "How do I improve my last meal?", icon: "📈" },
+        { label: "Similar recipes to my favorites", icon: "🔥" },
+        { label: "Healthy meal prep ideas", icon: "🍱" },
+        { label: "Critique my cooking", icon: "🧐" }
+      ]
+    }
+
+    // Default / Overview Tab
+    return [
+      { label: "What's for dinner?", icon: "🍽️" },
+      { label: "Give me a 30-min recipe", icon: "⏱️" },
+      { label: "Surprise me!", icon: "🎲" },
+      { label: "High protein meal", icon: "💪" }
+    ]
+  }
+
+  // FIXED: Provide a unique ID when appending to avoid React key warnings and SDK errors
   const handleChipClick = async (label: string) => {
     if (isLoading) return
     try {
-      await append({ role: 'user', content: label })
+      await append({ 
+        id: Math.random().toString(36).substring(7),
+        role: 'user', 
+        content: label 
+      })
     } catch (e) {
       console.error("[UI/Chat] Chip send failed:", e)
     }
   }
+
+  const currentChips = getSuggestionChips()
 
   return (
     <div className="flex flex-col h-[700px] bg-white rounded-3xl border-2 border-border hard-shadow-lg overflow-hidden relative group z-10">
@@ -100,27 +140,34 @@ export function DashboardChat({
                 <Utensils className="w-8 h-8 text-coffee/40" />
             </div>
             <div className="px-6">
-                <p className="font-medium text-coffee text-lg">"What ingredients are we working with today?"</p>
-                <p className="text-sm text-coffee-dark/50 mt-1">I can see your pantry. Ask me anything!</p>
+                <p className="font-medium text-coffee text-lg">
+                  {pantryCount === 0 
+                    ? "Welcome to your kitchen! Let's get started." 
+                    : `"What are we making with those ${pantryCount} ingredients?"`}
+                </p>
+                <p className="text-sm text-coffee-dark/50 mt-1">
+                  {activeTab === 'overview' ? "I'm ready to help you prep." : `Ask me anything about your ${activeTab}!`}
+                </p>
             </div>
+            
             <div className="grid grid-cols-2 gap-2 px-4">
-              {PROMPT_CHIPS.map((chip) => (
+              {currentChips.map((chip) => (
                 <button
                   key={chip.label}
                   type="button" 
                   onClick={() => handleChipClick(chip.label)}
                   disabled={isLoading}
-                  className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip disabled:opacity-50"
+                  className="text-xs text-left bg-white p-3 rounded-xl border-2 border-border/50 text-coffee hover:border-tangerine hover:shadow-sm transition-all group/chip disabled:opacity-50 flex items-center"
                 >
                   <span className="text-lg mr-2 group-hover/chip:scale-110 inline-block transition-transform">{chip.icon}</span>
-                  <span className="font-bold">{chip.label}</span>
+                  <span className="font-bold leading-tight">{chip.label}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
         
-        {messages?.map((m) => (
+        {messages?.map((m: { id: Key | null | undefined; role: string; content: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
              {m.role !== 'user' && (
                  <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
@@ -136,6 +183,16 @@ export function DashboardChat({
                <div className="whitespace-pre-wrap leading-relaxed">
                  {m.content}
                </div>
+               
+               {/* Extract Recipe Button Logic that was accidentally removed earlier */}
+               {m.role === 'assistant' && m.content.toLowerCase().includes('recipe') && (
+                  <button 
+                    onClick={() => onLogRecipe("Generated Recipe")}
+                    className="mt-3 flex items-center gap-1 text-xs font-bold bg-white/50 hover:bg-white text-coffee px-3 py-1.5 rounded-lg border border-border/20 transition-colors w-full justify-center"
+                  >
+                    <PlusCircle className="w-3 h-3" /> Log this meal
+                  </button>
+                )}
              </div>
           </div>
         ))}
