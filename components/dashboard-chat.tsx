@@ -2,8 +2,9 @@
 "use client"
 
 import { useChat } from "ai/react" 
-import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Clock, CheckCircle2, Circle, Save } from "lucide-react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Clock, CheckCircle2, Circle, Save, ChevronRight, Percent } from "lucide-react"
 import { useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 export function DashboardChat({ 
@@ -15,6 +16,7 @@ export function DashboardChat({
   pantryCount?: number
   activeTab?: string
 }) {
+  const router = useRouter()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   
   const { 
@@ -73,6 +75,11 @@ export function DashboardChat({
     } catch (e) {
       console.error("[UI/Chat] Chip send failed:", e)
     }
+  }
+
+  const handleDishSelect = (dishName: string, dishId: string) => {
+    // Route to the immersive CookAIFood view, passing the dish name as a query param
+    router.push(`/recipes/${dishId}/cook?name=${encodeURIComponent(dishName)}`)
   }
 
   const currentChips = getSuggestionChips()
@@ -175,14 +182,78 @@ export function DashboardChat({
                  </div>
              )}
 
-             {/* UI Tool Invocations (CookAIFood Style Recipe Cards) */}
+             {/* UI Tool Invocations */}
              {m.toolInvocations?.length ? (
                 <div className="w-full flex justify-start pl-8 mt-1">
                   {m.toolInvocations.map((toolInvocation: any) => {
                     const { toolName, toolCallId, state } = toolInvocation;
 
+                    // ----------------------------------------------------
+                    // NEW TOOL: suggestDishOptions (The 3 Cards)
+                    // ----------------------------------------------------
+                    if (toolName === 'suggestDishOptions') {
+                      if (state !== 'result') {
+                        return (
+                          <div key={toolCallId} className="w-full max-w-sm p-4 bg-white rounded-2xl border-2 border-border border-dashed flex items-center gap-3 animate-pulse">
+                             <div className="w-10 h-10 bg-coffee/10 rounded-xl flex items-center justify-center">
+                                <Sparkles className="w-5 h-5 text-coffee" />
+                             </div>
+                             <div>
+                                <p className="font-bold text-coffee text-sm">Brainstorming recipes...</p>
+                                <p className="text-xs text-coffee/60">Checking your pantry stash</p>
+                             </div>
+                          </div>
+                        )
+                      }
+
+                      if (state === 'result') {
+                        const dishes = toolInvocation.result;
+                        return (
+                          <div key={toolCallId} className="w-full flex flex-col gap-3 animate-in slide-in-from-bottom-2 fade-in duration-500">
+                            <p className="text-sm font-bold text-coffee flex items-center gap-2">
+                              <Sparkles className="w-4 h-4 text-tangerine" /> Here are 3 ideas based on your pantry:
+                            </p>
+                            <div className="grid grid-cols-1 gap-3 w-full max-w-lg">
+                              {dishes.map((dish: any, idx: number) => (
+                                <button
+                                  key={idx}
+                                  onClick={() => handleDishSelect(dish.name, dish.id)}
+                                  className="text-left bg-white p-4 rounded-2xl border-2 border-border hover:border-tangerine group hover:shadow-md transition-all relative overflow-hidden flex flex-col gap-2"
+                                >
+                                  <div className="flex justify-between items-start w-full">
+                                    <h4 className="font-bold text-coffee text-lg leading-tight group-hover:text-tangerine transition-colors pr-8">
+                                      {dish.name}
+                                    </h4>
+                                    <div className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full border border-green-200 flex items-center gap-1 shrink-0">
+                                      <Percent className="w-3 h-3" /> {dish.pantryMatch}% Match
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-coffee/70 line-clamp-2">
+                                    {dish.description}
+                                  </p>
+                                  <div className="flex items-center gap-3 mt-1 pt-3 border-t border-border/40">
+                                    <span className="flex items-center gap-1 text-xs font-bold text-coffee/60">
+                                      <Clock className="w-3.5 h-3.5" /> {dish.prepTime}
+                                    </span>
+                                    <span className="flex items-center gap-1 text-xs font-bold text-coffee/60">
+                                      <ChefHat className="w-3.5 h-3.5" /> {dish.difficulty}
+                                    </span>
+                                    <span className="ml-auto flex items-center text-xs font-bold text-tangerine opacity-0 group-hover:opacity-100 transition-opacity">
+                                      Cook this <ChevronRight className="w-4 h-4" />
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      }
+                    }
+
+                    // ----------------------------------------------------
+                    // LEGACY TOOL: generateRecipeCard 
+                    // ----------------------------------------------------
                     if (toolName === 'generateRecipeCard') {
-                      // Loading State
                       if (state !== 'result') {
                         return (
                           <div key={toolCallId} className="w-full max-w-sm p-4 bg-white rounded-2xl border-2 border-border border-dashed flex items-center gap-3 animate-pulse">
@@ -197,7 +268,6 @@ export function DashboardChat({
                         )
                       }
 
-                      // Completed Recipe Card State
                       if (state === 'result') {
                         const recipe = toolInvocation.result;
                         return (
@@ -316,7 +386,7 @@ export function DashboardChat({
           <input
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask Chef for a recipe..."
+            placeholder="Ask Chef for ideas..."
             disabled={isLoading} 
             className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />

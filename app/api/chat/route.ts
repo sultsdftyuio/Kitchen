@@ -37,7 +37,7 @@ export async function POST(req: Request) {
         // A. Get Inventory
         supabase
           .from("pantry_items")
-          .select("name, quantity") 
+          .select("item_name, quantity") 
           .eq("user_id", user.id),
         
         // B. Get User Preferences
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
 
     // Format Pantry List
     const pantryList = pantryItems.length > 0
-      ? pantryItems.map((i: any) => `- ${i.name} (${i.quantity})`).join("\n")
+      ? pantryItems.map((i: any) => `- ${i.item_name} (${i.quantity})`).join("\n")
       : "⚠️ Pantry is empty. Ask the user what ingredients they have on hand."
 
     // Format Cooking History
@@ -91,32 +91,45 @@ export async function POST(req: Request) {
       ${historyList}
 
       === 🎯 YOUR GOAL & BEHAVIOR ===
-      Help the user cook delicious meals using primarily what they have. 
+      Help the user decide what to cook. You have two primary UI tools.
       
-      CRITICAL INSTRUCTION: Whenever the user asks for a recipe, or you decide to suggest a full recipe, you MUST use the \`generateRecipeCard\` tool. 
-      Do NOT type out the recipe ingredients and instructions in standard markdown text. Call the tool so the UI can render a beautiful structured card!
+      1. THE IDEATION PHASE (Crucial): If the user asks general questions like "What can I make?", "Give me some ideas", or "I'm hungry", YOU MUST call the \`suggestDishOptions\` tool to give them 3 distinct choices based on their pantry. DO NOT write out recipes in plain text.
       
-      If you are just answering a general question (e.g., "how long to boil an egg", "what is a good substitute for butter"), just reply with normal encouraging text.
+      2. THE DIRECT RECIPE PHASE: If the user explicitly asks for a specific recipe (e.g. "Give me the recipe for spaghetti meatballs"), call the \`generateRecipeCard\` tool. 
       
-      === 📝 RESPONSE GUIDELINES ===
-      1. **Tone:** Warm, encouraging, concise, and professional.
-      2. **Safety:** If the user mentions dangerous combinations or allergens matching their profile, warn them immediately.
+      If answering a general cooking question (e.g., "how to dice an onion"), reply with concise, encouraging text.
     `
 
     console.log(`[API/Chat ${requestId}] 🧠 System prompt built. History items: ${history.length}`)
 
-    // 6. Prepare Messages using the correct SDK utility
+    // 6. Prepare Messages
     const coreMessages = convertToCoreMessages(messages)
 
     // 7. Stream Response with Tools enabled
     console.log(`[API/Chat ${requestId}] 🌊 Streaming response (gpt-5-nano)...`)
     
     const result = streamText({
-      model: openai("gpt-5-nano"), // Strictly using the requested model
+      model: openai("gpt-5-nano"), // STRICTLY gpt-5-nano
       system: systemPrompt,
       messages: coreMessages,
       temperature: 0.7,
       tools: {
+        suggestDishOptions: tool({
+          description: "Generates exactly 3 diverse dish ideas based on the user's pantry. Call this when the user asks for meal ideas.",
+          parameters: z.object({
+            dishes: z.array(z.object({
+              id: z.string().describe("A unique slug for the dish, e.g. 'spicy-garlic-pasta'"),
+              name: z.string().describe("The catchy name of the dish"),
+              description: z.string().describe("A brief, mouth-watering description (1 sentence)"),
+              difficulty: z.enum(["Easy", "Medium", "Hard"]),
+              prepTime: z.string().describe("e.g. '20 mins'"),
+              pantryMatch: z.number().describe("Percentage of ingredients the user already has (e.g., 85)")
+            })).length(3)
+          }),
+          execute: async ({ dishes }) => {
+            return dishes;
+          }
+        }),
         generateRecipeCard: tool({
           description: "Generates a structured, professional recipe card. ALWAYS use this when providing a full recipe instead of plain text.",
           parameters: z.object({
@@ -132,7 +145,6 @@ export async function POST(req: Request) {
             instructions: z.array(z.string()).describe("Step by step cooking instructions")
           }),
           execute: async (recipe) => {
-            // Returning the recipe directly maps it to the frontend toolInvocation result
             return recipe;
           }
         })
