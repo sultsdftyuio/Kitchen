@@ -2,7 +2,7 @@
 "use client"
 
 import { useChat } from "ai/react" 
-import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle } from "lucide-react"
+import { ArrowUp, Sparkles, ChefHat, PlusCircle, Utensils, AlertCircle, Clock, CheckCircle2, Circle, Save } from "lucide-react"
 import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
@@ -38,14 +38,12 @@ export function DashboardChat({
     }
   }, [messages, isLoading]) 
 
-  // Dynamic Contextual Chips
   const getSuggestionChips = () => {
     if (pantryCount === 0) {
       return [
         { label: "What are good pantry staples?", icon: "🛒" },
         { label: "Easy beginner meals", icon: "🍳" },
-        { label: "Healthy grocery list", icon: "🥗" },
-        { label: "Budget-friendly items", icon: "💰" }
+        { label: "Healthy grocery list", icon: "🥗" }
       ]
     }
     
@@ -53,25 +51,13 @@ export function DashboardChat({
       return [
         { label: "What can I make right now?", icon: "✨" },
         { label: "I need a quick snack", icon: "🥨" },
-        { label: "Use my oldest ingredients", icon: "♻️" },
-        { label: "Sweet or dessert ideas?", icon: "🍰" }
+        { label: "Use my oldest ingredients", icon: "♻️" }
       ]
     }
 
-    if (activeTab === 'history') {
-      return [
-        { label: "How do I improve my last meal?", icon: "📈" },
-        { label: "Similar recipes to my favorites", icon: "🔥" },
-        { label: "Healthy meal prep ideas", icon: "🍱" },
-        { label: "Critique my cooking", icon: "🧐" }
-      ]
-    }
-
-    // Default / Overview Tab
     return [
-      { label: "What's for dinner?", icon: "🍽️" },
       { label: "Give me a 30-min recipe", icon: "⏱️" },
-      { label: "Surprise me!", icon: "🎲" },
+      { label: "Surprise me with a recipe!", icon: "🎲" },
       { label: "High protein meal", icon: "💪" }
     ]
   }
@@ -142,12 +128,9 @@ export function DashboardChat({
                     ? "Welcome to your kitchen! Let's get started." 
                     : `"What are we making with those ${pantryCount} ingredients?"`}
                 </p>
-                <p className="text-sm text-coffee-dark/50 mt-1">
-                  {activeTab === 'overview' ? "I'm ready to help you prep." : `Ask me anything about your ${activeTab}!`}
-                </p>
             </div>
             
-            <div className="grid grid-cols-2 gap-2 px-4">
+            <div className="flex flex-wrap justify-center gap-2 px-4">
               {currentChips.map((chip) => (
                 <button
                   key={chip.label}
@@ -165,36 +148,131 @@ export function DashboardChat({
         )}
         
         {messages?.map((m) => (
-          <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end gap-2'}`}>
-             {m.role !== 'user' && (
-                 <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
-                    <ChefHat className="w-3 h-3 text-tangerine" />
+          <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} gap-2 w-full`}>
+             
+             {/* Standard Text Message Bubble */}
+             {(m.content || m.role === 'user') && (
+                 <div className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start items-end'} gap-2 w-full`}>
+                   {m.role !== 'user' && (
+                       <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
+                          <ChefHat className="w-3 h-3 text-tangerine" />
+                       </div>
+                   )}
+                   {m.content && (
+                       <div className={cn(
+                         "max-w-[85%] p-4 text-sm shadow-sm relative",
+                         m.role === 'user' 
+                           ? "bg-coffee text-white rounded-2xl rounded-br-none border-2 border-transparent" 
+                           : "bg-cream text-coffee rounded-2xl rounded-bl-none border-2 border-border"
+                       )}>
+                         <div className="whitespace-pre-wrap leading-relaxed">
+                           {m.content}
+                         </div>
+                       </div>
+                   )}
                  </div>
              )}
-             <div className={cn(
-               "max-w-[85%] p-4 text-sm shadow-sm relative",
-               m.role === 'user' 
-                 ? "bg-coffee text-white rounded-2xl rounded-br-none border-2 border-transparent" 
-                 : "bg-cream text-coffee rounded-2xl rounded-bl-none border-2 border-border"
-             )}>
-               <div className="whitespace-pre-wrap leading-relaxed">
-                 {m.content}
-               </div>
-               
-               {/* Extract Recipe Button Logic that was accidentally removed earlier */}
-               {m.role === 'assistant' && m.content && m.content.toLowerCase().includes('recipe') && (
-                  <button 
-                    onClick={() => onLogRecipe("Generated Recipe")}
-                    className="mt-3 flex items-center gap-1 text-xs font-bold bg-white/50 hover:bg-white text-coffee px-3 py-1.5 rounded-lg border border-border/20 transition-colors w-full justify-center"
-                  >
-                    <PlusCircle className="w-3 h-3" /> Log this meal
-                  </button>
-                )}
-             </div>
+
+             {/* UI Tool Invocations (CookAIFood Style Recipe Cards) */}
+             {m.toolInvocations?.length ? (
+                <div className="w-full flex justify-start pl-8 mt-1">
+                  {m.toolInvocations.map((toolInvocation: any) => {
+                    const { toolName, toolCallId, state } = toolInvocation;
+
+                    if (toolName === 'generateRecipeCard') {
+                      // Loading State
+                      if (state !== 'result') {
+                        return (
+                          <div key={toolCallId} className="w-full max-w-sm p-4 bg-white rounded-2xl border-2 border-border border-dashed flex items-center gap-3 animate-pulse">
+                             <div className="w-10 h-10 bg-tangerine/20 rounded-xl flex items-center justify-center">
+                                <ChefHat className="w-5 h-5 text-tangerine" />
+                             </div>
+                             <div>
+                                <p className="font-bold text-coffee text-sm">Crafting your recipe...</p>
+                                <p className="text-xs text-coffee/60">Writing ingredients & instructions</p>
+                             </div>
+                          </div>
+                        )
+                      }
+
+                      // Completed Recipe Card State
+                      if (state === 'result') {
+                        const recipe = toolInvocation.result;
+                        return (
+                          <div key={toolCallId} className="w-full max-w-[95%] bg-white rounded-3xl border-2 border-border hard-shadow overflow-hidden group animate-in slide-in-from-bottom-2 fade-in duration-500">
+                            {/* Header */}
+                            <div className="bg-coffee p-5 text-white relative overflow-hidden">
+                               <div className="absolute -right-6 -top-6 w-32 h-32 bg-tangerine/20 rounded-full blur-2xl" />
+                               <h3 className="font-serif text-2xl font-bold mb-2 relative z-10">{recipe.name}</h3>
+                               <p className="text-cream/80 text-sm leading-relaxed relative z-10">{recipe.description}</p>
+                               <div className="flex gap-3 mt-4 relative z-10">
+                                  <span className="flex items-center gap-1.5 text-xs font-bold bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+                                     <Clock className="w-3.5 h-3.5 text-tangerine" /> {recipe.prepTime}
+                                  </span>
+                                  <span className="flex items-center gap-1.5 text-xs font-bold bg-white/10 px-3 py-1.5 rounded-lg border border-white/10">
+                                     <ChefHat className="w-3.5 h-3.5 text-tangerine" /> {recipe.difficulty}
+                                  </span>
+                               </div>
+                            </div>
+
+                            {/* Ingredients */}
+                            <div className="p-5 border-b-2 border-border/50 bg-cream/30">
+                              <h4 className="font-bold text-coffee mb-3 flex items-center gap-2">
+                                 <Sparkles className="w-4 h-4 text-tangerine" /> Ingredients
+                              </h4>
+                              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {recipe.ingredients.map((ing: any, i: number) => (
+                                  <li key={i} className="flex items-center justify-between text-sm p-2.5 rounded-xl bg-white border-2 border-border/30 hover:border-tangerine/30 transition-colors">
+                                    <span className="flex items-center gap-2 text-coffee font-medium">
+                                      {ing.inPantry ? (
+                                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                                      ) : (
+                                        <Circle className="w-4 h-4 text-coffee/20 shrink-0" />
+                                      )}
+                                      <span className="truncate">{ing.name}</span>
+                                    </span>
+                                    <span className="text-coffee/60 text-xs font-bold whitespace-nowrap ml-2">{ing.amount}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Instructions */}
+                            <div className="p-5 bg-white">
+                              <h4 className="font-bold text-coffee mb-4">Instructions</h4>
+                              <div className="space-y-4">
+                                 {recipe.instructions.map((step: string, i: number) => (
+                                   <div key={i} className="flex gap-3">
+                                      <span className="w-6 h-6 rounded-full bg-tangerine/10 text-tangerine border-2 border-tangerine/20 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                        {i + 1}
+                                      </span>
+                                      <p className="text-sm text-coffee/80 leading-relaxed font-medium">{step}</p>
+                                   </div>
+                                 ))}
+                              </div>
+                            </div>
+
+                            {/* Action Footer */}
+                            <div className="p-4 bg-cream/50 border-t-2 border-border flex justify-end">
+                              <button 
+                                onClick={() => onLogRecipe(recipe.name)}
+                                className="bg-white hover:bg-tangerine hover:text-white text-coffee text-xs font-bold px-5 py-2.5 rounded-xl border-2 border-border hard-shadow-sm hover:translate-y-[2px] hover:shadow-none transition-all flex items-center gap-2"
+                              >
+                                 <Save className="w-4 h-4" /> Save & Log Meal
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      }
+                    }
+                    return null;
+                  })}
+                </div>
+             ) : null}
           </div>
         ))}
 
-        {isLoading && (
+        {isLoading && !messages[messages.length - 1]?.toolInvocations?.length && (
             <div className="flex justify-start items-end gap-2">
                <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
                     <ChefHat className="w-3 h-3 text-tangerine" />
@@ -234,7 +312,7 @@ export function DashboardChat({
           <input
             value={input}
             onChange={handleInputChange}
-            placeholder="Ask Chef..."
+            placeholder="Ask Chef for a recipe..."
             disabled={isLoading} 
             className="w-full bg-muted/50 pl-4 pr-12 py-4 rounded-xl border-2 border-border focus:outline-none focus:border-tangerine focus:ring-2 focus:ring-tangerine/20 text-coffee placeholder:text-coffee/40 transition-all font-medium disabled:opacity-50"
           />

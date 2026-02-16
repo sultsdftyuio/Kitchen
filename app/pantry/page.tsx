@@ -17,8 +17,8 @@ export default async function PantryPage() {
     .from('pantry_items')
     .select('*')
     .eq('user_id', user.id)
-    .not("item_name", "is", null) // Fixed
-    .neq("item_name", "")         // Fixed
+    .not("name", "is", null) // FIX: Changed from item_name to name
+    .neq("name", "")         // FIX: Changed from item_name to name
     .order('added_at', { ascending: false })
 
   if (error) {

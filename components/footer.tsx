@@ -1,3 +1,4 @@
+// components/footer.tsx
 import { Flame } from "lucide-react";
 import Link from "next/link";
 
@@ -73,12 +74,13 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                {/* FIX: Updated back to a Next.js Link pointing to our new page */}
+                <Link
+                  href="/contact"
                   className="text-cream/70 hover:text-tangerine transition-colors"
                 >
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

@@ -5,10 +5,12 @@ import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
-// Define the validation schema with strict boundaries to prevent memory exhaustion DoS
+// FIX: Updated schema to match the new database columns
 const PantryItemSchema = z.object({
-  item_name: z.string().trim().min(1, "Item name is required").max(100, "Name too long"),
-  quantity: z.string().trim().min(1, "Quantity is required").max(50, "Quantity string too long").default("1"),
+  name: z.string().trim().min(1, "Item name is required").max(100, "Name too long"),
+  amount: z.coerce.number().min(0.1, "Amount must be greater than 0").default(1),
+  unit: z.string().trim().max(20, "Unit string too long").default("pcs"),
+  quantity: z.string().trim().max(50, "Quantity string too long").default("1"),
 })
 
 export async function addToPantry(formData: FormData) {
@@ -20,12 +22,12 @@ export async function addToPantry(formData: FormData) {
     if (authError || !user) throw new Error('Unauthorized access')
 
     // 2. Input Validation
-    const rawQuantity = formData.get('quantity')
-    const safeQuantity = rawQuantity ? rawQuantity.toString() : "1"
-
+    // Support both older components sending 'quantity' and newer components sending 'amount/unit'
     const rawData = {
-      item_name: formData.get('item_name'), 
-      quantity: safeQuantity, 
+      name: formData.get('item_name') || formData.get('name'), 
+      amount: formData.get('amount') || 1,
+      unit: formData.get('unit') || 'pcs',
+      quantity: formData.get('quantity') || "1"
     }
 
     const result = PantryItemSchema.safeParse(rawData)
@@ -35,13 +37,15 @@ export async function addToPantry(formData: FormData) {
       throw new Error("Invalid input data provided")
     }
 
-    const { item_name, quantity } = result.data
+    const { name, amount, unit, quantity } = result.data
 
-    // 3. Database Operation (Strictly mapped to the provided schema)
+    // 3. Database Operation (Strictly mapped to the NEW schema)
     const { error } = await supabase.from('pantry_items').insert({
       user_id: user.id,
-      item_name: item_name, 
-      quantity: quantity, 
+      name: name,         // FIX: Mapped to 'name' instead of 'item_name'
+      amount: amount,     // FIX: Added amount
+      unit: unit,         // FIX: Added unit
+      quantity: quantity, // Fallback for legacy components
       added_at: new Date().toISOString(),
     })
 
@@ -53,7 +57,6 @@ export async function addToPantry(formData: FormData) {
     revalidatePath('/dashboard')
     revalidatePath('/pantry')
   } catch (err: any) {
-    // Sanitize error messages sent to the client
     throw new Error(err.message || 'An unexpected error occurred')
   }
 }
@@ -66,7 +69,6 @@ export async function deleteFromPantry(itemId: number) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) throw new Error('Unauthorized access')
 
-    // RLS & Match Check: Ensures users can only delete their own specific item
     const { error } = await supabase
       .from('pantry_items')
       .delete()

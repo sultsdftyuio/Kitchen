@@ -15,8 +15,8 @@ export default async function Dashboard() {
       .from("pantry_items")
       .select("*")
       .eq("user_id", user.id)
-      .not("item_name", "is", null) 
-      .neq("item_name", "")
+      .not("name", "is", null) // FIX: Changed from item_name to name
+      .neq("name", "")         // FIX: Changed from item_name to name
       .order("added_at", { ascending: false }),
     
     supabase
@@ -36,8 +36,8 @@ export default async function Dashboard() {
   const pantryItems = (pantryRes.data || []).map((item: any) => {
     return {
       id: item.id,
-      name: item.item_name, 
-      amount: item.quantity || "1",
+      name: item.name, // FIX: Direct mapping to item.name
+      amount: item.amount || item.quantity || "1", // Fallback for UI
       added_at: item.added_at
     }
   })
