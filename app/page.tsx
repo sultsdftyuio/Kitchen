@@ -6,6 +6,7 @@ import { FeaturesBento } from "@/components/features-bento";
 import { HowItWorks } from "@/components/how-it-works";
 import { RoastSection } from "@/components/roast-section";
 import { Testimonials } from "@/components/testimonials";
+import { FAQSection } from "@/components/faq-section";
 import { Footer } from "@/components/footer";
 
 export default async function Home() {
@@ -26,6 +27,7 @@ export default async function Home() {
         <HowItWorks />
         <RoastSection />
         <Testimonials /> 
+        <FAQSection />
       </main>
 
       {/* Landing Page Footer */}
