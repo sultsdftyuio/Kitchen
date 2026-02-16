@@ -25,7 +25,11 @@ const MealSchema = z.object({
 const SafeDishNameSchema = z.string().trim().min(1).max(150).regex(/^[^<>]+$/)
 
 // 1. AUTOMATIC LOGGING (Called by the AI "Finish Cooking" button)
-export async function logCookingHistoryAction(dishName: string) {
+export async function logCookingHistoryAction(
+  dishName: string, 
+  rating: number = 5, 
+  notes: string = "Cooked seamlessly with KitchenOS Auto-Chef."
+) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -40,8 +44,8 @@ export async function logCookingHistoryAction(dishName: string) {
   const { error } = await supabase.from("cooking_history").insert({
     user_id: user.id,
     dish_name: parseResult.data,
-    rating: 5, 
-    notes: "Cooked seamlessly with KitchenOS Auto-Chef.",
+    rating, 
+    notes,
     cooked_at: new Date().toISOString()
   })
 

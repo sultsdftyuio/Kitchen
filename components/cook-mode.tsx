@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { CheckCircle2, Circle, Clock, ChefHat, Flame, ArrowLeft, Utensils, Award } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { logMealAction } from "@/app/actions/history"
+import { logCookingHistoryAction } from "@/app/actions/history"
 
 // Expected structure from our AI generation action
 interface RecipeProps {
@@ -45,7 +45,7 @@ export function CookMode({ recipe }: { recipe: RecipeProps }) {
     try {
       // Log as a 5-star meal by default for MVP. 
       // Later, we can add a modal to ask the user for an actual rating (1-5) and notes.
-      await logMealAction(recipe.name, 5, "Cooked via Immersive Cook Mode!")
+      await logCookingHistoryAction(recipe.name, 5, "Cooked via Immersive Cook Mode!")
     } catch (e) {
       console.error("[UI/CookMode] Failed to log meal:", e)
       setIsLogging(false)
