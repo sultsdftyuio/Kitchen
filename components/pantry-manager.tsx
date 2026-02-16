@@ -6,15 +6,13 @@ import { Trash2, Plus, Search, Check, X, Loader2, Carrot, Beef, Milk, Wheat, Pac
 import { useState, useMemo, useTransition, useRef, useOptimistic } from "react"
 import { cn } from "@/lib/utils"
 
-// --- Types (Left exactly as original) ---
 type PantryItem = {
   id: number
   name: string | null 
-  quantity: string
+  amount: string
   added_at: string
 }
 
-// --- Constants ---
 const CATEGORIES = [
   { id: 'produce', label: 'Produce', icon: Carrot, color: 'text-green-600', bg: 'bg-green-100', keywords: ['apple', 'banana', 'carrot', 'spinach', 'lettuce', 'onion', 'garlic', 'potato', 'tomato', 'fruit', 'veg'] },
   { id: 'protein', label: 'Protein', icon: Beef, color: 'text-red-500', bg: 'bg-red-100', keywords: ['chicken', 'beef', 'steak', 'pork', 'fish', 'tuna', 'egg', 'tofu', 'meat'] },
@@ -35,7 +33,6 @@ const getFreshnessColor = (dateString: string) => {
   return "bg-orange-400 w-1/3"
 }
 
-// --- Components ---
 function DeleteButton({ id }: { id: number }) {
   const [status, setStatus] = useState<'idle' | 'confirm' | 'deleting'>('idle')
   const [isPending, startTransition] = useTransition()
@@ -89,22 +86,21 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
   const [filterCat, setFilterCat] = useState<string | 'all'>('all')
   const formRef = useRef<HTMLFormElement>(null)
   
-  // Data Logic untouched
   const [optimisticItems, addOptimisticItem] = useOptimistic(
     items,
     (state, newItem: PantryItem) => [newItem, ...state]
   )
 
   const handleAdd = async (formData: FormData) => {
-    const name = formData.get("item_name") as string
-    const qty = formData.get("quantity") as string
+    const name = formData.get("name") as string
+    const amount = formData.get("amount") as string
     
     if (!name) return
 
     addOptimisticItem({
         id: Math.random(),
         name: name,
-        quantity: qty || "1",
+        amount: amount || "1",
         added_at: new Date().toISOString()
     })
     
@@ -154,7 +150,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
             >
                 <div className="flex-1 relative group">
                     <input
-                        name="item_name"
+                        name="name"
                         type="text"
                         placeholder="Ingredient name..."
                         required
@@ -164,7 +160,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                 </div>
                 <div className="w-full sm:w-32 relative">
                     <input
-                        name="quantity"
+                        name="amount"
                         type="text"
                         placeholder="Qty"
                         defaultValue="1"
@@ -186,8 +182,8 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                         key={chip}
                         type="button"
                         onClick={() => {
-                            const input = formRef.current?.querySelector('input[name="item_name"]') as HTMLInputElement
-                            const qtyInput = formRef.current?.querySelector('input[name="quantity"]') as HTMLInputElement
+                            const input = formRef.current?.querySelector('input[name="name"]') as HTMLInputElement
+                            const qtyInput = formRef.current?.querySelector('input[name="amount"]') as HTMLInputElement
                             if (input && qtyInput) {
                                 const parts = chip.match(/^(.*)\s\((.*)\)$/)
                                 if (parts) {
@@ -273,7 +269,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                   </h4>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-black text-tangerine bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-100">
-                        x {item.quantity || "1"}
+                        x {item.amount || "1"}
                     </span>
                     <span className="text-[10px] font-bold text-coffee/40 uppercase tracking-wider">
                         Added {item.added_at ? new Date(item.added_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Now'}

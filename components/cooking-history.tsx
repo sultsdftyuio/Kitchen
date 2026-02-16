@@ -6,7 +6,6 @@ import { Trash2, Star, Calendar, Check, PenTool } from "lucide-react"
 import { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
 
-// Types Left Exactly As Original
 type HistoryItem = {
   id: number
   dish_name: string
@@ -17,8 +16,8 @@ type HistoryItem = {
 
 type PantryItem = {
   id: number
-  item_name: string 
-  quantity: string
+  name: string 
+  amount: string
 }
 
 export function CookingHistory({ 
@@ -33,7 +32,6 @@ export function CookingHistory({
   const [selectedIngredients, setSelectedIngredients] = useState<number[]>([])
   const [dishName, setDishName] = useState(prefillDishName || "")
   
-  // Custom UI state for rating
   const [rating, setRating] = useState(5)
   const [hoverRating, setHoverRating] = useState(0)
 
@@ -64,7 +62,6 @@ export function CookingHistory({
         
         <form 
           action={async (formData) => {
-            // Unchanged action binding
             await logMeal(formData)
             setSelectedIngredients([]) 
             setDishName("") 
@@ -83,10 +80,8 @@ export function CookingHistory({
               className="flex-1 w-full bg-muted/50 px-5 py-4 rounded-2xl border-2 border-transparent focus:outline-none focus:border-tangerine focus:bg-white text-coffee font-bold text-lg transition-all"
             />
             
-            {/* Hidden native input ensures form data works exactly as before */}
             <input type="hidden" name="rating" value={rating} />
             
-            {/* Custom Interactive Stars UI */}
             <div className="flex flex-col items-center justify-center bg-muted/50 px-5 py-3.5 rounded-2xl border-2 border-transparent">
                 <span className="text-[10px] font-bold text-coffee/40 uppercase tracking-wider mb-1">Rating</span>
                 <div className="flex gap-1">
@@ -140,7 +135,7 @@ export function CookingHistory({
                         onChange={() => toggleIngredient(item.id)}
                         className="hidden" 
                       />
-                      {item.item_name}
+                      {item.name}
                       {isSelected && <span className="w-1.5 h-1.5 bg-tangerine rounded-full ml-1" />}
                     </label>
                   )
