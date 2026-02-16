@@ -22,6 +22,10 @@ const RecipeSchema = z.object({
     protein: z.string().nullable(),
     carbs: z.string().nullable(),
     fat: z.string().nullable(),
+    prep_time: z.string().describe("e.g. '15 mins'").nullable(),
+    cook_time: z.string().describe("e.g. '30 mins'").nullable(),
+    servings: z.number().describe("Number of servings").nullable(),
+    difficulty: z.enum(["Easy", "Medium", "Hard"]).nullable()
   })
 })
 
@@ -30,17 +34,17 @@ export async function generateRecipeAction(userPrompt: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  // 1. Fetch Pantry to check for matches
+  // 1. Fetch Pantry to check for matches (Fixed column name to match schema: item_name)
   const { data: pantry } = await supabase
     .from("pantry_items")
-    .select("name")
+    .select("item_name")
     .eq("user_id", user.id)
 
-  const pantryList = pantry?.map(p => p.name).join(", ") || "Nothing"
+  const pantryList = pantry?.map(p => p.item_name).join(", ") || "Nothing"
 
   // 2. Call AI with Structured Output
   const { object: recipe } = await generateObject({
-    model: openai("gpt-5-nano"), // Use a smart model for reasoning
+    model: openai("gpt-5-nano"), // Kept exact model per instructions
     schema: RecipeSchema,
     prompt: `
       You are a professional chef. 

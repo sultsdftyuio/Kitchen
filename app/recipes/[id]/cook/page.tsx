@@ -39,12 +39,14 @@ export default async function CookPage({ params }: PageProps) {
 
   // Sanitize data for the client component
   const cleanRecipe = {
-    ...recipe,
-    instructions
+    name: recipe.name,
+    ingredients: recipe.ingredients,
+    instructions,
+    nutrition: recipe.nutrition || {}
   }
 
   return (
-    <div className="min-h-screen bg-butter/30 p-4 md:p-8">
+    <div className="min-h-screen bg-[#FFF8F0] p-4 md:p-8">
       <CookMode recipe={cleanRecipe} />
     </div>
   )
