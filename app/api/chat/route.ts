@@ -31,10 +31,29 @@ export async function POST(req: Request) {
     }
 
     // 3. Parallel Data Fetching (Context Enrichment)
+    console.log(`[API/Chat ${requestId}] 📦 Fetching full context (Pantry, Profile, History)...`)
+    
     const [pantryRes, profileRes, historyRes] = await Promise.all([
-        supabase.from("pantry_items").select("name, quantity").eq("user_id", user.id),
-        supabase.from("profiles").select("dietary_restrictions, skill_level").eq("id", user.id).single(),
-        supabase.from("cooking_history").select("dish_name, rating, notes").eq("user_id", user.id).order("cooked_at", { ascending: false }).limit(5)
+        // A. Get Inventory
+        supabase
+          .from("pantry_items")
+          .select("name, quantity") 
+          .eq("user_id", user.id),
+        
+        // B. Get User Preferences
+        supabase
+          .from("profiles")
+          .select("dietary_restrictions, skill_level")
+          .eq("id", user.id)
+          .single(),
+
+        // C. Get Taste Profile (Last 5 meals)
+        supabase
+          .from("cooking_history")
+          .select("dish_name, rating, notes")
+          .eq("user_id", user.id)
+          .order("cooked_at", { ascending: false })
+          .limit(5)
     ])
 
     // 4. Data Processing
@@ -42,10 +61,17 @@ export async function POST(req: Request) {
     const profile = profileRes.data
     const history = historyRes.data || []
 
+    // Format Pantry List
     const pantryList = pantryItems.length > 0
       ? pantryItems.map((i: any) => `- ${i.name} (${i.quantity})`).join("\n")
       : "⚠️ Pantry is empty. Ask the user what ingredients they have on hand."
 
+    // Format Cooking History
+    const historyList = history.length > 0
+      ? history.map((h: any) => `- ${h.dish_name} (${h.rating}/5 stars)${h.notes ? `: "${h.notes}"` : ""}`).join("\n")
+      : "No cooking history yet."
+
+    // Format Profile
     const skillLevel = profile?.skill_level || "Beginner"
     const dietary = profile?.dietary_restrictions || "None"
 
@@ -54,12 +80,15 @@ export async function POST(req: Request) {
       You are kernelcook Chef AI, a world-class culinary expert and encouraging coach.
       
       === 👤 USER PROFILE ===
-      - Skill Level: ${skillLevel}
-      - Dietary Restrictions: ${dietary} (STRICTLY OBSERVE THESE)
+      - **Skill Level:** ${skillLevel}
+      - **Dietary Restrictions:** ${dietary} (STRICTLY OBSERVE THESE)
       
       === 🏠 KITCHEN INVENTORY ===
-      The user currently has these items. PRIORITIZE using them:
+      The user currently has these items. PRIORITIZE using them to reduce waste:
       ${pantryList}
+
+      === 🍽️ TASTE PREFERENCES (Recent History) ===
+      ${historyList}
 
       === 🎯 YOUR GOAL & BEHAVIOR ===
       Help the user cook delicious meals using primarily what they have. 
@@ -68,12 +97,20 @@ export async function POST(req: Request) {
       Do NOT type out the recipe ingredients and instructions in standard markdown text. Call the tool so the UI can render a beautiful structured card!
       
       If you are just answering a general question (e.g., "how long to boil an egg", "what is a good substitute for butter"), just reply with normal encouraging text.
+      
+      === 📝 RESPONSE GUIDELINES ===
+      1. **Tone:** Warm, encouraging, concise, and professional.
+      2. **Safety:** If the user mentions dangerous combinations or allergens matching their profile, warn them immediately.
     `
 
-    // 6. Prepare Messages
+    console.log(`[API/Chat ${requestId}] 🧠 System prompt built. History items: ${history.length}`)
+
+    // 6. Prepare Messages using the correct SDK utility
     const coreMessages = convertToCoreMessages(messages)
 
     // 7. Stream Response with Tools enabled
+    console.log(`[API/Chat ${requestId}] 🌊 Streaming response (gpt-5-nano)...`)
+    
     const result = streamText({
       model: openai("gpt-5-nano"), // Strictly using the requested model
       system: systemPrompt,
@@ -99,7 +136,10 @@ export async function POST(req: Request) {
             return recipe;
           }
         })
-      }
+      },
+      onFinish: (event) => {
+        console.log(`[API/Chat ${requestId}] 🏁 Stream completed. Usage: ${event.usage.totalTokens} tokens.`)
+      },
     })
     
     return result.toDataStreamResponse()

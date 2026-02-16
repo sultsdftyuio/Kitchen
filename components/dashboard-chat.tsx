@@ -117,6 +117,7 @@ export function DashboardChat({
       {/* CHAT AREA */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-white/50 relative z-10 scrollbar-thin">
         
+        {/* Empty State */}
         {(!messages || messages.length === 0) && !error && (
           <div className="mt-4 text-center space-y-6 animate-in fade-in zoom-in duration-500">
             <div className="inline-block p-4 bg-muted/30 rounded-full mb-2">
@@ -147,6 +148,7 @@ export function DashboardChat({
           </div>
         )}
         
+        {/* Message Feed */}
         {messages?.map((m) => (
           <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'} gap-2 w-full`}>
              
@@ -272,6 +274,7 @@ export function DashboardChat({
           </div>
         ))}
 
+        {/* Loading / Typing Indicator */}
         {isLoading && !messages[messages.length - 1]?.toolInvocations?.length && (
             <div className="flex justify-start items-end gap-2">
                <div className="w-6 h-6 rounded-full bg-tangerine/20 flex items-center justify-center border border-tangerine/50 mb-1 shrink-0">
@@ -285,6 +288,7 @@ export function DashboardChat({
             </div>
         )}
 
+        {/* Error State */}
         {error && (
             <div className="flex justify-center my-4 animate-in fade-in slide-in-from-bottom-2">
                 <div className="bg-red-50 text-red-600 border border-red-200 rounded-xl p-4 max-w-[90%] text-sm text-center shadow-sm">
