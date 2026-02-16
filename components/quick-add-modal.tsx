@@ -36,8 +36,8 @@ export function QuickAddModal({
 
     setIsLoading(true)
     const formData = new FormData()
-    formData.append("name", itemName)
-    formData.append("amount", amount)
+    formData.append("item_name", itemName)
+    formData.append("quantity", amount)
 
     try {
       await addToPantry(formData)
