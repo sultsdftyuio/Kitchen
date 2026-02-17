@@ -2,10 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { Flame, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { AuthButton } from "@/components/auth-button";
 import { User } from "@supabase/supabase-js";
+import { KitchenLogo } from "@/components/kitchen-logo";
 
 interface NavbarProps {
   user: User | null;
@@ -19,14 +20,7 @@ export function Navbar({ user }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-tangerine p-2 rounded-xl border-2 border-border hard-shadow group-hover:rotate-12 transition-transform">
-              <Flame className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-serif text-2xl font-bold text-coffee">
-              kernelcook
-            </span>
-          </Link>
+          <KitchenLogo size="md" href="/" />
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">

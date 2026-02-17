@@ -40,15 +40,34 @@ export function GamificationPanel() {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {/* 1. KITCHEN STREAK */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <Card className={`relative overflow-hidden transition-all duration-500 ${stats.streak > 0 ? 'border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.1)]' : ''}`}>
+        {/* Ambient glow effect when active */}
+        {stats.streak > 0 && (
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" />
+        )}
+        
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
           <CardTitle className="text-sm font-medium">Kitchen Streak</CardTitle>
-          <Flame className={`h-4 w-4 ${stats.streak > 0 ? 'text-orange-500' : 'text-muted-foreground'}`} />
+          <div className={`p-1.5 rounded-full ${stats.streak > 0 ? 'bg-orange-500/10' : 'bg-muted'}`}>
+            <Flame 
+              className={`h-4 w-4 transition-all duration-500 ${
+                stats.streak > 0 
+                  ? 'text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] animate-pulse' 
+                  : 'text-muted-foreground'
+              }`} 
+            />
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.streak} Days</div>
-          <p className="text-xs text-muted-foreground">
-            {stats.streak > 0 ? "You're on fire! Keep cooking." : "Cook a meal today to start your streak!"}
+        <CardContent className="relative z-10">
+          <div className={`text-2xl font-black tracking-tight ${
+            stats.streak > 0 
+              ? 'bg-gradient-to-br from-orange-400 via-red-500 to-orange-600 bg-clip-text text-transparent drop-shadow-sm' 
+              : 'text-foreground'
+          }`}>
+            {stats.streak} {stats.streak === 1 ? 'Day' : 'Days'}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 font-medium">
+            {stats.streak > 0 ? "🔥 You're on fire! Keep cooking." : "Cook a meal today to start your streak!"}
           </p>
         </CardContent>
       </Card>
@@ -78,7 +97,7 @@ export function GamificationPanel() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{stats.zeroWasteScore}/100</div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground mt-1">
             {stats.zeroWasteScore >= 80 ? "Excellent inventory turnover!" : "Try cooking more of what you own."}
           </p>
         </CardContent>
