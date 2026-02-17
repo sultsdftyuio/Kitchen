@@ -10,7 +10,8 @@ import { PrepStation } from "@/components/prep-station"
 import { QuickAddModal } from "@/components/quick-add-modal"
 import { CommandPalette } from "@/components/command-palette"
 import { signOut } from "@/app/actions/auth"
-import { ChefHat, LogOut, Loader2, Search } from "lucide-react"
+import { LogOut, Loader2, Search } from "lucide-react"
+import { KitchenLogo } from "@/components/kitchen-logo"
 
 export function DashboardShell({ 
   userEmail, 
@@ -69,14 +70,7 @@ export function DashboardShell({
 
       {/* PREMIUM FROSTED NAV */}
       <nav className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/60 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-tangerine to-orange-600 p-1.5 rounded-lg shadow-sm">
-              <ChefHat className="text-white w-5 h-5" />
-          </div>
-          <span className="font-serif font-semibold text-xl text-slate-900 tracking-tight hidden sm:block">
-            KitchenOS
-          </span>
-        </div>
+        <KitchenLogo size="sm" href="/" />
 
         <div className="flex items-center gap-3 sm:gap-4">
           <button className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-100/50 hover:bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200/60 transition-colors">

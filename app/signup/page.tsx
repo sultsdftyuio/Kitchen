@@ -4,8 +4,9 @@
 import Link from "next/link";
 import { useTransition, useState } from "react";
 import { signUp } from "@/app/actions/auth";
-import { Loader2, ChefHat, Sparkles, Mail, Lock, CheckSquare } from "lucide-react";
+import { Loader2, Sparkles, Mail, Lock } from "lucide-react";
 import { LoginButton } from "@/components/login-button";
+import { KitchenLogo } from "@/components/kitchen-logo";
 
 export default function SignupPage() {
   const [isPending, startTransition] = useTransition();
@@ -28,13 +29,8 @@ export default function SignupPage() {
 
       <div className="w-full max-w-md bg-white rounded-3xl border-2 border-border hard-shadow-lg p-8 relative z-10 my-8">
         <div className="flex flex-col items-center text-center mb-6">
-          <div className="bg-lavender p-3 rounded-2xl border-2 border-border hard-shadow mb-4 rotate-[-3deg] hover:rotate-[-6deg] transition-transform">
-            <ChefHat className="w-8 h-8 text-coffee" />
-          </div>
-          <h1 className="font-serif text-3xl font-bold text-coffee mb-2">
-            Claim Your Kitchen
-          </h1>
-          <p className="text-coffee-dark/80">
+          <KitchenLogo size="lg" className="mb-4" />
+          <p className="text-coffee-dark/80 mt-2">
             Join 12,000+ home cooks saving time & reducing waste.
           </p>
         </div>

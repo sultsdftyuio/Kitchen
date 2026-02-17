@@ -1,6 +1,6 @@
 // components/footer.tsx
-import { Flame } from "lucide-react";
 import Link from "next/link";
+import { KitchenLogo } from "@/components/kitchen-logo";
 
 export function Footer() {
   return (
@@ -9,13 +9,8 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="bg-tangerine p-2 rounded-xl border-2 border-cream/20">
-                <Flame className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-serif text-2xl font-bold text-cream">
-                kernelcook
-              </span>
+            <div className="mb-6">
+              <KitchenLogo size="md" href="/" />
             </div>
             <p className="text-cream/80 max-w-sm leading-relaxed">
               The AI cooking assistant that remembers your tastes, tracks your
@@ -74,7 +69,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                {/* FIX: Updated back to a Next.js Link pointing to our new page */}
                 <Link
                   href="/contact"
                   className="text-cream/70 hover:text-tangerine transition-colors"
