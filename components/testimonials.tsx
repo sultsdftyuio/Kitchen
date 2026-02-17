@@ -3,7 +3,7 @@ const testimonials = [
     name: "Maria G.",
     role: "Home Cook",
     quote:
-      "KitchenOS turned me from a microwave expert into someone who actually enjoys cooking. My family thinks I took classes!",
+      "kernelcook turned me from a microwave expert into someone who actually enjoys cooking. My family thinks I took classes!",
     ringColor: "ring-tangerine",
     initial: "M",
     bgColor: "bg-rose",

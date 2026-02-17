@@ -1,44 +1,28 @@
-import React from "react";
+// app/layout.tsx
 import type { Metadata } from "next";
-import { Playfair_Display, Work_Sans } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { CookieBanner } from "@/components/cookie-banner";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner"; // UPDATED IMPORT
+import { CookieBanner } from "@/components/cookie-banner";
 
-// Font configurations
-const _playfair = Playfair_Display({
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  variable: "--font-serif",
 });
 
-const _workSans = Work_Sans({
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  variable: "--font-sans",
 });
 
-// Metadata for SEO and sharing
 export const metadata: Metadata = {
-  title: "KitchenOS - AI Cooking Assistant",
-  description:
-    "The first culinary AI that cooks with heart, not just algorithms. Turn your leftovers into feasts.",
-  generator: "v0.app",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
+  title: "kernelcook | AI Kitchen Management",
+  description: "Master your kitchen with AI-powered inventory management and personalized coaching.",
+  keywords: ["cooking", "inventory", "AI chef", "pantry tracker", "kernelcook"],
+  alternates: {
+    canonical: 'https://kernelcook.vercel.app', 
+  }
 };
 
 export default function RootLayout({
@@ -46,17 +30,38 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${_playfair.variable} ${_workSans.variable} font-sans antialiased`}
-      >
-        {/* Main Application Content */}
-        {children}
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "kernelcook",
+    "operatingSystem": "Web",
+    "applicationCategory": "LifestyleApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  };
 
-        {/* Global Components (overlays, analytics, etc.) */}
-        <CookieBanner />
-        <Analytics />
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+          <CookieBanner />
+        </ThemeProvider>
       </body>
     </html>
   );

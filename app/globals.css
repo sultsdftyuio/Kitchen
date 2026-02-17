@@ -4,95 +4,89 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* KitchenOS Dopamine Design System - Preserved */
-  --background: #FEFCE8; /* Cream */
-  --foreground: #451A03; /* Dark Coffee Brown */
+  /* PREMIUM SAAS DESIGN SYSTEM */
+  --background: #FDFDFD; /* Clean off-white/slate-50 */
+  --foreground: #0F172A; /* Slate 900 */
+  
   --card: #FFFFFF;
-  --card-foreground: #451A03;
+  --card-foreground: #0F172A;
+  
   --popover: #FFFFFF;
-  --popover-foreground: #451A03;
-  --primary: #F97316; /* Tangerine Orange */
-  --primary-foreground: #FFFFFF;
-  --secondary: #FEF08A; /* Butter Yellow */
-  --secondary-foreground: #451A03;
-  --muted: #FEF9C3;
-  --muted-foreground: #78350F;
-  --accent: #E9D5FF; /* Soft Lavender */
-  --accent-foreground: #451A03;
-  --destructive: #EF4444;
+  --popover-foreground: #0F172A;
+  
+  --primary: #0F172A; /* Slate 900 for Primary Actions */
+  --primary-foreground: #F8FAFC; /* Slate 50 */
+  
+  --secondary: #F1F5F9; /* Slate 100 */
+  --secondary-foreground: #0F172A;
+  
+  --muted: #F8FAFC; /* Slate 50 */
+  --muted-foreground: #64748B; /* Slate 500 */
+  
+  --accent: #F1F5F9; /* Slate 100 */
+  --accent-foreground: #0F172A;
+  
+  --destructive: #EF4444; /* Red 500 */
   --destructive-foreground: #FFFFFF;
-  --border: #1C1917; /* Stone-900 */
-  --input: #D6D3D1;
-  --ring: #F97316;
   
-  /* Custom KitchenOS Colors - Preserved */
-  --cream: #FEFCE8;
-  --tangerine: #F97316;
-  --forest: #14532D;
-  --butter: #FEF08A;
-  --lavender: #E9D5FF;
-  --rose: #FECDD3;
-  --coffee: #451A03;
-  --coffee-dark: #78350F;
+  --border: #E2E8F0; /* Slate 200 */
+  --input: #E2E8F0;
+  --ring: #0F172A; /* Slate 900 */
   
-  --radius: 1.5rem; /* Preserved */
+  --radius: 1rem; /* Softer, more elegant default radius */
 
-  /* Shadcn/ui default chart and sidebar colors - Added */
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* LEGACY COLOR MAPPING
+    We map the old brutalist variables to the new SaaS colors 
+    so your existing landing pages automatically look better!
+  */
+  --cream: #FDFDFD;       /* Was yellow-ish, now clean background */
+  --coffee: #0F172A;      /* Was dark brown, now sleek slate-900 */
+  --coffee-dark: #020617; /* Was darker brown, now slate-950 */
+  --butter: #F8FAFC;      /* Was harsh yellow, now subtle slate-50 */
+  --tangerine: #F97316;   /* Kept as your brand accent! */
+  
+  /* Shadcn Charts */
+  --chart-1: #F97316; /* Tangerine */
+  --chart-2: #14B8A6; /* Teal */
+  --chart-3: #3B82F6; /* Blue */
+  --chart-4: #8B5CF6; /* Violet */
+  --chart-5: #F43F5E; /* Rose */
 }
  
 .dark {
-  /* Shadcn/ui dark mode colors - Added */
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Sleek Dark Mode (Slate-based) */
+  --background: #020617; /* Slate 950 */
+  --foreground: #F8FAFC; /* Slate 50 */
+  
+  --card: #0F172A; /* Slate 900 */
+  --card-foreground: #F8FAFC;
+  
+  --popover: #0F172A;
+  --popover-foreground: #F8FAFC;
+  
+  --primary: #F8FAFC;
+  --primary-foreground: #0F172A;
+  
+  --secondary: #1E293B; /* Slate 800 */
+  --secondary-foreground: #F8FAFC;
+  
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8; /* Slate 400 */
+  
+  --accent: #1E293B;
+  --accent-foreground: #F8FAFC;
+  
+  --destructive: #7F1D1D;
+  --destructive-foreground: #FEF2F2;
+  
+  --border: #1E293B;
+  --input: #1E293B;
+  --ring: #CBD5E1; /* Slate 300 */
 }
 
 @theme inline {
-  --font-sans: var(--font-sans, 'Work Sans'), 'Work Sans Fallback', system-ui, sans-serif;
-  --font-serif: var(--font-serif, 'Playfair Display'), 'Playfair Display Fallback', Georgia, serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+  --font-sans: var(--font-sans, 'Inter'), system-ui, sans-serif;
+  --font-serif: var(--font-serif, 'Playfair Display'), Georgia, serif;
   
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -114,38 +108,20 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   
-  /* KitchenOS Custom Colors - Preserved */
+  /* Map Custom Variables */
   --color-cream: var(--cream);
   --color-tangerine: var(--tangerine);
-  --color-forest: var(--forest);
   --color-butter: var(--butter);
-  --color-lavender: var(--lavender);
-  --color-rose: var(--rose);
   --color-coffee: var(--coffee);
   --color-coffee-dark: var(--coffee-dark);
 
-  /* Shadcn/ui chart and sidebar colors - Added */
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
-  /* Radius variables - Updated to Shadcn/ui values relative to --radius */
+  /* Radius mapping for Tailwind v4 */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px); /* Existing, kept for consistency */
-  --radius-3xl: calc(var(--radius) + 12px); /* Existing, kept for consistency */
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
 }
 
 @layer base {
@@ -153,79 +129,43 @@
     @apply border-border outline-ring/50;
   }
   body {
-    /* Updated body background and text colors to use generic variables */
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-tangerine selection:text-white;
   }
 }
 
-/* Hard Shadow Utility */
+/* LEGACY BRUTALIST CLASSES
+  Softened to prevent old un-updated pages from looking broken.
+  We remove the heavy black shadows and replace them with soft SaaS shadows.
+*/
 .hard-shadow {
-  box-shadow: 4px 4px 0px 0px #1C1917;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
 }
 
 .hard-shadow-lg {
-  box-shadow: 6px 6px 0px 0px #1C1917;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+}
+
+.hard-shadow-sm {
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .hard-shadow-hover {
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .hard-shadow-hover:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px #1C1917;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
 }
 
-.hard-shadow-hover:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px #1C1917;
-}
-
-/* Float Animation */
+/* Floating Animations */
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(-2deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(-2deg);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
 }
 
 .animate-float {
   animation: float 4s ease-in-out infinite;
-}
-
-@keyframes float-delayed {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-.animate-float-delayed {
-  animation: float-delayed 3s ease-in-out infinite;
-  animation-delay: 0.5s;
-}
-
-@keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
-}
-
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
 }
 
 @layer utilities {
@@ -239,70 +179,10 @@
   }
   
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-coffee/20 rounded-full;
+    @apply bg-slate-200 rounded-full transition-colors;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    @apply bg-tangerine/50;
-  }
-}
-/* app/globals.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply bg-slate-300;
   }
 }

@@ -6,6 +6,7 @@ import { FeaturesBento } from "@/components/features-bento";
 import { HowItWorks } from "@/components/how-it-works";
 import { RoastSection } from "@/components/roast-section";
 import { Testimonials } from "@/components/testimonials";
+import { FAQSection } from "@/components/faq-section";
 import { Footer } from "@/components/footer";
 
 export default async function Home() {
@@ -15,20 +16,22 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   return (
-    <main className="min-h-screen bg-cream font-sans text-coffee selection:bg-tangerine/30">
+    <div className="min-h-screen bg-cream font-sans text-coffee selection:bg-tangerine/30 flex flex-col">
+      {/* Landing Page Navbar */}
       <Navbar user={user} />
       
-      <Hero />
-      
-      <FeaturesBento />
-      
-      <HowItWorks />
+      {/* Page Content */}
+      <main className="flex-1">
+        <Hero />
+        <FeaturesBento />
+        <HowItWorks />
+        <RoastSection />
+        <Testimonials /> 
+        <FAQSection />
+      </main>
 
-      <RoastSection />
-      
-      <Testimonials /> 
-
+      {/* Landing Page Footer */}
       <Footer />
-    </main>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
-import { Flame } from "lucide-react";
+// components/footer.tsx
 import Link from "next/link";
+import { KitchenLogo } from "@/components/kitchen-logo";
 
 export function Footer() {
   return (
@@ -8,13 +9,8 @@ export function Footer() {
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           {/* Brand */}
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="bg-tangerine p-2 rounded-xl border-2 border-cream/20">
-                <Flame className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-serif text-2xl font-bold text-cream">
-                KitchenOS
-              </span>
+            <div className="mb-6">
+              <KitchenLogo size="md" href="/" />
             </div>
             <p className="text-cream/80 max-w-sm leading-relaxed">
               The AI cooking assistant that remembers your tastes, tracks your
@@ -73,12 +69,12 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/contact"
                   className="text-cream/70 hover:text-tangerine transition-colors"
                 >
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -91,7 +87,7 @@ export function Footer() {
               {"Made with ❤️ and 🧈 (Butter)."}
             </p>
             <p className="text-cream/60 text-sm">
-              © 2026 KitchenOS. All rights reserved.
+              © 2026 kernelcook. All rights reserved.
             </p>
           </div>
         </div>

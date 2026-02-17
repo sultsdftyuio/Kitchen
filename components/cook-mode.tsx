@@ -1,184 +1,197 @@
 // components/cook-mode.tsx
-'use client'
+"use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { ChevronRight, ChevronLeft, Mic, MicOff, Volume2, CheckCircle2, RotateCcw } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { toast } from "sonner" // Or your preferred toast lib
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { CheckCircle2, Circle, Clock, ChefHat, Flame, ArrowLeft, Utensils, Award } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { logCookingHistoryAction } from "@/app/actions/history"
 
-interface CookModeProps {
-  recipe: {
+// Expected structure from our AI generation action
+interface RecipeProps {
+  name: string
+  description: string
+  ingredients: {
     name: string
-    ingredients: any[]
-    instructions: string[]
+    amount: string
+    is_in_pantry: boolean
+  }[]
+  instructions: string[]
+  nutrition: {
+    prep_time?: string | null
+    cook_time?: string | null
+    servings?: number | null
   }
 }
 
-export function CookMode({ recipe }: CookModeProps) {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [isListening, setIsListening] = useState(false)
-  const [recognition, setRecognition] = useState<any>(null)
+export function CookMode({ recipe }: { recipe: RecipeProps }) {
+  const router = useRouter()
+  // Track which ingredients the user has prepped/pulled out
+  const [checkedIngredients, setCheckedIngredients] = useState<Set<number>>(new Set())
+  const [isLogging, setIsLogging] = useState(false)
 
-  // 1. Initialize Speech Recognition
-  useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).webkitSpeechRecognition) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition
-      const recognitionInstance = new SpeechRecognition()
-      recognitionInstance.continuous = true
-      recognitionInstance.interimResults = false
-      recognitionInstance.lang = 'en-US'
-
-      recognitionInstance.onresult = (event: any) => {
-        const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim()
-        console.log("Heard:", transcript)
-        handleVoiceCommand(transcript)
-      }
-
-      recognitionInstance.onerror = (event: any) => {
-        console.error("Speech error:", event.error)
-        setIsListening(false)
-      }
-
-      setRecognition(recognitionInstance)
+  const toggleIngredient = (index: number) => {
+    const newSet = new Set(checkedIngredients)
+    if (newSet.has(index)) {
+      newSet.delete(index)
     } else {
-      console.warn("Speech recognition not supported in this browser.")
+      newSet.add(index)
     }
-  }, [])
+    setCheckedIngredients(newSet)
+  }
 
-  // 2. Wake Lock (Keep screen on)
-  useEffect(() => {
-    let wakeLock: any = null;
-    const requestWakeLock = async () => {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await (navigator as any).wakeLock.request('screen');
-          console.log('Screen Wake Lock active');
-        }
-      } catch (err: any) {
-        console.error(`${err.name}, ${err.message}`);
-      }
-    };
-    requestWakeLock();
-    return () => wakeLock?.release();
-  }, []);
-
-  // 3. Voice Command Logic
-  const handleVoiceCommand = (command: string) => {
-    if (command.includes("next") || command.includes("done") || command.includes("okay")) {
-      nextStep()
-    } else if (command.includes("back") || command.includes("previous")) {
-      prevStep()
-    } else if (command.includes("repeat") || command.includes("read")) {
-      speakStep()
+  const handleFinish = async () => {
+    setIsLogging(true)
+    try {
+      // Log as a 5-star meal by default for MVP. 
+      // Later, we can add a modal to ask the user for an actual rating (1-5) and notes.
+      await logCookingHistoryAction(recipe.name, 5, "Cooked via Immersive Cook Mode!")
+    } catch (e) {
+      console.error("[UI/CookMode] Failed to log meal:", e)
+      setIsLogging(false)
     }
   }
-
-  const nextStep = () => {
-    setCurrentStep((prev) => {
-      const next = Math.min(prev + 1, recipe.instructions.length - 1)
-      if (next !== prev) speakText(recipe.instructions[next])
-      return next
-    })
-  }
-
-  const prevStep = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0))
-  }
-
-  const toggleListening = () => {
-    if (!recognition) return toast.error("Voice control not supported on this device.")
-    
-    if (isListening) {
-      recognition.stop()
-      setIsListening(false)
-    } else {
-      recognition.start()
-      setIsListening(true)
-      toast.success("Listening... Say 'Next', 'Back', or 'Repeat'")
-    }
-  }
-
-  // 4. Text-to-Speech
-  const speakText = (text: string) => {
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    window.speechSynthesis.speak(utterance)
-  }
-
-  const speakStep = () => speakText(recipe.instructions[currentStep])
-
-  // Progress calculation
-  const progress = ((currentStep + 1) / recipe.instructions.length) * 100
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] max-w-4xl mx-auto">
-      {/* Header Controls */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-serif font-bold text-coffee">{recipe.name}</h1>
-          <p className="text-coffee-dark">Step {currentStep + 1} of {recipe.instructions.length}</p>
-        </div>
-        <div className="flex gap-2">
-           <Button 
-            variant={isListening ? "default" : "outline"} 
-            onClick={toggleListening}
-            className={isListening ? "bg-rose-500 hover:bg-rose-600 animate-pulse" : "border-coffee text-coffee"}
-          >
-            {isListening ? <Mic className="mr-2 h-4 w-4" /> : <MicOff className="mr-2 h-4 w-4" />}
-            {isListening ? "Listening" : "Enable Voice"}
-          </Button>
-          <Button variant="outline" onClick={speakStep} className="border-coffee text-coffee">
-            <Volume2 className="h-4 w-4" />
-          </Button>
+    <div className="max-w-7xl mx-auto py-8 px-4 md:px-8 animate-in slide-in-from-bottom-4 fade-in duration-700">
+      
+      {/* Top Navigation */}
+      <button 
+        onClick={() => router.push("/dashboard")}
+        className="flex items-center gap-2 text-neutral-500 hover:text-orange-500 font-bold text-sm mb-6 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" /> Back to Kitchen
+      </button>
+
+      {/* Hero Header Card */}
+      <div className="bg-stone-900 text-white rounded-[2rem] p-8 md:p-12 relative overflow-hidden mb-8 border-4 border-stone-200 shadow-xl">
+        {/* Decorative blur blob */}
+        <div className="absolute -right-20 -top-20 w-64 h-64 bg-orange-500/30 rounded-full blur-3xl" />
+        
+        <h1 className="text-4xl md:text-6xl font-serif font-bold mb-4 relative z-10">{recipe.name}</h1>
+        <p className="text-lg text-stone-300 max-w-2xl leading-relaxed relative z-10 mb-8">{recipe.description}</p>
+        
+        <div className="flex flex-wrap gap-4 relative z-10">
+          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-sm">
+            <Clock className="w-5 h-5 text-orange-400" />
+            <span className="font-bold">{recipe.nutrition?.prep_time || "10 mins"}</span>
+          </div>
+          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-sm">
+            <Flame className="w-5 h-5 text-orange-400" />
+            <span className="font-bold">{recipe.nutrition?.cook_time || "20 mins"}</span>
+          </div>
+          <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-sm">
+            <Utensils className="w-5 h-5 text-orange-400" />
+            <span className="font-bold">{recipe.nutrition?.servings || 2} Servings</span>
+          </div>
         </div>
       </div>
 
-      {/* Main Step Card */}
-      <Card className="flex-1 flex flex-col justify-center items-center p-8 md:p-16 text-center border-2 border-coffee/10 hard-shadow bg-[#FFF8F0] mb-8 relative overflow-hidden transition-all duration-300">
-        <div className="absolute top-0 left-0 w-full">
-           <Progress value={progress} className="h-2 rounded-none bg-coffee/10" />
-        </div>
+      {/* Main Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
         
-        <div className="flex-1 flex items-center justify-center">
-          <h2 className="text-3xl md:text-5xl font-medium text-coffee leading-tight">
-            {recipe.instructions[currentStep]}
-          </h2>
+        {/* Left Column: Interactive Ingredients List */}
+        <div className="lg:col-span-4 space-y-6">
+          <div className="sticky top-8">
+            <h3 className="text-2xl font-serif font-bold text-stone-800 mb-6 flex items-center gap-3">
+              <ChefHat className="w-6 h-6 text-orange-500" /> Ingredients
+            </h3>
+            
+            <div className="bg-white rounded-3xl border-2 border-stone-200 p-4 shadow-sm">
+              <div className="space-y-2">
+                {recipe.ingredients.map((ing, i) => {
+                  const isChecked = checkedIngredients.has(i)
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => toggleIngredient(i)}
+                      className={cn(
+                        "w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all text-left group",
+                        isChecked 
+                          ? "bg-stone-100 border-stone-200 opacity-60" 
+                          : "bg-white border-transparent hover:border-orange-200 hover:bg-stone-50"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {isChecked ? (
+                          <CheckCircle2 className="w-6 h-6 text-green-500 shrink-0" />
+                        ) : (
+                          <Circle className="w-6 h-6 text-stone-300 group-hover:text-orange-400 shrink-0 transition-colors" />
+                        )}
+                        <span className={cn(
+                          "font-bold text-stone-800",
+                          isChecked && "line-through"
+                        )}>
+                          {ing.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {/* Show "In Pantry" pill only if they haven't checked it off yet */}
+                        {ing.is_in_pantry && !isChecked && (
+                          <span className="text-[10px] uppercase font-black tracking-wider bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                            In Pantry
+                          </span>
+                        )}
+                        <span className="text-sm font-black text-stone-500 whitespace-nowrap">
+                          {ing.amount}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Navigation Hints */}
-        <div className="mt-8 flex gap-8 text-sm text-coffee/40 font-mono uppercase tracking-widest">
-          {currentStep > 0 && <span>Values: "Back"</span>}
-          <span>Values: "Repeat"</span>
-          {currentStep < recipe.instructions.length - 1 && <span>Values: "Next"</span>}
-        </div>
-      </Card>
+        {/* Right Column: Step-by-Step Instructions */}
+        <div className="lg:col-span-8">
+          <h3 className="text-2xl font-serif font-bold text-stone-800 mb-6 flex items-center gap-3">
+            <Flame className="w-6 h-6 text-orange-500" /> Instructions
+          </h3>
+          
+          <div className="space-y-6">
+            {recipe.instructions.map((step, i) => (
+              <div 
+                key={i} 
+                className="bg-white p-8 rounded-3xl border-2 border-stone-200 shadow-sm relative group hover:-translate-y-1 transition-transform"
+              >
+                <div className="absolute -left-4 -top-4 w-12 h-12 bg-orange-500 text-white rounded-full border-4 border-white flex items-center justify-center font-black text-xl shadow-sm">
+                  {i + 1}
+                </div>
+                <p className="text-lg md:text-xl text-stone-700 leading-relaxed font-medium pl-4">
+                  {step}
+                </p>
+              </div>
+            ))}
+          </div>
 
-      {/* Manual Controls (Backup) */}
-      <div className="grid grid-cols-2 gap-4">
-        <Button 
-          onClick={prevStep} 
-          disabled={currentStep === 0}
-          variant="outline" 
-          className="h-16 text-xl border-coffee text-coffee"
-        >
-          <ChevronLeft className="mr-2" /> Previous
-        </Button>
-        
-        {currentStep === recipe.instructions.length - 1 ? (
-          <Button className="h-16 text-xl bg-green-600 hover:bg-green-700 text-white">
-            <CheckCircle2 className="mr-2" /> Finish Cooking
-          </Button>
-        ) : (
-          <Button 
-            onClick={nextStep}
-            className="h-16 text-xl bg-tangerine hover:bg-orange-600 text-white"
-          >
-            Next Step <ChevronRight className="ml-2" />
-          </Button>
-        )}
+          {/* Action Footer: Log Meal */}
+          <div className="mt-12 bg-stone-50 border-2 border-stone-200 p-8 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left shadow-sm">
+            <div>
+              <h4 className="font-serif text-xl font-bold text-stone-800 flex items-center gap-2 justify-center sm:justify-start">
+                <Award className="w-6 h-6 text-orange-500" /> Bon Appétit!
+              </h4>
+              <p className="text-stone-600 font-medium mt-1">
+                Finished cooking? Log this meal to train your AI profile.
+              </p>
+            </div>
+            
+            <button
+              onClick={handleFinish}
+              disabled={isLogging}
+              className="bg-stone-900 hover:bg-orange-500 text-white px-8 py-4 rounded-2xl font-black text-lg border-2 border-stone-900 shadow-[4px_4px_0px_0px_rgba(28,25,23,1)] hover:translate-y-[2px] hover:shadow-none transition-all w-full sm:w-auto flex items-center justify-center gap-2 disabled:opacity-70 disabled:hover:bg-stone-900 disabled:hover:translate-y-0 disabled:hover:shadow-[4px_4px_0px_0px_rgba(28,25,23,1)]"
+            >
+              {isLogging ? (
+                <Clock className="w-5 h-5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5" />
+              )}
+              {isLogging ? "Logging to Database..." : "Finish & Log Meal"}
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   )

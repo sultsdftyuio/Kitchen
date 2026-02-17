@@ -1,128 +1,94 @@
 // components/roast-section.tsx
-"use client";
-
-import { useChat } from "@ai-sdk/react";
-import { ArrowRight, Send } from "lucide-react";
-import { useRef, useEffect } from "react";
+import { Lightbulb, Camera, Send, GraduationCap, HeartHandshake } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function RoastSection() {
-  const { messages, input, handleInputChange, handleSubmit, append } = useChat() as any;
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    if (messages?.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]);
-
-  // Specific "Quick Replies" that work well with the Chef persona
-  const quickReplies = [
-    "I have eggs, spinach, and rice 🍳",
-    "What pantry staples should I buy?",
-    "Review my grocery list 📝"
-  ];
-
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-forest">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="font-serif text-4xl sm:text-5xl font-bold text-cream text-balance">
-            Got Ingredients?{" "}
-            <span className="text-butter">Let's Get Cooking.</span>
+    <section className="py-24 my-12 bg-coffee text-cream relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-0 w-64 h-64 bg-tangerine/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-butter/10 rounded-full blur-3xl" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+        
+        {/* Text Content */}
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-butter/20 text-butter-light border border-butter/30 mb-6">
+            <GraduationCap className="w-4 h-4 text-butter" />
+            <span className="text-sm font-bold tracking-wider uppercase">Always Learning</span>
+          </div>
+          <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6">
+            Mistakes happen.<br />
+            <span className="text-tangerine">Let's fix them together.</span>
           </h2>
-          <p className="mt-4 text-cream/80 text-lg max-w-2xl mx-auto">
-            Your personal chef is ready to turn your pantry into a 5-star menu.
+          <p className="text-lg text-cream/80 mb-8 leading-relaxed max-w-md">
+            Even the best chefs have bad days in the kitchen. Upload a photo of a dish that didn't go as planned, and our AI will gently analyze your technique and tell you exactly how to perfect it next time.
           </p>
+          <ul className="space-y-4 mb-8">
+            <li className="flex items-center gap-3 text-cream/90">
+              <Camera className="w-5 h-5 text-tangerine" /> Snap a photo of the result.
+            </li>
+            <li className="flex items-center gap-3 text-cream/90">
+              <Lightbulb className="w-5 h-5 text-tangerine" /> Get a constructive analysis.
+            </li>
+            <li className="flex items-center gap-3 text-cream/90">
+              <HeartHandshake className="w-5 h-5 text-tangerine" /> Improve your skills with confidence.
+            </li>
+          </ul>
         </div>
 
-        {/* Chat Window */}
-        <div className="bg-cream rounded-3xl border-2 border-border hard-shadow-lg p-6 max-w-2xl mx-auto flex flex-col h-[600px]">
-          
-          {/* Window Header */}
-          <div className="flex items-center gap-2 mb-4 pb-4 border-b-2 border-border shrink-0">
-            <div className="w-3 h-3 bg-rose rounded-full" />
-            <div className="w-3 h-3 bg-butter rounded-full" />
-            <div className="w-3 h-3 bg-[#86EFAC] rounded-full" />
-            <span className="ml-2 font-medium text-coffee text-sm">
-              KitchenOS Chef
-            </span>
+        {/* Mock Chat UI */}
+        <div className="bg-[#2A2320] rounded-2xl border border-white/10 shadow-2xl p-4 md:p-6 transform lg:rotate-2 hover:rotate-0 transition-transform duration-500">
+          <div className="flex items-center gap-3 border-b border-white/10 pb-4 mb-6">
+            <div className="w-10 h-10 rounded-full bg-butter flex items-center justify-center">
+              <GraduationCap className="w-6 h-6 text-coffee-dark" />
+            </div>
+            <div>
+              <h4 className="font-bold font-serif text-white">Chef's Assistant</h4>
+              <p className="text-xs text-cream/50">Online • Ready to help</p>
+            </div>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 scrollbar-thin scrollbar-thumb-coffee/20">
-            
-            {/* Zero State / Welcome Message */}
-            {(!messages || messages.length === 0) && (
-              <div className="flex justify-start">
-                <div className="bg-butter rounded-2xl rounded-tl-none px-5 py-3 max-w-[85%] border-2 border-transparent">
-                  <p className="text-coffee">
-                    {"Hello! I'm here to help you navigate your kitchen. Tell me what ingredients you have, and we'll make something wonderful."}
-                  </p>
+          <div className="space-y-6 mb-6">
+            {/* User Message */}
+            <div className="flex justify-end">
+              <div className="bg-white/10 rounded-2xl rounded-tr-sm p-4 max-w-[80%] border border-white/5">
+                <div className="w-full h-32 bg-black/40 rounded-lg mb-2 flex items-center justify-center border border-white/5">
+                  <span className="text-xs text-cream/30"></span>
                 </div>
+                <p className="text-sm text-cream/90">I tried baking sourdough, but it didn't rise at all. It's like a brick. What went wrong?</p>
               </div>
-            )}
+            </div>
 
-            {/* Dynamic Messages */}
-            {messages?.map((m: any) => (
-              <div
-                key={m.id}
-                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`
-                    max-w-[85%] rounded-2xl px-5 py-3 text-coffee border-2 border-transparent
-                    ${m.role === "user" 
-                      ? "bg-lavender rounded-tr-none" 
-                      : "bg-butter rounded-tl-none"}
-                  `}
-                >
-                  <p className="whitespace-pre-wrap">{m.content}</p>
-                </div>
+            {/* AI Response */}
+            <div className="flex justify-start">
+              <div className="bg-butter/10 rounded-2xl rounded-tl-sm p-4 max-w-[85%] border border-butter/20">
+                <p className="text-sm text-cream/90 leading-relaxed">
+                  <strong className="text-butter block mb-1">Don't worry, bread can be tricky!</strong>
+                  Looking at the dense crumb structure, it seems your yeast might not have activated properly. This usually happens for two reasons:
+                  <br /><br />
+                  <span className="text-tangerine font-medium">1. Water Temperature:</span> If the water was too hot (above 120°F/49°C), it can kill the yeast. Next time, aim for lukewarm water that feels barely warm to the touch.
+                  <br /><br />
+                  <span className="text-tangerine font-medium">2. Proofing Time:</span> Your dough might have needed a warmer spot to rise. 
+                  <br /><br />
+                  Keep practicing! Your crust color actually looks fantastic. You've got this! 🥖
+                </p>
               </div>
-            ))}
-            <div ref={messagesEndRef} />
+            </div>
           </div>
 
-          {/* Footer Area: Quick Replies + Input */}
-          <div className="shrink-0 space-y-4">
-            
-            {/* Quick Replies */}
-            {(!messages || messages.length < 2) && (
-              <div className="flex gap-2 flex-wrap">
-                {quickReplies.map((reply, i) => (
-                  <button
-                    key={i}
-                    onClick={() => append({ role: "user", content: reply })}
-                    className="bg-white text-coffee px-4 py-2 rounded-full border-2 border-border text-sm font-medium hard-shadow hard-shadow-hover hover:bg-mutedYB transition-colors text-left"
-                  >
-                    {reply}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Input Form */}
-            <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white rounded-2xl px-2 py-2 border-2 border-border hard-shadow">
-              <input
-                // FIX: Guard against undefined input
-                value={input || ''}
-                onChange={handleInputChange}
-                placeholder="Type ingredients here..."
-                className="flex-1 bg-transparent px-3 py-2 text-coffee placeholder:text-coffee-dark/50 outline-none text-base"
-              />
-              <button 
-                type="submit"
-                // FIX: Optional chaining
-                disabled={!input?.trim()} 
-                className="bg-tangerine text-white p-3 rounded-xl border-2 border-border hover:translate-y-[1px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </form>
+          {/* Fake Input */}
+          <div className="bg-black/20 rounded-full p-2 flex items-center gap-2 border border-white/10">
+            <div className="p-2 bg-white/5 rounded-full text-cream/50 cursor-not-allowed">
+              <Camera className="w-5 h-5" />
+            </div>
+            <div className="flex-1 text-sm text-cream/30 px-2">Ask for advice...</div>
+            <Button size="icon" className="rounded-full bg-butter hover:bg-butter/90 text-coffee" disabled>
+              <Send className="w-4 h-4" />
+            </Button>
           </div>
-
         </div>
+
       </div>
     </section>
   );

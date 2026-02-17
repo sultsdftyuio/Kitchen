@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useTransition, useState } from "react";
 import { signInWithEmail } from "@/app/actions/auth";
 import { LoginButton } from "@/components/login-button";
-import { Flame, Mail, Lock, Loader2, ArrowRight } from "lucide-react";
+import { Mail, Lock, Loader2, ArrowRight } from "lucide-react";
+import { KitchenLogo } from "@/components/kitchen-logo";
 
 export default function LoginPage() {
   const [isPending, startTransition] = useTransition();
@@ -18,7 +19,6 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       }
-      // On success, the server action redirects to /dashboard
     });
   };
 
@@ -32,12 +32,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md bg-white rounded-3xl border-2 border-border hard-shadow-lg p-8 relative z-10">
         {/* Logo Section */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="bg-tangerine p-3 rounded-2xl border-2 border-border hard-shadow mb-4 rotate-3 hover:rotate-6 transition-transform">
-            <Flame className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="font-serif text-4xl font-bold text-coffee mb-2">
-            KitchenOS
-          </h1>
+          <KitchenLogo size="xl" className="mb-4" />
           <p className="text-coffee-dark/80 text-lg">
             Welcome back, Chef.
           </p>
