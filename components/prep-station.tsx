@@ -39,7 +39,7 @@ export function PrepStation({
   useEffect(() => {
     setIsMounted(true)
     try {
-      const saved = localStorage.getItem("kitchenOS_meal_plan")
+      const saved = localStorage.getItem("kernelcook_meal_plan")
       if (saved) setPlannedMeals(JSON.parse(saved))
     } catch (e) {}
   }, [])
@@ -48,7 +48,7 @@ export function PrepStation({
     const updated = { ...plannedMeals }
     editValue.trim() === "" ? delete updated[dateKey] : updated[dateKey] = editValue.trim()
     setPlannedMeals(updated)
-    localStorage.setItem("kitchenOS_meal_plan", JSON.stringify(updated))
+    localStorage.setItem("kernelcook_meal_plan", JSON.stringify(updated))
     setEditingDay(null)
   }
 
@@ -173,7 +173,7 @@ export function PrepStation({
                 <span className="text-slate-200 font-semibold text-[10px] uppercase tracking-wider">AI Suggestion</span>
             </div>
             <h2 className="text-3xl font-bold text-white tracking-tight">Chef's Special</h2>
-            <p className="text-slate-400 text-sm max-w-[85%] leading-relaxed">Let the KitchenOS AI generate a custom recipe based strictly on the {pantryCount} items you have right now.</p>
+            <p className="text-slate-400 text-sm max-w-[85%] leading-relaxed">Let the Kernelcook AI generate a custom recipe based strictly on the {pantryCount} items you have right now.</p>
         </div>
         
         <div className="relative z-10 mt-6">

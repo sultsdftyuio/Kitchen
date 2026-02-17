@@ -67,7 +67,7 @@ export function CommandPalette({
         <div className="max-h-[60vh] overflow-y-auto p-2 scrollbar-thin">
           {search.trim() === "" ? (
             <div className="p-8 text-center text-coffee/50 font-medium text-sm">
-              Start typing to search your KitchenOS.
+              Start typing to search your kernelcook.
             </div>
           ) : (
             <div className="space-y-4 p-2">
@@ -126,7 +126,7 @@ export function CommandPalette({
         
         {/* Footer */}
         <div className="bg-muted/30 p-3 border-t border-border/10 flex justify-between items-center text-[10px] font-bold text-coffee/40 uppercase">
-          <span>KitchenOS Global Search</span>
+          <span>Kerenlcook Global Search</span>
           <span className="flex items-center gap-1">Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-border/20 font-mono">esc</kbd> to close</span>
         </div>
       </div>

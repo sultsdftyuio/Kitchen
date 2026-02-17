@@ -28,7 +28,7 @@ const SafeDishNameSchema = z.string().trim().min(1).max(150).regex(/^[^<>]+$/)
 export async function logCookingHistoryAction(
   dishName: string, 
   rating: number = 5, 
-  notes: string = "Cooked seamlessly with KitchenOS Auto-Chef."
+  notes: string = "Cooked seamlessly with Kernelcook Auto-Chef."
 ) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
