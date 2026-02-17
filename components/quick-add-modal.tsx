@@ -16,10 +16,9 @@ export function QuickAddModal({
   onClose: () => void,
   defaultTab?: 'ingredient' | 'meal'
 }) {
+  // 1. ALL HOOKS MUST BE AT THE TOP LEVEL
   const [activeTab, setActiveTab] = useState<'ingredient' | 'meal'>(defaultTab)
   const [isLoading, setIsLoading] = useState(false)
-
-  if (!isOpen) return null
 
   // Ingredient Form State
   const [itemName, setItemName] = useState("")
@@ -29,6 +28,9 @@ export function QuickAddModal({
   const [dishName, setDishName] = useState("")
   const [rating, setRating] = useState(5)
   const [notes, setNotes] = useState("")
+
+  // 2. EARLY RETURN GOES *AFTER* ALL HOOKS
+  if (!isOpen) return null
 
   const handleAddIngredient = async (e: React.FormEvent) => {
     e.preventDefault()
