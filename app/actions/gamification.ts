@@ -160,12 +160,14 @@ export async function checkAndAwardBadges() {
 
   if (pantry && pantry.length >= 20) newBadges.push('hoarder')
 
-  // Insert new badges (ignoring duplicates via SQL 'ON CONFLICT' or just let it fail silently)
+  // Insert new badges
   for (const badgeId of newBadges) {
-    const { error } = await supabase.from('user_badges').insert({
-      user_id: user.id,
-      badge_id: badgeId
-    }).ignore() // Requires .ignore() or clean error handling if using simple insert
+    // We use upsert with ignoreDuplicates: true to handle cases where the badge is already earned.
+    // This assumes a unique constraint on (user_id, badge_id) exists in Supabase.
+    const { error } = await supabase.from('user_badges').upsert(
+      { user_id: user.id, badge_id: badgeId },
+      { onConflict: 'user_id, badge_id', ignoreDuplicates: true }
+    )
     
     if (!error) {
       // Could trigger a toast on next load
