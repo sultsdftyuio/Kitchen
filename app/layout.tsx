@@ -17,12 +17,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Set the base URL for all relative links/images in metadata
+  metadataBase: new URL('https://kernelcook.com'),
+  
   title: "kernelcook | AI Kitchen Management",
   description: "Master your kitchen with AI-powered inventory management and personalized coaching.",
   keywords: ["cooking", "inventory", "AI chef", "pantry tracker", "kernelcook"],
+  
+  // Fix: Ensure canonical points to your actual production domain
   alternates: {
-    canonical: 'https://kernelcook.vercel.app', 
-  }
+    canonical: '/', 
+  },
+  
+  // Add this for Google Search Console verification
+  verification: {
+    google: "YOUR_GOOGLE_VERIFICATION_STRING_HERE", // Get this from GSC settings
+  },
+  
+  openGraph: {
+    title: "kernelcook | AI Kitchen Management",
+    description: "Master your kitchen with AI-powered inventory management and personalized coaching.",
+    url: 'https://kernelcook.com',
+    siteName: 'kernelcook',
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({
