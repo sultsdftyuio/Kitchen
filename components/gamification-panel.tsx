@@ -5,9 +5,21 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
-import { Flame, Star, Leaf, Dices, ChefHat } from 'lucide-react'
+import { Flame, Star, Leaf, Dices, ChefHat, Trophy, Lock } from 'lucide-react'
 import { getGamificationStats, getPantryRoulette, GamificationStats } from '@/app/actions/gamification'
 import { toast } from 'sonner'
+import { VirtualKitchen } from './virtual-kitchen'
+import { ScrollArea } from '@/components/ui/scroll-area'
+
+const badgeIconMap: any = {
+  Utensils: ChefHat,
+  Flame: Flame,
+  Zap: Flame,
+  Star: Star,
+  Moon: Star, 
+  Sun: Star,
+  Package: Leaf
+}
 
 export function GamificationPanel() {
   const [stats, setStats] = useState<GamificationStats | null>(null)
@@ -35,107 +47,117 @@ export function GamificationPanel() {
     setLoadingRoulette(false)
   }
 
-  if (!stats) return null // Or a loading skeleton
+  if (!stats) return <div className="animate-pulse h-48 bg-muted rounded-xl" />
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {/* 1. KITCHEN STREAK */}
-      <Card className={`relative overflow-hidden transition-all duration-500 ${stats.streak > 0 ? 'border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.1)]' : ''}`}>
-        {/* Ambient glow effect when active */}
-        {stats.streak > 0 && (
-          <div className="absolute -top-10 -right-10 w-32 h-32 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" />
-        )}
-        
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-          <CardTitle className="text-sm font-medium">Kitchen Streak</CardTitle>
-          <div className={`p-1.5 rounded-full ${stats.streak > 0 ? 'bg-orange-500/10' : 'bg-muted'}`}>
-            <Flame 
-              className={`h-4 w-4 transition-all duration-500 ${
-                stats.streak > 0 
-                  ? 'text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)] animate-pulse' 
-                  : 'text-muted-foreground'
-              }`} 
-            />
-          </div>
-        </CardHeader>
-        <CardContent className="relative z-10">
-          <div className={`text-2xl font-black tracking-tight ${
-            stats.streak > 0 
-              ? 'bg-gradient-to-br from-orange-400 via-red-500 to-orange-600 bg-clip-text text-transparent drop-shadow-sm' 
-              : 'text-foreground'
-          }`}>
-            {stats.streak} {stats.streak === 1 ? 'Day' : 'Days'}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1 font-medium">
-            {stats.streak > 0 ? "🔥 You're on fire! Keep cooking." : "Cook a meal today to start your streak!"}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* 2. SKILL LEVEL (XP) */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Chef Level</CardTitle>
-          <Star className="h-4 w-4 text-yellow-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.level}</div>
-          <div className="flex items-center gap-2 mt-1">
-            <Progress value={stats.xpProgress} className="h-2" />
-            <span className="text-xs text-muted-foreground min-w-[3rem]">
-              {stats.xp} XP
-            </span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 5. ZERO WASTE SCORE */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Zero Waste Score</CardTitle>
-          <Leaf className="h-4 w-4 text-green-500" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{stats.zeroWasteScore}/100</div>
-          <p className="text-xs text-muted-foreground mt-1">
-            {stats.zeroWasteScore >= 80 ? "Excellent inventory turnover!" : "Try cooking more of what you own."}
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* 3. PANTRY ROULETTE */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Pantry Roulette</CardTitle>
-          <Dices className="h-4 w-4 text-purple-500" />
-        </CardHeader>
-        <CardContent className="flex flex-col justify-center">
-          {rouletteItems.length > 0 ? (
-            <div className="space-y-2">
-              <p className="text-xs font-semibold leading-tight text-purple-600 dark:text-purple-400">
-                Cook a meal using these:
-              </p>
-              <ul className="text-xs text-muted-foreground list-disc pl-4">
-                {rouletteItems.map(item => (
-                  <li key={item.id}>{item.item_name}</li>
-                ))}
-              </ul>
-              <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => setRouletteItems([])}>
-                Clear
-              </Button>
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* 1. KITCHEN STREAK */}
+        <Card className={`relative overflow-hidden transition-all duration-500 ${stats.streak > 0 ? 'border-orange-500/50' : ''}`}>
+          {stats.streak > 0 && <div className="absolute -top-10 -right-10 w-32 h-32 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" />}
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+            <CardTitle className="text-sm font-medium">Kitchen Streak</CardTitle>
+            <div className={`p-1.5 rounded-full ${stats.streak > 0 ? 'bg-orange-500/10' : 'bg-muted'}`}>
+              <Flame className={`h-4 w-4 ${stats.streak > 0 ? 'text-orange-500 animate-pulse' : 'text-muted-foreground'}`} />
             </div>
-          ) : (
-            <>
-              <p className="text-xs text-muted-foreground mb-3">
-                Need a challenge? Spin for a random recipe constraint.
-              </p>
-              <Button size="sm" onClick={handlePlayRoulette} disabled={loadingRoulette}>
-                <ChefHat className="mr-2 h-4 w-4" /> Spin the Wheel
+          </CardHeader>
+          <CardContent className="relative z-10">
+            <div className="text-2xl font-black tracking-tight">{stats.streak} Days</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stats.streak > 0 ? "🔥 You're on fire!" : "Cook today to start!"}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* 2. XP & LEVEL */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Level {stats.level}</CardTitle>
+            <Star className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end justify-between mb-1">
+              <span className="text-2xl font-bold">{stats.xp}</span>
+              <span className="text-xs text-muted-foreground mb-1">/ {stats.nextLevelXp} XP</span>
+            </div>
+            <Progress value={stats.xpProgress} className="h-2" />
+          </CardContent>
+        </Card>
+
+        {/* 3. PANTRY ROULETTE */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pantry Roulette</CardTitle>
+            <Dices className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            {rouletteItems.length > 0 ? (
+              <div className="space-y-2">
+                <ul className="text-xs list-disc pl-4 text-muted-foreground">
+                  {rouletteItems.map(item => <li key={item.id}>{item.item_name}</li>)}
+                </ul>
+                <Button variant="ghost" size="sm" className="w-full h-6 text-xs" onClick={() => setRouletteItems([])}>Clear</Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="outline" className="w-full" onClick={handlePlayRoulette} disabled={loadingRoulette}>
+                <ChefHat className="mr-2 h-4 w-4" /> Spin
               </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 5. ZERO WASTE */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Zero Waste</CardTitle>
+            <Leaf className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.zeroWasteScore}/100</div>
+            <p className="text-xs text-muted-foreground mt-1">Efficiency Score</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* 6. VIRTUAL KITCHEN */}
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ChefHat className="h-4 w-4" /> Virtual Kitchen
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VirtualKitchen items={stats.kitchen} />
+          </CardContent>
+        </Card>
+
+        {/* 4. BADGES (TROPHY CASE) */}
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Trophy className="h-4 w-4" /> Achievements
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[120px]">
+              <div className="grid grid-cols-4 gap-2">
+                {stats.badges.map((badge) => {
+                  const Icon = badgeIconMap[badge.icon] || Star
+                  return (
+                    <div key={badge.id} className="flex flex-col items-center text-center group cursor-help">
+                      <div className={`p-2 rounded-full mb-1 transition-all ${badge.earned ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500' : 'bg-muted text-muted-foreground grayscale opacity-50'}`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className="text-[10px] font-medium leading-tight line-clamp-1">{badge.name}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
