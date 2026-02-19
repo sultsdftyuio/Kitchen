@@ -9,6 +9,7 @@ import { ProfileSettings } from "@/components/profile-settings"
 import { PrepStation } from "@/components/prep-station"
 import { QuickAddModal } from "@/components/quick-add-modal"
 import { CommandPalette } from "@/components/command-palette"
+import { GamificationPanel } from "@/components/gamification-panel" // Added Import
 import { signOut } from "@/app/actions/auth"
 import { LogOut, Loader2, Search } from "lucide-react"
 import { KitchenLogo } from "@/components/kitchen-logo"
@@ -30,7 +31,8 @@ export function DashboardShell({
   recentWin: any
   expiringItems: any[]
 }) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'pantry' | 'history'>('overview')
+  // Added 'achievements' to activeTab state
+  const [activeTab, setActiveTab] = useState<'overview' | 'pantry' | 'history' | 'achievements'>('overview')
   const [prefillDish, setPrefillDish] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
   
@@ -66,7 +68,7 @@ export function DashboardShell({
 
   return (
     <main className="min-h-screen bg-[#FDFDFD] text-slate-900 selection:bg-tangerine selection:text-white pb-20 font-sans">
-      <CommandPalette pantryItems={pantryItems} history={history} onNavigate={setActiveTab} />
+      <CommandPalette pantryItems={pantryItems} history={history} onNavigate={setActiveTab as any} />
 
       {/* PREMIUM FROSTED NAV */}
       <nav className="sticky top-0 z-50 w-full bg-white/70 backdrop-blur-xl border-b border-slate-200/60 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -101,8 +103,9 @@ export function DashboardShell({
           <div className="lg:col-span-8 space-y-8">
             
             {/* iOS Style Pill Tab Switcher */}
-            <div className="bg-slate-100/80 p-1 rounded-2xl w-full sm:w-fit flex gap-1 items-center border border-slate-200/50 shadow-inner">
-                {(['overview', 'pantry', 'history'] as const).map((tab) => (
+            <div className="bg-slate-100/80 p-1 rounded-2xl w-full sm:w-fit flex gap-1 items-center border border-slate-200/50 shadow-inner overflow-x-auto">
+                {/* Added 'achievements' to the tabs map */}
+                {(['overview', 'pantry', 'history', 'achievements'] as const).map((tab) => (
                   <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -129,7 +132,7 @@ export function DashboardShell({
                     levelInfo={levelInfo}
                     zeroWasteStreak={zeroWasteStreak}
                     userName={userName}
-                    onSwitchTab={setActiveTab}
+                    onSwitchTab={setActiveTab as any}
                     onOpenQuickAdd={(tab) => { setQuickAddTab(tab); setIsQuickAddOpen(true); }}
                   />
                 )}
@@ -141,6 +144,8 @@ export function DashboardShell({
                       prefillDishName={prefillDish}
                   />
                 )}
+                {/* Render the Gamification Panel when active */}
+                {activeTab === 'achievements' && <GamificationPanel />}
             </div>
           </div>
 

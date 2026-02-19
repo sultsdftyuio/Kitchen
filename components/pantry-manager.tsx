@@ -2,7 +2,7 @@
 "use client"
 
 import { addToPantry, deleteFromPantry } from "@/app/actions/pantry"
-import { Trash2, Plus, Search, Check, X, Loader2, Carrot, Beef, Milk, Wheat, Package, Sparkles } from "lucide-react"
+import { Trash2, Plus, Search, Check, X, Loader2, Carrot, Beef, Milk, Wheat, Package, Sparkles, Clock, AlertTriangle, Info } from "lucide-react"
 import { useState, useMemo, useTransition, useRef, useOptimistic } from "react"
 import { cn } from "@/lib/utils"
 
@@ -14,23 +14,23 @@ type PantryItem = {
 }
 
 const CATEGORIES = [
-  { id: 'produce', label: 'Produce', icon: Carrot, color: 'text-emerald-600', bg: 'bg-emerald-50 border-emerald-100', keywords: ['apple', 'banana', 'carrot', 'spinach', 'lettuce', 'onion', 'garlic', 'potato', 'tomato', 'fruit', 'veg'] },
-  { id: 'protein', label: 'Protein', icon: Beef, color: 'text-rose-600', bg: 'bg-rose-50 border-rose-100', keywords: ['chicken', 'beef', 'steak', 'pork', 'fish', 'tuna', 'egg', 'tofu', 'meat'] },
-  { id: 'dairy', label: 'Dairy', icon: Milk, color: 'text-sky-600', bg: 'bg-sky-50 border-sky-100', keywords: ['milk', 'cheese', 'yogurt', 'butter', 'cream'] },
-  { id: 'grains', label: 'Grains', icon: Wheat, color: 'text-amber-600', bg: 'bg-amber-50 border-amber-100', keywords: ['rice', 'pasta', 'bread', 'oats', 'flour', 'quinoa', 'cereal'] },
+  { id: 'produce', label: 'Produce', icon: Carrot, color: 'text-emerald-600', bg: 'bg-emerald-100/50 border-emerald-200', keywords: ['apple', 'banana', 'carrot', 'spinach', 'lettuce', 'onion', 'garlic', 'potato', 'tomato', 'fruit', 'veg', 'lemon', 'lime'] },
+  { id: 'protein', label: 'Protein', icon: Beef, color: 'text-rose-600', bg: 'bg-rose-100/50 border-rose-200', keywords: ['chicken', 'beef', 'steak', 'pork', 'fish', 'tuna', 'egg', 'tofu', 'meat', 'salmon', 'shrimp'] },
+  { id: 'dairy', label: 'Dairy', icon: Milk, color: 'text-sky-600', bg: 'bg-sky-100/50 border-sky-200', keywords: ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'parmesan'] },
+  { id: 'grains', label: 'Grains', icon: Wheat, color: 'text-amber-600', bg: 'bg-amber-100/50 border-amber-200', keywords: ['rice', 'pasta', 'bread', 'oats', 'flour', 'quinoa', 'cereal', 'noodle'] },
 ]
 
 const getCategory = (name: string | null) => {
   const safeName = (name || "").toLowerCase()
-  return CATEGORIES.find(c => c.keywords.some(k => safeName.includes(k))) || { id: 'other', label: 'Pantry', icon: Package, color: 'text-slate-600', bg: 'bg-slate-50 border-slate-200' }
+  return CATEGORIES.find(c => c.keywords.some(k => safeName.includes(k))) || { id: 'other', label: 'Pantry', icon: Package, color: 'text-slate-600', bg: 'bg-slate-100/50 border-slate-200' }
 }
 
-const getFreshnessColor = (dateString: string) => {
-  if (!dateString) return "bg-slate-200 w-full"
+const getFreshnessStatus = (dateString: string) => {
+  if (!dateString) return { label: 'Fresh', color: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', Icon: Sparkles }
   const days = (new Date().getTime() - new Date(dateString).getTime()) / (1000 * 3600 * 24)
-  if (days < 3) return "bg-emerald-400 w-full"
-  if (days < 7) return "bg-amber-400 w-2/3"
-  return "bg-rose-400 w-1/3"
+  if (days < 3) return { label: 'Fresh', color: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', Icon: Sparkles }
+  if (days < 7) return { label: 'Use Soon', color: 'bg-amber-50 text-amber-700 border-amber-200/60', Icon: Clock }
+  return { label: 'Expiring', color: 'bg-rose-50 text-rose-700 border-rose-200/60', Icon: AlertTriangle }
 }
 
 function DeleteButton({ id }: { id: number }) {
@@ -49,20 +49,20 @@ function DeleteButton({ id }: { id: number }) {
   }
 
   if (status === 'deleting' || isPending) {
-    return <Loader2 className="w-4 h-4 text-slate-300 animate-spin" />
+    return <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
   }
 
   if (status === 'confirm') {
     return (
-      <div className="flex items-center gap-1 animate-in slide-in-from-right-2 fade-in duration-200">
-        <button onClick={handleDelete} className="p-1 bg-rose-500 text-white rounded hover:bg-rose-600 shadow-sm"><Check className="w-3.5 h-3.5" /></button>
-        <button onClick={() => setStatus('idle')} className="p-1 bg-slate-100 text-slate-500 hover:bg-slate-200 rounded"><X className="w-3.5 h-3.5" /></button>
+      <div className="flex items-center gap-1 animate-in zoom-in-95 duration-200 bg-white p-1 rounded-lg border border-slate-200 shadow-sm absolute right-2 top-2 z-10">
+        <button onClick={handleDelete} className="p-1.5 bg-rose-500 text-white rounded-md hover:bg-rose-600 transition-colors"><Check className="w-3.5 h-3.5" /></button>
+        <button onClick={() => setStatus('idle')} className="p-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-md transition-colors"><X className="w-3.5 h-3.5" /></button>
       </div>
     )
   }
 
   return (
-    <button onClick={() => setStatus('confirm')} className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-md transition-all">
+    <button onClick={() => setStatus('confirm')} className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all absolute right-2 top-2 opacity-0 group-hover:opacity-100 focus:opacity-100">
       <Trash2 className="w-4 h-4" />
     </button>
   )
@@ -101,33 +101,37 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       
-      {/* ADD ITEM FORM */}
+      {/* QUICK RESTOCK CARD */}
       <div className="bg-white rounded-[24px] border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col overflow-hidden relative">
-         <div className="px-6 py-4 flex items-center gap-2 border-b border-slate-100 bg-slate-50/50">
-          <Sparkles className="w-4 h-4 text-slate-400" />
-          <h3 className="font-semibold text-sm text-slate-700 uppercase tracking-wider">Quick Restock</h3>
+         <div className="px-6 py-4 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-tangerine" />
+            <h3 className="font-semibold text-sm text-slate-800 uppercase tracking-wider">Quick Restock</h3>
+          </div>
+          <span className="text-xs font-medium text-slate-400">{optimisticItems.length} items total</span>
          </div>
 
          <div className="p-5 sm:p-6">
             <form ref={formRef} action={handleAdd} className="flex flex-col sm:flex-row gap-3">
                 <div className="flex-1 relative group">
-                    <input name="item_name" type="text" placeholder="Ingredient name..." required autoComplete="off"
-                        className="w-full bg-slate-50 px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-100 text-slate-900 placeholder:text-slate-400 transition-all font-medium text-sm"
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-tangerine transition-colors" />
+                    <input name="item_name" type="text" placeholder="What did you buy? (e.g., Organic Eggs)" required autoComplete="off"
+                        className="w-full bg-slate-50 pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:bg-white focus:border-tangerine/50 focus:ring-4 focus:ring-orange-500/10 text-slate-900 placeholder:text-slate-400 transition-all font-medium text-sm"
                     />
                 </div>
-                <div className="w-full sm:w-28 relative">
-                    <input name="quantity" type="text" placeholder="Qty" defaultValue="1"
-                        className="w-full bg-slate-50 px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-100 text-slate-900 font-medium text-center text-sm"
+                <div className="w-full sm:w-32 relative">
+                    <input name="quantity" type="text" placeholder="Qty (e.g. 1L)" defaultValue="1"
+                        className="w-full bg-slate-50 px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:bg-white focus:border-tangerine/50 focus:ring-4 focus:ring-orange-500/10 text-slate-900 font-medium text-center text-sm"
                     />
                 </div>
-                <button type="submit" className="bg-slate-900 text-white px-6 py-3.5 rounded-xl shadow-sm hover:bg-slate-800 hover:shadow-md active:scale-[0.98] transition-all font-semibold text-sm flex items-center justify-center gap-2">
-                    <Plus className="w-4 h-4" /> Add
+                <button type="submit" className="bg-slate-900 text-white px-6 py-3.5 rounded-xl shadow-md hover:bg-slate-800 hover:shadow-lg active:scale-[0.98] transition-all font-semibold text-sm flex items-center justify-center gap-2">
+                    <Plus className="w-4 h-4" /> Add Item
                 </button>
             </form>
 
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mr-1">Suggestions:</span>
-                {["Eggs (12)", "Milk (1L)", "Bread (Loaf)", "Pasta (500g)", "Rice (1kg)"].map(chip => (
+            <div className="flex flex-wrap items-center gap-2 mt-5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Frequent:</span>
+                {["Eggs (12)", "Milk (1L)", "Bread (Loaf)", "Chicken (500g)", "Rice (1kg)"].map(chip => (
                     <button
                         key={chip} type="button"
                         onClick={() => {
@@ -138,83 +142,88 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
                                 input.focus()
                             }
                         }}
-                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-500 hover:border-slate-300 hover:text-slate-900 hover:shadow-sm transition-all"
+                        className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-500 hover:border-tangerine/50 hover:text-tangerine hover:shadow-sm hover:bg-orange-50/50 transition-all flex items-center gap-1"
                     >
-                        + {chip}
+                        <Plus className="w-3 h-3" /> {chip}
                     </button>
                 ))}
             </div>
          </div>
       </div>
 
-      {/* FILTERS */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between sticky top-[70px] z-10 py-3 bg-[#FDFDFD]/90 backdrop-blur-md -mx-2 px-2">
-        <div className="relative w-full sm:w-72">
+      {/* STICKY GLASSMORPHISM FILTERS */}
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between sticky top-[64px] z-30 py-4 bg-[#FDFDFD]/80 backdrop-blur-xl border-b border-slate-200/50 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input 
-            placeholder="Search inventory..." value={search} onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white pl-10 pr-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:border-slate-300 focus:ring-2 focus:ring-slate-100 text-sm font-medium shadow-sm transition-all"
+            placeholder="Search your inventory..." value={search} onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-white pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-slate-300 focus:ring-4 focus:ring-slate-100 text-sm font-medium shadow-sm transition-all"
           />
         </div>
         
-        <div className="flex gap-1.5 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 scrollbar-none bg-slate-100/50 p-1 rounded-xl border border-slate-200/50">
-            <button onClick={() => setFilterCat('all')} className={cn("px-4 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all", filterCat === 'all' ? "bg-white text-slate-900 shadow-sm border border-slate-200/50" : "text-slate-500 hover:text-slate-700")}>
+        <div className="flex gap-1.5 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 scrollbar-none bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/50 shadow-inner">
+            <button onClick={() => setFilterCat('all')} className={cn("px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all", filterCat === 'all' ? "bg-white text-slate-900 shadow-sm border border-slate-200/50" : "text-slate-500 hover:text-slate-800")}>
                 All Items
             </button>
             {CATEGORIES.map(cat => (
-                <button key={cat.id} onClick={() => setFilterCat(cat.id)} className={cn("px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-all", filterCat === cat.id ? "bg-white text-slate-900 shadow-sm border border-slate-200/50" : "text-slate-500 hover:text-slate-700")}>
-                    <cat.icon className="w-3 h-3 opacity-70" /> {cat.label}
+                <button key={cat.id} onClick={() => setFilterCat(cat.id)} className={cn("px-4 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap transition-all", filterCat === cat.id ? "bg-white text-slate-900 shadow-sm border border-slate-200/50" : "text-slate-500 hover:text-slate-800")}>
+                    <cat.icon className={cn("w-3.5 h-3.5", filterCat === cat.id ? cat.color : "opacity-60")} /> {cat.label}
                 </button>
             ))}
         </div>
       </div>
 
-      {/* ITEM GRID */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-        {filteredItems.map((item, index) => {
+      {/* PREMIUM ITEM GRID */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+        {filteredItems.map((item) => {
           const displayName = item.name || "Unknown Item"
           const category = getCategory(displayName)
           const CategoryIcon = category.icon
+          const status = getFreshnessStatus(item.added_at)
           
           return (
-            <div key={item.id} className="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all relative overflow-hidden flex flex-col">
-              <div className="p-5 flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-105", category.bg, category.color)}>
-                      <CategoryIcon className="w-5 h-5" strokeWidth={2.5} />
-                  </div>
-                  <DeleteButton id={item.id} />
-                </div>
+            <div key={item.id} className="group bg-white rounded-[20px] border border-slate-200/80 shadow-sm hover:shadow-md hover:border-slate-300/80 transition-all relative overflow-hidden flex flex-col">
+              
+              <DeleteButton id={item.id} />
 
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-slate-900 text-base leading-tight truncate">{displayName}</h4>
-                  <div className="flex items-center gap-2 pt-1">
-                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                        Qty: {item.quantity || "1"}
-                    </span>
-                    <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                        {item.added_at ? new Date(item.added_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Now'}
-                    </span>
+              <div className="p-5 flex-1 flex flex-col">
+                <div className="flex items-start gap-4 mb-4">
+                  <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-110 shrink-0 shadow-sm", category.bg, category.color)}>
+                      <CategoryIcon className="w-6 h-6" strokeWidth={2} />
+                  </div>
+                  <div className="flex-1 min-w-0 pt-1">
+                    <h4 className="font-bold text-slate-900 text-base leading-tight truncate pr-6">{displayName}</h4>
+                    <p className="text-xs font-medium text-slate-500 mt-1">{category.label}</p>
                   </div>
                 </div>
-              </div>
 
-              {/* Minimalist Freshness Indicator */}
-              <div className="h-1 w-full bg-slate-50">
-                 <div className={cn("h-full transition-all duration-1000 opacity-80", getFreshnessColor(item.added_at))} />
+                <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Quantity</span>
+                    <span className="text-sm font-semibold text-slate-800">{item.quantity || "1"}</span>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  <div className={cn("flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold", status.color)}>
+                    <status.Icon className="w-3.5 h-3.5" />
+                    {status.label}
+                  </div>
+                </div>
               </div>
             </div>
           )
         })}
 
         {filteredItems.length === 0 && (
-            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center bg-slate-50/50 border border-dashed border-slate-200 rounded-[24px]">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-slate-100">
-                  <Package className="w-8 h-8 text-slate-300" />
+            <div className="col-span-full py-24 flex flex-col items-center justify-center text-center bg-white border border-dashed border-slate-200 rounded-[32px] shadow-sm">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-5 border border-slate-100">
+                  <Search className="w-8 h-8 text-slate-300" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-1">Inventory is empty</h3>
-                <p className="text-sm text-slate-500 max-w-sm">
-                  {search ? "No ingredients match your search." : "Your pantry is looking bare. Restock by adding ingredients above."}
+                <h3 className="text-xl font-bold text-slate-900 mb-2">No ingredients found</h3>
+                <p className="text-sm text-slate-500 max-w-sm leading-relaxed">
+                  {search 
+                    ? `We couldn't find anything matching "${search}". Try adjusting your filters.` 
+                    : "Your pantry is looking bare. Use the Quick Restock above to start building your inventory."}
                 </p>
             </div>
         )}

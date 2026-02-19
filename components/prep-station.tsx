@@ -2,7 +2,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Clock, Star, AlertTriangle, ArrowRight, CalendarDays, PlusCircle, Sun, Moon, Sunrise, Check, X, Edit2, Plus, UtensilsCrossed, Package, Leaf } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Clock, Star, AlertTriangle, ArrowRight, CalendarDays, PlusCircle, Sun, Moon, Sunrise, Check, X, Edit2, Plus, UtensilsCrossed, Package, Leaf, Loader2, Trash2 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 
 interface PrepStationProps {
@@ -31,10 +32,12 @@ export function PrepStation({
   onOpenQuickAdd
 }: PrepStationProps) {
   
+  const router = useRouter()
   const [plannedMeals, setPlannedMeals] = useState<Record<string, string>>({})
   const [editingDay, setEditingDay] = useState<string | null>(null)
   const [editValue, setEditValue] = useState("")
   const [isMounted, setIsMounted] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
@@ -46,10 +49,27 @@ export function PrepStation({
 
   const handleSavePlan = (dateKey: string) => {
     const updated = { ...plannedMeals }
-    editValue.trim() === "" ? delete updated[dateKey] : updated[dateKey] = editValue.trim()
+    if (editValue.trim() === "") {
+      delete updated[dateKey]
+    } else {
+      updated[dateKey] = editValue.trim()
+    }
     setPlannedMeals(updated)
     localStorage.setItem("kernelcook_meal_plan", JSON.stringify(updated))
     setEditingDay(null)
+  }
+
+  const handleDeletePlan = (dateKey: string) => {
+    const updated = { ...plannedMeals }
+    delete updated[dateKey]
+    setPlannedMeals(updated)
+    localStorage.setItem("kernelcook_meal_plan", JSON.stringify(updated))
+  }
+
+  const handleChefSpecial = () => {
+    setIsGenerating(true)
+    // Route to the generate page, passing a hint that we want to use pantry items
+    router.push('/recipes/generate?mode=pantry')
   }
 
   const getGreetingContext = () => {
@@ -67,7 +87,10 @@ export function PrepStation({
     return [0, 1, 2].map(offset => {
       const d = new Date(today)
       d.setDate(today.getDate() + offset)
-      return { label: offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : days[d.getDay()], dateKey: d.toISOString().split('T')[0] }
+      return { 
+        label: offset === 0 ? 'Today' : offset === 1 ? 'Tomorrow' : days[d.getDay()], 
+        dateKey: d.toISOString().split('T')[0] 
+      }
     })
   }
   const nextThreeDays = getNextDays()
@@ -128,7 +151,7 @@ export function PrepStation({
         </div>
       </div>
 
-      {/* TILE 3: The Weekly Canvas */}
+      {/* TILE 3: The Weekly Canvas (Improved Planner) */}
       <div className={`col-span-1 md:col-span-2 xl:col-span-3 ${saasCard}`}>
         <div className="flex items-center gap-2 mb-5">
           <CalendarDays className="w-5 h-5 text-slate-400" />
@@ -138,22 +161,58 @@ export function PrepStation({
           {nextThreeDays.map((day, idx) => {
             const isEditing = editingDay === day.dateKey;
             const plannedMeal = plannedMeals[day.dateKey];
+            
             return (
-              <div key={day.dateKey} className={`p-4 rounded-2xl border ${idx === 0 ? 'bg-orange-50/30 border-orange-200/50' : 'bg-slate-50/50 border-slate-200/60'} flex flex-col items-center justify-center text-center space-y-3 min-h-[110px] transition-colors hover:bg-slate-50 relative group`}>
-                <span className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{day.label}</span>
+              <div 
+                key={day.dateKey} 
+                className={`p-4 rounded-2xl flex flex-col items-center justify-center text-center space-y-3 min-h-[120px] transition-all relative group
+                  ${plannedMeal 
+                    ? 'bg-slate-50/80 border border-slate-200/80 shadow-sm' 
+                    : idx === 0 
+                      ? 'bg-orange-50/30 border border-orange-200/50 border-dashed' 
+                      : 'bg-transparent border border-slate-200/60 border-dashed hover:bg-slate-50/50'
+                  }`}
+              >
+                <span className={`text-[11px] font-bold uppercase tracking-widest ${idx === 0 ? 'text-tangerine' : 'text-slate-400'}`}>
+                  {day.label}
+                </span>
                 
                 {isMounted && isEditing ? (
-                  <div className="flex items-center gap-1 w-full bg-white rounded-xl p-1 shadow-sm border border-slate-200 z-10">
-                    <input type="text" autoFocus value={editValue} onChange={(e) => setEditValue(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleSavePlan(day.dateKey); if (e.key === 'Escape') setEditingDay(null); }} className="w-full text-sm font-medium text-slate-900 bg-transparent border-none outline-none px-2 py-1 placeholder:text-slate-300" placeholder="Type meal..." />
-                    <button onClick={() => handleSavePlan(day.dateKey)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg"><Check className="w-3.5 h-3.5" /></button>
+                  <div className="flex items-center gap-1 w-full bg-white rounded-xl p-1.5 shadow-sm border border-tangerine/50 z-10 animate-in zoom-in-95 duration-200">
+                    <input 
+                      type="text" 
+                      autoFocus 
+                      value={editValue} 
+                      onChange={(e) => setEditValue(e.target.value)} 
+                      onKeyDown={(e) => { 
+                        if (e.key === 'Enter') handleSavePlan(day.dateKey); 
+                        if (e.key === 'Escape') setEditingDay(null); 
+                      }} 
+                      className="w-full text-sm font-medium text-slate-900 bg-transparent border-none outline-none px-2 py-1 placeholder:text-slate-300" 
+                      placeholder="Type meal..." 
+                    />
+                    <button onClick={() => handleSavePlan(day.dateKey)} className="p-1.5 text-white bg-tangerine hover:bg-orange-600 rounded-lg transition-colors">
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ) : isMounted && plannedMeal ? (
-                  <div className="flex flex-col items-center gap-1 w-full">
-                    <p className="text-sm font-medium text-slate-800 leading-snug line-clamp-2">{plannedMeal}</p>
-                    <button onClick={() => { setEditValue(plannedMeal); setEditingDay(day.dateKey); }} className="md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute top-2 right-2 p-1.5 bg-white rounded-lg shadow-sm border border-slate-200 text-slate-400 hover:text-tangerine"><Edit2 className="w-3.5 h-3.5" /></button>
+                  <div className="flex flex-col items-center gap-1 w-full px-2">
+                    <p className="text-sm font-semibold text-slate-800 leading-snug">{plannedMeal}</p>
+                    
+                    {/* Hover Actions */}
+                    <div className="md:opacity-0 md:group-hover:opacity-100 transition-opacity absolute top-3 right-3 flex items-center gap-1 bg-white/90 backdrop-blur-sm p-1 rounded-lg shadow-sm border border-slate-100">
+                      <button onClick={() => { setEditValue(plannedMeal); setEditingDay(day.dateKey); }} className="p-1.5 text-slate-400 hover:text-blue-500 transition-colors" title="Edit Meal">
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button onClick={() => handleDeletePlan(day.dateKey)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors" title="Clear Meal">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <button onClick={() => { setEditValue(""); setEditingDay(day.dateKey); }} className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm hover:shadow-md hover:text-slate-900 transition-all"><PlusCircle className="w-3.5 h-3.5 text-slate-400" /> Plan Meal</button>
+                  <button onClick={() => { setEditValue(""); setEditingDay(day.dateKey); }} className="flex items-center gap-1.5 text-xs font-semibold text-slate-400 bg-white px-3 py-1.5 rounded-full border border-slate-200/60 shadow-sm hover:shadow hover:text-slate-900 hover:border-slate-300 transition-all">
+                    <PlusCircle className="w-3.5 h-3.5" /> Plan Meal
+                  </button>
                 )}
               </div>
             )
@@ -161,9 +220,8 @@ export function PrepStation({
         </div>
       </div>
 
-      {/* TILE 4: Chef's Special (The Sleek Dark Mode AI Card) */}
+      {/* TILE 4: Chef's Special (Improved Connection) */}
       <div className="col-span-1 md:col-span-2 bg-[#0F172A] p-7 rounded-[24px] shadow-lg relative overflow-hidden group flex flex-col justify-between border border-slate-800">
-        {/* Subtle, highly refined glows */}
         <div className="absolute right-0 top-0 w-64 h-64 bg-tangerine/20 rounded-full mix-blend-screen filter blur-[80px] group-hover:bg-tangerine/30 transition-colors duration-700"></div>
         <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[60px]"></div>
         
@@ -177,8 +235,20 @@ export function PrepStation({
         </div>
         
         <div className="relative z-10 mt-6">
-            <button className="inline-flex items-center justify-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:bg-slate-100 hover:scale-[1.02] transition-all cursor-pointer">
-                Generate Recipe <ArrowRight className="w-4 h-4 text-slate-400" />
+            <button 
+              onClick={handleChefSpecial}
+              disabled={isGenerating || pantryCount === 0}
+              className="inline-flex items-center justify-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:bg-slate-100 hover:scale-[1.02] transition-all cursor-pointer disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed"
+            >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 text-slate-600 animate-spin" /> Cooking ideas...
+                  </>
+                ) : (
+                  <>
+                    Generate Recipe <ArrowRight className="w-4 h-4 text-slate-400" />
+                  </>
+                )}
             </button>
         </div>
       </div>
