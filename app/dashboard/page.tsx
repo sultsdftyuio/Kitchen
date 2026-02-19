@@ -2,6 +2,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
 import { DashboardShell } from "@/components/dashboard-shell"
+import { getGamificationStats } from "@/app/actions/gamification" // ADD THIS IMPORT
 
 export default async function Dashboard() {
   const supabase = await createClient()
@@ -9,14 +10,14 @@ export default async function Dashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/")
 
-  // Parallel Fetching
-  const [pantryRes, historyRes, profileRes] = await Promise.all([
+  // Parallel Fetching - Added gamificationStats
+  const [pantryRes, historyRes, profileRes, gamificationStats] = await Promise.all([
     supabase
       .from("pantry_items")
       .select("*")
       .eq("user_id", user.id)
-      .not("name", "is", null) // FIX: Changed from item_name to name
-      .neq("name", "")         // FIX: Changed from item_name to name
+      .not("name", "is", null) 
+      .neq("name", "")         
       .order("added_at", { ascending: false }),
     
     supabase
@@ -29,15 +30,16 @@ export default async function Dashboard() {
       .from("profiles")
       .select("*")
       .eq("id", user.id)
-      .single()
+      .single(),
+      
+    getGamificationStats() // FETCHING STATS HERE ON THE SERVER
   ])
 
-  // Map for UI consistency
   const pantryItems = (pantryRes.data || []).map((item: any) => {
     return {
       id: item.id,
-      name: item.name, // FIX: Direct mapping to item.name
-      amount: item.amount || item.quantity || "1", // Fallback for UI
+      name: item.name, 
+      amount: item.amount || item.quantity || "1", 
       added_at: item.added_at
     }
   })
@@ -48,15 +50,13 @@ export default async function Dashboard() {
     skill_level: null 
   }
 
-  // Prep Station Logic: Recent Win (Latest 5-star meal)
   const recentWin = history.find((meal: any) => meal.rating === 5) || null;
 
-  // Prep Station Logic: Expiring Soon (Added > 7 days ago for MVP)
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   const expiringItems = pantryItems
     .filter(item => new Date(item.added_at) < oneWeekAgo)
-    .slice(0, 3); // Top 3 oldest items
+    .slice(0, 3); 
 
   return (
     <DashboardShell 
@@ -66,6 +66,7 @@ export default async function Dashboard() {
       profile={profile}
       recentWin={recentWin}
       expiringItems={expiringItems}
+      gamificationStats={gamificationStats} // PASSING IT DOWN
       stats={{
         pantryCount: pantryItems.length,
         mealsCooked: history.length

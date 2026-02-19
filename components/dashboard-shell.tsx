@@ -21,8 +21,7 @@ export function DashboardShell({
   profile,
   stats,
   recentWin,
-  expiringItems
-}: { 
+  expiringItems}: { 
   userEmail: string
   pantryItems: any[]
   history: any[]
@@ -145,7 +144,7 @@ export function DashboardShell({
                   />
                 )}
                 {/* Render the Gamification Panel when active */}
-                {activeTab === 'achievements' && <GamificationPanel />}
+                {activeTab === 'achievements' && <GamificationPanel initialStats={null} />}
             </div>
           </div>
 

@@ -88,8 +88,8 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-2xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200">
+        <div className="fixed inset-0 z-[100] grid place-items-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-2xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 relative z-50">
             
             {/* Header */}
             <div className="bg-slate-50 px-6 py-5 flex items-center justify-between border-b border-slate-200 shrink-0">

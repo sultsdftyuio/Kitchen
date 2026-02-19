@@ -1,12 +1,12 @@
 // components/gamification-panel.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Flame, Star, Leaf, Dices, ChefHat, Trophy, Lock } from 'lucide-react'
-import { getGamificationStats, getPantryRoulette, GamificationStats } from '@/app/actions/gamification'
+import { getPantryRoulette, GamificationStats } from '@/app/actions/gamification'
 import { toast } from 'sonner'
 import { VirtualKitchen } from './virtual-kitchen'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -21,18 +21,10 @@ const badgeIconMap: any = {
   Package: Leaf
 }
 
-export function GamificationPanel() {
-  const [stats, setStats] = useState<GamificationStats | null>(null)
+export function GamificationPanel({ initialStats }: { initialStats: GamificationStats | null }) {
+  const [stats, setStats] = useState<GamificationStats | null>(initialStats)
   const [rouletteItems, setRouletteItems] = useState<{ id: number, item_name: string }[]>([])
   const [loadingRoulette, setLoadingRoulette] = useState(false)
-
-  useEffect(() => {
-    async function loadStats() {
-      const data = await getGamificationStats()
-      if (data) setStats(data)
-    }
-    loadStats()
-  }, [])
 
   const handlePlayRoulette = async () => {
     setLoadingRoulette(true)
@@ -47,10 +39,11 @@ export function GamificationPanel() {
     setLoadingRoulette(false)
   }
 
+  // Fallback loading state (should rarely be seen now that it's server-rendered)
   if (!stats) return <div className="animate-pulse h-48 bg-muted rounded-xl" />
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* 1. KITCHEN STREAK */}
         <Card className={`relative overflow-hidden transition-all duration-500 ${stats.streak > 0 ? 'border-orange-500/50' : ''}`}>

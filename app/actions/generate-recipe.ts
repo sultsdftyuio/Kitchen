@@ -34,7 +34,7 @@ export async function generateRecipeAction(userPrompt: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  // 1. Fetch Pantry to check for matches (Fixed column name to match schema: item_name)
+  // 1. Fetch Pantry to check for matches
   const { data: pantry } = await supabase
     .from("pantry_items")
     .select("item_name")
@@ -42,7 +42,25 @@ export async function generateRecipeAction(userPrompt: string) {
 
   const pantryList = pantry?.map(p => p.item_name).join(", ") || "Nothing"
 
-  // 2. Call AI with Structured Output
+  // 2. Fetch User Profile to get restrictions, equipment, and skill
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("dietary_restrictions, skill_level, kitchen_equipment")
+    .eq("id", user.id)
+    .single()
+
+  const diet = profile?.dietary_restrictions || "None specified"
+  
+  // Define standard kitchen equipment if the user hasn't specified anything
+  const DEFAULT_EQUIPMENT = "Stovetop, Oven, Microwave, Basic Pots and Pans, Chef's Knife, Cutting Board, Mixing Bowls, Baking Sheet, Spatula"
+  
+  const equipment = profile?.kitchen_equipment && profile.kitchen_equipment.trim() !== "" 
+    ? profile.kitchen_equipment 
+    : DEFAULT_EQUIPMENT
+
+  const skill = profile?.skill_level || "Intermediate"
+
+  // 3. Call AI with Structured Output and strict Profile constraints
   const { object: recipe } = await generateObject({
     model: openai("gpt-5-nano"), // Kept exact model per instructions
     schema: RecipeSchema,
@@ -50,6 +68,13 @@ export async function generateRecipeAction(userPrompt: string) {
       You are a professional chef. 
       User Request: "${userPrompt}"
       
+      ---
+      USER PROFILE CONSTRAINTS (YOU MUST OBEY THESE):
+      - Dietary Restrictions: ${diet} (Never include ingredients that violate this constraint).
+      - Available Equipment: ${equipment} (CRITICAL: Do not suggest recipes that require ANY equipment not on this list. Keep it strictly accessible based on these tools).
+      - Skill Level: ${skill} (Tailor the complexity and techniques of the recipe to match this skill level).
+      ---
+
       User's Pantry: ${pantryList}
       
       Goal: Generate a delicious recipe. 
