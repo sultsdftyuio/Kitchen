@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Flame, Coffee, Utensils, Knife, Leaf, Wind } from "lucide-react"
+import { Flame, Coffee, Utensils, UtensilsCrossed as Knife, Leaf, Wind } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // We map the string items from your database to visual placements
