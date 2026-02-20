@@ -9,7 +9,7 @@ import { ProfileSettings } from "@/components/profile-settings"
 import { PrepStation } from "@/components/prep-station"
 import { QuickAddModal } from "@/components/quick-add-modal"
 import { CommandPalette } from "@/components/command-palette"
-import { GamificationPanel } from "@/components/gamification-panel" // Added Import
+import { GamificationPanel } from "@/components/gamification-panel" 
 import { signOut } from "@/app/actions/auth"
 import { LogOut, Loader2, Search } from "lucide-react"
 import { KitchenLogo } from "@/components/kitchen-logo"
@@ -21,7 +21,9 @@ export function DashboardShell({
   profile,
   stats,
   recentWin,
-  expiringItems}: { 
+  expiringItems,
+  gamificationStats // Added this prop
+}: { 
   userEmail: string
   pantryItems: any[]
   history: any[]
@@ -29,8 +31,8 @@ export function DashboardShell({
   stats: { pantryCount: number, mealsCooked: number }
   recentWin: any
   expiringItems: any[]
+  gamificationStats: any // Added type definition
 }) {
-  // Added 'achievements' to activeTab state
   const [activeTab, setActiveTab] = useState<'overview' | 'pantry' | 'history' | 'achievements'>('overview')
   const [prefillDish, setPrefillDish] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
@@ -103,7 +105,6 @@ export function DashboardShell({
             
             {/* iOS Style Pill Tab Switcher */}
             <div className="bg-slate-100/80 p-1 rounded-2xl w-full sm:w-fit flex gap-1 items-center border border-slate-200/50 shadow-inner overflow-x-auto">
-                {/* Added 'achievements' to the tabs map */}
                 {(['overview', 'pantry', 'history', 'achievements'] as const).map((tab) => (
                   <button
                       key={tab}
@@ -143,15 +144,14 @@ export function DashboardShell({
                       prefillDishName={prefillDish}
                   />
                 )}
-                {/* Render the Gamification Panel when active */}
-                {activeTab === 'achievements' && <GamificationPanel initialStats={null} />}
+                {/* Render the Gamification Panel using the passed down gamificationStats */}
+                {activeTab === 'achievements' && <GamificationPanel initialStats={gamificationStats} />}
             </div>
           </div>
 
           {/* AI SIDEBAR */}
           <aside className="lg:col-span-4 lg:sticky lg:top-24 z-20">
              <div className="relative">
-                {/* Subtle soft glow under the chat instead of hard colors */}
                 <div className="absolute -inset-4 bg-gradient-to-b from-orange-50/50 to-transparent blur-2xl -z-10 rounded-[3rem]"></div>
                 <DashboardChat 
                   onLogRecipe={handleLogRecipe} 

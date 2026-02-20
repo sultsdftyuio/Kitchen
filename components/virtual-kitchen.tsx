@@ -61,6 +61,11 @@ export function VirtualKitchen({ items = [] }: { items?: any[] }) {
           </div>
         )}
 
+        {/* Item: Coffee Mug (Decorative) */}
+        <div className="relative -mb-1 flex items-end justify-center drop-shadow-md hover:-translate-y-1 transition-transform cursor-pointer">
+            <Coffee className="w-7 h-7 text-sky-700" fill="currentColor" />
+        </div>
+
         {/* Item: Spice Jars */}
         <div className="flex gap-1.5 -mb-1 ml-auto">
             {[1, 2, 3].map(i => (
@@ -74,6 +79,12 @@ export function VirtualKitchen({ items = [] }: { items?: any[] }) {
       {/* 3. THE COUNTERTOP (Butcher Block) */}
       <div className="absolute bottom-0 left-0 right-0 h-[30%] bg-amber-600 border-t-[12px] border-amber-500 shadow-[0_-20px_40px_rgba(0,0,0,0.15)] z-20 flex items-end px-12 justify-between">
         
+        {/* Item: Utensil Crock (Decorative) */}
+        <div className="relative -mb-4 w-12 h-16 flex items-end justify-center z-20 drop-shadow-xl hover:scale-105 transition-transform origin-bottom cursor-pointer">
+            <div className="absolute bottom-0 w-10 h-10 bg-stone-200 rounded-b-lg border-t-2 border-stone-300 z-20"></div>
+            <Utensils className="absolute bottom-6 w-8 h-8 text-stone-500 z-10" />
+        </div>
+
         {/* Item: Stand Mixer */}
         {hasItem('mixer') && (
           <div 
@@ -98,9 +109,7 @@ export function VirtualKitchen({ items = [] }: { items?: any[] }) {
         <div className="relative -mb-6 w-32 h-10 flex items-center justify-center z-20 drop-shadow-xl hover:-translate-y-1 transition-transform cursor-pointer">
             <div className="absolute bottom-6 w-full h-4 bg-amber-200 rounded-sm border-b-4 border-amber-300 shadow-lg"></div>
             {hasItem('knife') && (
-                <div className="absolute bottom-7 left-4 w-16 h-3 bg-slate-300 rounded-r-full border-b-2 border-slate-400 rotate-[-5deg] z-30">
-                    <div className="absolute -left-4 top-0 w-5 h-3 bg-slate-800 rounded-l-sm"></div>
-                </div>
+                <Knife className="absolute bottom-5 left-6 w-8 h-8 text-slate-600 rotate-[135deg] z-30 drop-shadow-sm" strokeWidth={2} />
             )}
         </div>
 

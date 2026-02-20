@@ -48,7 +48,7 @@ export async function logMeal(formData: FormData) {
     }
   }
 
-  // 3. Trigger Gamification Badges (from our previous updates!)
+  // 3. Trigger Gamification Badges
   await checkAndAwardBadges()
 
   revalidatePath("/dashboard")
@@ -70,6 +70,36 @@ export async function deleteMeal(id: number) {
     console.error("Error deleting meal:", error)
     throw new Error("Failed to delete meal")
   }
+
+  revalidatePath("/dashboard")
+}
+
+// Added this function specifically for the CookMode UI
+export async function logCookingHistoryAction(dish_name: string, rating: number, notes: string) {
+  const supabase = await createClient()
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("Unauthorized")
+
+  if (!dish_name) throw new Error("Dish name is required")
+
+  const { error: historyError } = await supabase
+    .from("cooking_history")
+    .insert({
+      user_id: user.id,
+      dish_name,
+      rating,
+      notes,
+      cooked_at: new Date().toISOString()
+    })
+
+  if (historyError) {
+    console.error("Error logging meal:", historyError)
+    throw new Error("Failed to log meal")
+  }
+
+  // Trigger Gamification Badges
+  await checkAndAwardBadges()
 
   revalidatePath("/dashboard")
 }
