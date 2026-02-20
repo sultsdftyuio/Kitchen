@@ -5,10 +5,9 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
-import { Flame, Star, Leaf, Dices, ChefHat, Trophy, Lock } from 'lucide-react'
+import { Flame, Star, Leaf, Dices, ChefHat, Trophy } from 'lucide-react'
 import { getPantryRoulette, GamificationStats } from '@/app/actions/gamification'
 import { toast } from 'sonner'
-import { VirtualKitchen } from './virtual-kitchen'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 const badgeIconMap: any = {
@@ -99,7 +98,7 @@ export function GamificationPanel({ initialStats }: { initialStats: Gamification
           </CardContent>
         </Card>
 
-        {/* 5. ZERO WASTE */}
+        {/* 4. ZERO WASTE */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Zero Waste</CardTitle>
@@ -112,46 +111,31 @@ export function GamificationPanel({ initialStats }: { initialStats: Gamification
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* 6. VIRTUAL KITCHEN */}
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <ChefHat className="h-4 w-4" /> Virtual Kitchen
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {/* SAFE FALLBACK: Ensure an array is always passed */}
-            <VirtualKitchen items={stats.kitchen || []} />
-          </CardContent>
-        </Card>
-
-        {/* 4. BADGES (TROPHY CASE) */}
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Trophy className="h-4 w-4" /> Achievements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[120px]">
-              <div className="grid grid-cols-4 gap-2">
-                {(stats.badges || []).map((badge) => {
-                  const Icon = badgeIconMap[badge.icon] || Star
-                  return (
-                    <div key={badge.id} className="flex flex-col items-center text-center group cursor-help">
-                      <div className={`p-2 rounded-full mb-1 transition-all ${badge.earned ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500' : 'bg-muted text-muted-foreground grayscale opacity-50'}`}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                      <span className="text-[10px] font-medium leading-tight line-clamp-1">{badge.name}</span>
+      {/* BADGES (TROPHY CASE) NOW TAKES FULL WIDTH */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Trophy className="h-4 w-4" /> Achievements
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[120px]">
+            <div className="flex flex-wrap gap-4">
+              {(stats.badges || []).map((badge) => {
+                const Icon = badgeIconMap[badge.icon] || Star
+                return (
+                  <div key={badge.id} className="flex flex-col items-center text-center group cursor-help w-16">
+                    <div className={`p-3 rounded-full mb-1 transition-all ${badge.earned ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500' : 'bg-muted text-muted-foreground grayscale opacity-50'}`}>
+                      <Icon className="h-5 w-5" />
                     </div>
-                  )
-                })}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
+                    <span className="text-[10px] font-medium leading-tight line-clamp-2">{badge.name}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   )
 }

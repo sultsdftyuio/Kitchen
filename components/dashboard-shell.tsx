@@ -10,8 +10,9 @@ import { PrepStation } from "@/components/prep-station"
 import { QuickAddModal } from "@/components/quick-add-modal"
 import { CommandPalette } from "@/components/command-palette"
 import { GamificationPanel } from "@/components/gamification-panel" 
+import { VirtualKitchen } from "@/components/virtual-kitchen" // <-- Added Import
 import { signOut } from "@/app/actions/auth"
-import { LogOut, Loader2, Search } from "lucide-react"
+import { LogOut, Loader2, Search, ChefHat } from "lucide-react" // <-- Added ChefHat
 import { KitchenLogo } from "@/components/kitchen-logo"
 
 export function DashboardShell({ 
@@ -22,7 +23,7 @@ export function DashboardShell({
   stats,
   recentWin,
   expiringItems,
-  gamificationStats // Added this prop
+  gamificationStats
 }: { 
   userEmail: string
   pantryItems: any[]
@@ -31,9 +32,10 @@ export function DashboardShell({
   stats: { pantryCount: number, mealsCooked: number }
   recentWin: any
   expiringItems: any[]
-  gamificationStats: any // Added type definition
+  gamificationStats: any 
 }) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'pantry' | 'history' | 'achievements'>('overview')
+  // CTO Fix: Added 'kitchen' to the allowed tab states
+  const [activeTab, setActiveTab] = useState<'overview' | 'pantry' | 'history' | 'achievements' | 'kitchen'>('overview')
   const [prefillDish, setPrefillDish] = useState("")
   const [isSigningOut, setIsSigningOut] = useState(false)
   
@@ -105,7 +107,8 @@ export function DashboardShell({
             
             {/* iOS Style Pill Tab Switcher */}
             <div className="bg-slate-100/80 p-1 rounded-2xl w-full sm:w-fit flex gap-1 items-center border border-slate-200/50 shadow-inner overflow-x-auto">
-                {(['overview', 'pantry', 'history', 'achievements'] as const).map((tab) => (
+                {/* CTO Fix: Added 'kitchen' to the array below */}
+                {(['overview', 'pantry', 'history', 'achievements', 'kitchen'] as const).map((tab) => (
                   <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
@@ -144,8 +147,17 @@ export function DashboardShell({
                       prefillDishName={prefillDish}
                   />
                 )}
-                {/* Render the Gamification Panel using the passed down gamificationStats */}
                 {activeTab === 'achievements' && <GamificationPanel initialStats={gamificationStats} />}
+                
+                {/* CTO Fix: Added Dedicated Kitchen Tab View */}
+                {activeTab === 'kitchen' && (
+                  <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm animate-in fade-in duration-500">
+                    <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                      <ChefHat className="w-5 h-5 text-orange-500" /> My Virtual Kitchen
+                    </h2>
+                    <VirtualKitchen items={gamificationStats?.kitchen || []} />
+                  </div>
+                )}
             </div>
           </div>
 
