@@ -5,22 +5,28 @@ import { KitchenItem } from "@/app/actions/gamification"
 import { Flame, Leaf, Utensils, Coffee, Thermometer, Lock, CookingPot, CircleDashed } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-// Dynamic icon mapping based on strings from the database
 const iconMap: Record<string, any> = {
   Flame,
   Leaf,
-  CircleDashed, // Used for Pan
-  Utensils,     // Used for Knife
-  CookingPot,   // Used for Dutch Oven
-  Thermometer,  // Used for Sous-Vide
-  Coffee        // Used for Espresso Machine
+  CircleDashed,
+  Utensils,     
+  CookingPot,   
+  Thermometer,  
+  Coffee        
 }
 
-export function VirtualKitchen({ items }: { items: KitchenItem[] }) {
-  // Calculate completion percentage
-  const unlockedCount = items.filter(i => i.unlocked).length
-  const totalCount = items.length
-  const progress = Math.round((unlockedCount / totalCount) * 100)
+export function VirtualKitchen({ items = [] }: { items?: KitchenItem[] }) {
+  // Safe Fallback for empty arrays
+  const safeItems = items || []
+  const totalCount = safeItems.length
+  const unlockedCount = safeItems.filter(i => i.unlocked).length
+  
+  // Prevent NaN error when totalCount is 0
+  const progress = totalCount === 0 ? 0 : Math.round((unlockedCount / totalCount) * 100)
+
+  if (totalCount === 0) {
+    return <div className="text-sm text-stone-500 text-center py-8">Loading kitchen equipment...</div>
+  }
 
   return (
     <div className="space-y-4">
@@ -38,7 +44,7 @@ export function VirtualKitchen({ items }: { items: KitchenItem[] }) {
 
       {/* Equipment Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
-        {items.map((item, index) => {
+        {safeItems.map((item, index) => {
           const IconComponent = iconMap[item.icon] || Flame
 
           return (
@@ -51,7 +57,6 @@ export function VirtualKitchen({ items }: { items: KitchenItem[] }) {
                   : "bg-stone-50 border-stone-200 opacity-60 cursor-not-allowed"
               )}
             >
-              {/* The Icon */}
               <div className={cn(
                 "p-3 rounded-full mb-2 transition-colors",
                 item.unlocked 
@@ -61,7 +66,6 @@ export function VirtualKitchen({ items }: { items: KitchenItem[] }) {
                 <IconComponent className="w-6 h-6" />
               </div>
 
-              {/* Item Details */}
               <span className={cn(
                 "text-xs font-bold leading-tight",
                 item.unlocked ? "text-stone-800" : "text-stone-400"
@@ -69,14 +73,12 @@ export function VirtualKitchen({ items }: { items: KitchenItem[] }) {
                 {item.name}
               </span>
 
-              {/* Hover Tooltip / Description for unlocked items */}
               {item.unlocked && (
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-stone-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10 shadow-lg">
                   {item.description}
                 </div>
               )}
 
-              {/* Locked State Overlay */}
               {!item.unlocked && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-stone-100/80 rounded-2xl backdrop-blur-[1px] opacity-0 group-hover:opacity-100 transition-opacity">
                   <Lock className="w-5 h-5 text-stone-500 mb-1" />

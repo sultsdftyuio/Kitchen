@@ -39,7 +39,7 @@ export function GamificationPanel({ initialStats }: { initialStats: Gamification
     setLoadingRoulette(false)
   }
 
-  // Fallback loading state (should rarely be seen now that it's server-rendered)
+  // Fallback loading state
   if (!stats) return <div className="animate-pulse h-48 bg-muted rounded-xl" />
 
   return (
@@ -121,7 +121,8 @@ export function GamificationPanel({ initialStats }: { initialStats: Gamification
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <VirtualKitchen items={stats.kitchen} />
+            {/* SAFE FALLBACK: Ensure an array is always passed */}
+            <VirtualKitchen items={stats.kitchen || []} />
           </CardContent>
         </Card>
 
@@ -135,7 +136,7 @@ export function GamificationPanel({ initialStats }: { initialStats: Gamification
           <CardContent>
             <ScrollArea className="h-[120px]">
               <div className="grid grid-cols-4 gap-2">
-                {stats.badges.map((badge) => {
+                {(stats.badges || []).map((badge) => {
                   const Icon = badgeIconMap[badge.icon] || Star
                   return (
                     <div key={badge.id} className="flex flex-col items-center text-center group cursor-help">
