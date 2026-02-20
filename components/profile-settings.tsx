@@ -88,10 +88,13 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
       </button>
 
       {isOpen && (
+        // CTO FIX: Added `fixed inset-0 flex items-center justify-center` to force absolute centering
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          
+          {/* CTO FIX: Added max-h-[90vh] and flex-col to keep the modal from growing off-screen */}
           <div className="bg-white w-full max-w-2xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 relative z-50">
             
-            {/* Header */}
+            {/* Header - Fixed at top */}
             <div className="bg-slate-50 px-6 py-5 flex items-center justify-between border-b border-slate-200 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="bg-blue-100 p-2 rounded-xl text-blue-600">
@@ -107,14 +110,14 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
               </button>
             </div>
 
-            {/* Scrollable Body - Added flex-1 and min-h-0 to fix overflow */}
+            {/* Scrollable Body - This is the magic fix (flex-1 overflow-y-auto) */}
             <div className="flex-1 min-h-0 overflow-y-auto p-6 custom-scrollbar">
               <form id="profile-form" onSubmit={handleSubmit} className="space-y-8">
                 
                 {/* Dietary Restrictions */}
                 <div className="space-y-3">
                   <label className="font-semibold text-slate-900 text-sm flex items-center gap-2">
-                    <WheatOff className="w-4 h-4 text-tangerine" /> Dietary Needs & Allergies
+                    <WheatOff className="w-4 h-4 text-orange-500" /> Dietary Needs & Allergies
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {COMMON_DIETS.map((diet) => {
@@ -126,7 +129,7 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
                           onClick={() => toggleItem(diet, diets, setDiets)}
                           className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
                             isSelected 
-                              ? 'bg-tangerine text-white border-tangerine shadow-md shadow-orange-500/20' 
+                              ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20' 
                               : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                         >
@@ -139,7 +142,7 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
                         key={custom}
                         type="button"
                         onClick={() => toggleItem(custom, diets, setDiets)}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-all border bg-tangerine text-white border-tangerine shadow-md flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-all border bg-orange-500 text-white border-orange-500 shadow-md flex items-center gap-1"
                       >
                         {custom} <X className="w-3 h-3" />
                       </button>
@@ -152,7 +155,7 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
                       onChange={(e) => setCustomDiet(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustom(customDiet, setCustomDiet, diets, setDiets); } }}
                       placeholder="Add other restriction..." 
-                      className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-tangerine/50 flex-1"
+                      className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-orange-500/50 flex-1"
                     />
                     <button type="button" onClick={() => handleAddCustom(customDiet, setCustomDiet, diets, setDiets)} className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200">
                       <Plus className="w-4 h-4" />
@@ -244,7 +247,7 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
               </form>
             </div>
 
-            {/* Footer */}
+            {/* Footer - Fixed at bottom */}
             <div className="bg-white px-6 py-4 border-t border-slate-200 shrink-0">
                 <button
                   type="submit"
