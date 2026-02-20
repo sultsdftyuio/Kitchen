@@ -3,21 +3,23 @@
 
 import { useState } from "react"
 import { generateRecipeAction, saveRecipeAction } from "@/app/actions/generate-recipe"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Loader2, Save, ChefHat, Check, X, Clock, Users, Flame, Download } from "lucide-react"
+import { Loader2, Save, ChefHat, Check, X, Clock, Users, Flame, Download, Sparkles, Utensils } from "lucide-react"
 import { toast } from "sonner" 
+import { cn } from "@/lib/utils" // <--- ADDED THIS IMPORT
 
 export default function GenerateRecipePage() {
   const [prompt, setPrompt] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [recipe, setRecipe] = useState<any>(null)
+  
+  // Interactive checklist state for cooking
+  const [checkedSteps, setCheckedSteps] = useState<number[]>([])
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setRecipe(null)
+    setCheckedSteps([])
     
     try {
       const result = await generateRecipeAction(prompt)
@@ -39,130 +41,201 @@ export default function GenerateRecipePage() {
     }
   }
 
-  const handleExportPDF = () => {
-    // Placeholder for PDF export tool
-    toast.success("Exporting to PDF... (Feature coming soon)")
+  const toggleStep = (index: number) => {
+    setCheckedSteps(prev => 
+      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+    )
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-serif font-bold text-coffee">Instant Chef</h1>
-        <p className="text-coffee-dark">Tell me what you're craving. I'll check your pantry.</p>
+    <div className="max-w-[1200px] mx-auto p-4 sm:p-6 lg:p-8 space-y-8 font-sans pb-20">
+      
+      {/* Header */}
+      <div className="text-center space-y-4 max-w-2xl mx-auto mt-4 sm:mt-8 mb-12">
+        <div className="inline-flex items-center justify-center p-3 bg-orange-50 rounded-2xl mb-2">
+            <Sparkles className="w-8 h-8 text-tangerine" />
+        </div>
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">Instant Chef</h1>
+        <p className="text-slate-500 text-lg">Tell me what you're craving. I'll cross-reference your pantry and generate the perfect recipe.</p>
       </div>
 
-      <form onSubmit={handleGenerate} className="flex gap-4">
-        <Input 
-          placeholder="e.g. Spicy Chicken Tacos, Something with eggplant..." 
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          className="h-12 text-lg bg-white"
-        />
-        <Button type="submit" size="lg" disabled={isLoading || !prompt.trim()} className="bg-tangerine hover:bg-orange-600">
-          {isLoading ? <Loader2 className="animate-spin mr-2" /> : <ChefHat className="mr-2" />}
-          Cook
-        </Button>
+      {/* Input Form */}
+      <form onSubmit={handleGenerate} className="max-w-3xl mx-auto flex flex-col sm:flex-row gap-4 relative z-10">
+        <div className="relative flex-1">
+            <Utensils className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <input 
+                placeholder="e.g. Spicy Chicken Tacos, Something with eggplant..." 
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                className="w-full h-14 pl-14 pr-6 rounded-2xl border-2 border-slate-200 bg-white/80 backdrop-blur-sm focus:outline-none focus:border-tangerine focus:ring-4 focus:ring-orange-500/10 text-lg text-slate-900 placeholder:text-slate-400 transition-all shadow-sm"
+            />
+        </div>
+        <button 
+            type="submit" 
+            disabled={isLoading || !prompt.trim()} 
+            className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-2xl shadow-md transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center gap-2 whitespace-nowrap"
+        >
+          {isLoading ? <Loader2 className="animate-spin w-5 h-5" /> : <ChefHat className="w-5 h-5" />}
+          {isLoading ? 'Cooking...' : 'Generate'}
+        </button>
       </form>
 
-      {recipe && (
-        <Card className="hard-shadow bg-[#FFF8F0] border-coffee/10 animate-in fade-in slide-in-from-bottom-4 overflow-hidden">
-          {/* Hero Image Placeholder - cookAIfood style */}
-          <div className="w-full h-64 bg-coffee/5 flex items-center justify-center border-b border-coffee/10 relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-[#FFF8F0] to-transparent opacity-60" />
-            <span className="text-coffee/40 font-medium flex items-center gap-2">
-              <ChefHat className="w-6 h-6" />
-              AI Image Generation Placeholder
-            </span>
-          </div>
+      {/* Loading Skeleton */}
+      {isLoading && (
+        <div className="max-w-5xl mx-auto mt-12 animate-pulse space-y-8">
+            <div className="h-64 bg-slate-100 rounded-3xl w-full"></div>
+            <div className="grid md:grid-cols-12 gap-8">
+                <div className="md:col-span-4 space-y-4">
+                    <div className="h-8 bg-slate-100 rounded-lg w-1/2"></div>
+                    <div className="h-12 bg-slate-100 rounded-xl w-full"></div>
+                    <div className="h-12 bg-slate-100 rounded-xl w-full"></div>
+                </div>
+                <div className="md:col-span-8 space-y-4">
+                    <div className="h-8 bg-slate-100 rounded-lg w-1/3"></div>
+                    <div className="h-24 bg-slate-100 rounded-xl w-full"></div>
+                    <div className="h-24 bg-slate-100 rounded-xl w-full"></div>
+                </div>
+            </div>
+        </div>
+      )}
 
-          <CardHeader>
-            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-              <div>
-                <CardTitle className="text-3xl font-serif text-coffee mb-2">{recipe.name}</CardTitle>
-                <p className="text-coffee-dark italic">{recipe.description}</p>
+      {/* The Recipe Result */}
+      {recipe && !isLoading && (
+        <div className="max-w-5xl mx-auto mt-12 bg-white rounded-[32px] border border-slate-200/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-700">
+          
+          {/* Header Section */}
+          <div className="p-8 sm:p-10 border-b border-slate-100">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
+              <div className="flex-1">
+                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight mb-3">{recipe.name}</h2>
+                <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-2xl">{recipe.description}</p>
                 
-                {/* cookAIfood style Metadata Badges */}
+                {/* Modern Badges */}
                 {recipe.nutrition && (
-                  <div className="flex flex-wrap gap-4 mt-4 text-sm font-medium text-coffee-dark">
+                  <div className="flex flex-wrap gap-3 mt-6">
                     {recipe.nutrition.prep_time && (
-                      <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Prep: {recipe.nutrition.prep_time}</span>
+                      <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-semibold text-slate-700">
+                          <Clock className="w-4 h-4 text-blue-500" /> {recipe.nutrition.prep_time} Prep
+                      </div>
                     )}
                     {recipe.nutrition.cook_time && (
-                      <span className="flex items-center gap-1"><Flame className="w-4 h-4" /> Cook: {recipe.nutrition.cook_time}</span>
+                      <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-semibold text-slate-700">
+                          <Flame className="w-4 h-4 text-orange-500" /> {recipe.nutrition.cook_time} Cook
+                      </div>
                     )}
                     {recipe.nutrition.servings && (
-                      <span className="flex items-center gap-1"><Users className="w-4 h-4" /> Serves: {recipe.nutrition.servings}</span>
-                    )}
-                    {recipe.nutrition.difficulty && (
-                      <span className="flex items-center gap-1"><ChefHat className="w-4 h-4" /> {recipe.nutrition.difficulty}</span>
+                      <div className="bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl flex items-center gap-2 text-sm font-semibold text-slate-700">
+                          <Users className="w-4 h-4 text-emerald-500" /> {recipe.nutrition.servings} Servings
+                      </div>
                     )}
                   </div>
                 )}
               </div>
-              <div className="flex gap-2">
-                <Button onClick={handleExportPDF} variant="outline" className="border-coffee text-coffee bg-white hover:bg-white/80">
-                  <Download className="mr-2 h-4 w-4" /> PDF
-                </Button>
-                <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white">
-                  <Save className="mr-2 h-4 w-4" /> Save
-                </Button>
+              
+              <div className="flex gap-3 shrink-0">
+                <button onClick={() => toast.info("PDF Export coming soon!")} className="h-12 px-5 bg-white border-2 border-slate-200 hover:border-slate-300 text-slate-700 font-bold rounded-xl shadow-sm transition-all flex items-center gap-2">
+                  <Download className="h-4 w-4" /> PDF
+                </button>
+                <button onClick={handleSave} className="h-12 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 transition-all flex items-center gap-2">
+                  <Save className="h-4 w-4" /> Save Recipe
+                </button>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-8">
-            {/* Ingredients Column */}
-            <div className="space-y-4">
-              <h3 className="font-bold text-xl flex items-center text-coffee">
-                🛒 Ingredients
+          </div>
+
+          <div className="grid lg:grid-cols-12 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+            
+            {/* Left Column: Ingredients */}
+            <div className="lg:col-span-4 p-8 sm:p-10 bg-slate-50/30">
+              <h3 className="font-bold text-xl text-slate-900 mb-6 flex items-center gap-2">
+                <div className="p-1.5 bg-tangerine/10 text-tangerine rounded-lg"><Utensils className="w-5 h-5" /></div>
+                Ingredients
               </h3>
               <ul className="space-y-3">
                 {recipe.ingredients.map((ing: any, i: number) => (
-                  <li key={i} className="flex items-center justify-between bg-white/60 p-3 rounded-lg border border-coffee/5">
-                    <span className="flex items-center gap-3">
+                  <li key={i} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm">
+                    <div className="flex items-center gap-3">
                       {ing.is_in_pantry ? (
-                        <div className="bg-green-100 p-1 rounded-full"><Check className="h-4 w-4 text-green-600" /></div>
+                        <div className="bg-emerald-100 p-1.5 rounded-full"><Check className="h-4 w-4 text-emerald-600" /></div>
                       ) : (
-                        <div className="bg-rose-100 p-1 rounded-full"><X className="h-4 w-4 text-rose-500" /></div>
+                        <div className="bg-rose-100 p-1.5 rounded-full"><X className="h-4 w-4 text-rose-500" /></div>
                       )}
-                      <span className={ing.is_in_pantry ? "text-coffee font-medium" : "font-semibold text-rose-600"}>
+                      <span className={cn("font-semibold", ing.is_in_pantry ? "text-slate-900" : "text-rose-600")}>
                         {ing.name}
                       </span>
-                    </span>
-                    <span className="text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">{ing.amount}</span>
+                    </div>
+                    <span className="text-sm font-bold text-slate-400">{ing.amount}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Instructions Column */}
-            <div className="space-y-4">
-              <h3 className="font-bold text-xl text-coffee">🍳 Instructions</h3>
-              <ol className="space-y-4 list-none counter-reset-step">
-                {recipe.instructions.map((step: string, i: number) => (
-                  <li key={i} className="text-coffee-dark leading-relaxed flex gap-4 bg-white/40 p-4 rounded-xl border border-coffee/5">
-                    <span className="flex-shrink-0 w-8 h-8 bg-tangerine/20 text-tangerine font-bold rounded-full flex items-center justify-center">
-                      {i + 1}
-                    </span>
-                    <span className="pt-1">{step}</span>
-                  </li>
-                ))}
-              </ol>
+            {/* Right Column: Instructions & Nutrition */}
+            <div className="lg:col-span-8 p-8 sm:p-10">
+              <h3 className="font-bold text-xl text-slate-900 mb-6 flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 text-blue-500 rounded-lg"><ChefHat className="w-5 h-5" /></div>
+                Instructions
+              </h3>
               
-              {/* Detailed Nutrition Grid */}
+              <div className="space-y-4">
+                {recipe.instructions.map((step: string, i: number) => {
+                  const isChecked = checkedSteps.includes(i)
+                  return (
+                    <div 
+                        key={i} 
+                        onClick={() => toggleStep(i)}
+                        className={cn(
+                            "group cursor-pointer flex gap-5 p-5 rounded-2xl border-2 transition-all",
+                            isChecked 
+                                ? "bg-slate-50 border-slate-200/60 opacity-60" 
+                                : "bg-white border-slate-100 hover:border-tangerine/30 hover:shadow-sm"
+                        )}
+                    >
+                      <div className={cn(
+                          "w-8 h-8 shrink-0 rounded-full flex items-center justify-center font-bold text-sm transition-colors",
+                          isChecked ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500 group-hover:bg-tangerine group-hover:text-white"
+                      )}>
+                        {isChecked ? <Check className="w-4 h-4" /> : i + 1}
+                      </div>
+                      <p className={cn(
+                          "text-base leading-relaxed pt-1 transition-all",
+                          isChecked ? "text-slate-400 line-through" : "text-slate-700 font-medium"
+                      )}>
+                          {step}
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+              
+              {/* Premium Nutrition Widget */}
               {recipe.nutrition && (
-                <div className="mt-8 p-6 bg-white border border-coffee/10 rounded-xl">
-                  <h4 className="font-bold text-coffee mb-4">Nutrition Facts</h4>
-                  <div className="grid grid-cols-4 gap-4 text-center divide-x divide-coffee/10">
-                     <div className="flex flex-col"><span className="text-xs text-coffee-dark uppercase tracking-wider mb-1">Calories</span><span className="font-bold text-lg text-coffee">{recipe.nutrition.calories || '-'}</span></div>
-                     <div className="flex flex-col"><span className="text-xs text-coffee-dark uppercase tracking-wider mb-1">Protein</span><span className="font-bold text-lg text-coffee">{recipe.nutrition.protein || '-'}</span></div>
-                     <div className="flex flex-col"><span className="text-xs text-coffee-dark uppercase tracking-wider mb-1">Carbs</span><span className="font-bold text-lg text-coffee">{recipe.nutrition.carbs || '-'}</span></div>
-                     <div className="flex flex-col"><span className="text-xs text-coffee-dark uppercase tracking-wider mb-1">Fat</span><span className="font-bold text-lg text-coffee">{recipe.nutrition.fat || '-'}</span></div>
+                <div className="mt-10 bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden">
+                  <div className="absolute right-0 top-0 w-64 h-64 bg-tangerine/20 rounded-full mix-blend-screen filter blur-[80px]"></div>
+                  <h4 className="font-bold text-lg mb-6 relative z-10 flex items-center gap-2">Nutrition Facts</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 relative z-10">
+                     <div className="flex flex-col gap-1">
+                        <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Calories</span>
+                        <span className="text-3xl font-black">{recipe.nutrition.calories || '-'}</span>
+                     </div>
+                     <div className="flex flex-col gap-1">
+                        <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Protein</span>
+                        <span className="text-3xl font-black">{recipe.nutrition.protein || '-'}</span>
+                     </div>
+                     <div className="flex flex-col gap-1">
+                        <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Carbs</span>
+                        <span className="text-3xl font-black">{recipe.nutrition.carbs || '-'}</span>
+                     </div>
+                     <div className="flex flex-col gap-1">
+                        <span className="text-xs text-slate-400 uppercase tracking-widest font-bold">Fat</span>
+                        <span className="text-3xl font-black">{recipe.nutrition.fat || '-'}</span>
+                     </div>
                   </div>
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   )

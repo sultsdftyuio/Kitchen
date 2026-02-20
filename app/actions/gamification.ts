@@ -8,7 +8,7 @@ export type Badge = {
   id: string
   name: string
   description: string
-  icon: string // Lucide icon name
+  icon: string 
   earned: boolean
   earnedAt?: string
 }
@@ -52,6 +52,7 @@ export async function getGamificationStats(): Promise<GamificationStats | null> 
   const [pantryRes, historyRes, badgesRes] = await Promise.all([
     supabase.from('pantry_items').select('id').eq('user_id', userId),
     supabase.from('cooking_history').select('cooked_at, rating').eq('user_id', userId).order('cooked_at', { ascending: false }),
+    // Note: Assuming user_badges table was created for this, keeping as is from your code
     supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', userId)
   ])
 
@@ -113,20 +114,21 @@ export async function getGamificationStats(): Promise<GamificationStats | null> 
   }))
 
   // 6. Build Kitchen (Meta-Game)
-  // Logic: Unlocks based on Level
-  const kitchen: KitchenItem[] = [
-    { name: 'Basic Stove', requiredLevel: 'Dishwasher', icon: 'Microwave', unlocked: true }, // Everyone starts with this
-    { name: 'Cast Iron Pan', requiredLevel: 'Prep Cook', icon: 'ChefHat', unlocked: totalXp >= 200 },
-    { name: 'Gas Range', requiredLevel: 'Line Cook', icon: 'Flame', unlocked: totalXp >= 500 },
-    { name: 'Marble Island', requiredLevel: 'Sous Chef', icon: 'LayoutDashboard', unlocked: totalXp >= 1000 },
-    { name: 'Walk-in Fridge', requiredLevel: 'Executive Chef', icon: 'Refrigerator', unlocked: totalXp >= 2000 },
+  // We define the items that map directly to the VirtualKitchen UI keywords: 'stove', 'plant', 'knife', 'mixer'
+  const allKitchenItems: KitchenItem[] = [
+    { name: 'Basic Stove', requiredLevel: 'Dishwasher', icon: 'Flame', unlocked: true }, 
+    { name: 'Potted Plant', requiredLevel: '3-Day Streak', icon: 'Leaf', unlocked: streak >= 3 },
+    { name: 'Chef Knife', requiredLevel: 'Prep Cook', icon: 'Knife', unlocked: totalXp >= 200 },
+    { name: 'Stand Mixer', requiredLevel: 'Sous Chef', icon: 'Wind', unlocked: totalXp >= 1000 },
   ]
 
-  return { streak, xp: totalXp, level, nextLevelXp, xpProgress, zeroWasteScore, badges, kitchen }
+  // IMPORTANT: We filter out locked items so the frontend component ONLY receives and renders what the user actually owns.
+  const unlockedKitchen = allKitchenItems.filter(item => item.unlocked)
+
+  return { streak, xp: totalXp, level, nextLevelXp, xpProgress, zeroWasteScore, badges, kitchen: unlockedKitchen }
 }
 
 // --- CHECK AND AWARD NEW BADGES ---
-// Call this after logging a meal or updating pantry
 export async function checkAndAwardBadges() {
   const stats = await getGamificationStats()
   if (!stats) return
@@ -138,11 +140,10 @@ export async function checkAndAwardBadges() {
   const newBadges: string[] = []
 
   // Check Logic
-  if (stats.xp >= 50 /* ~1 meal */) newBadges.push('first_meal')
+  if (stats.xp >= 50) newBadges.push('first_meal')
   if (stats.streak >= 3) newBadges.push('streak_3')
   if (stats.streak >= 7) newBadges.push('streak_7')
   
-  // Need to fetch specific history for detailed checks
   const { data: history } = await supabase.from('cooking_history').select('*').eq('user_id', user.id)
   const { data: pantry } = await supabase.from('pantry_items').select('*').eq('user_id', user.id)
   
@@ -162,16 +163,10 @@ export async function checkAndAwardBadges() {
 
   // Insert new badges
   for (const badgeId of newBadges) {
-    // We use upsert with ignoreDuplicates: true to handle cases where the badge is already earned.
-    // This assumes a unique constraint on (user_id, badge_id) exists in Supabase.
     const { error } = await supabase.from('user_badges').upsert(
       { user_id: user.id, badge_id: badgeId },
       { onConflict: 'user_id, badge_id', ignoreDuplicates: true }
     )
-    
-    if (!error) {
-      // Could trigger a toast on next load
-    }
   }
   
   revalidatePath('/dashboard')
@@ -188,7 +183,6 @@ export async function getPantryRoulette() {
     .select('id, item_name')
     .eq('user_id', userData.user.id)
 
-  // Use 'name' if 'item_name' is missing based on schema
   const normalizedItems = pantryItems?.map(i => ({
       id: i.id,
       item_name: i.item_name || (i as any).name 

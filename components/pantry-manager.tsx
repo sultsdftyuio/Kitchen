@@ -2,7 +2,7 @@
 "use client"
 
 import { addToPantry, deleteFromPantry } from "@/app/actions/pantry"
-import { Trash2, Plus, Search, Check, X, Loader2, Carrot, Beef, Milk, Wheat, Package, Sparkles, Clock, AlertTriangle, Info } from "lucide-react"
+import { Trash2, Plus, Search, Check, X, Loader2, Carrot, Beef, Milk, Wheat, Package, Sparkles, Clock, AlertTriangle, Coffee, Cookie, Droplets, Leaf } from "lucide-react"
 import { useState, useMemo, useTransition, useRef, useOptimistic } from "react"
 import { cn } from "@/lib/utils"
 
@@ -13,11 +13,16 @@ type PantryItem = {
   added_at: string
 }
 
+// Expanded Categories with more specific icons
 const CATEGORIES = [
   { id: 'produce', label: 'Produce', icon: Carrot, color: 'text-emerald-600', bg: 'bg-emerald-100/50 border-emerald-200', keywords: ['apple', 'banana', 'carrot', 'spinach', 'lettuce', 'onion', 'garlic', 'potato', 'tomato', 'fruit', 'veg', 'lemon', 'lime'] },
   { id: 'protein', label: 'Protein', icon: Beef, color: 'text-rose-600', bg: 'bg-rose-100/50 border-rose-200', keywords: ['chicken', 'beef', 'steak', 'pork', 'fish', 'tuna', 'egg', 'tofu', 'meat', 'salmon', 'shrimp'] },
   { id: 'dairy', label: 'Dairy', icon: Milk, color: 'text-sky-600', bg: 'bg-sky-100/50 border-sky-200', keywords: ['milk', 'cheese', 'yogurt', 'butter', 'cream', 'parmesan'] },
   { id: 'grains', label: 'Grains', icon: Wheat, color: 'text-amber-600', bg: 'bg-amber-100/50 border-amber-200', keywords: ['rice', 'pasta', 'bread', 'oats', 'flour', 'quinoa', 'cereal', 'noodle'] },
+  { id: 'spices', label: 'Herbs & Spices', icon: Leaf, color: 'text-teal-600', bg: 'bg-teal-100/50 border-teal-200', keywords: ['salt', 'pepper', 'cinnamon', 'basil', 'oregano', 'cumin', 'paprika', 'spice', 'herb', 'parsley', 'cilantro'] },
+  { id: 'condiments', label: 'Oils & Sauces', icon: Droplets, color: 'text-indigo-600', bg: 'bg-indigo-100/50 border-indigo-200', keywords: ['oil', 'vinegar', 'sauce', 'ketchup', 'mustard', 'mayo', 'soy sauce', 'dressing', 'syrup'] },
+  { id: 'snacks', label: 'Snacks', icon: Cookie, color: 'text-orange-600', bg: 'bg-orange-100/50 border-orange-200', keywords: ['chip', 'cookie', 'cracker', 'chocolate', 'candy', 'snack', 'popcorn'] },
+  { id: 'beverages', label: 'Beverages', icon: Coffee, color: 'text-stone-600', bg: 'bg-stone-100/50 border-stone-200', keywords: ['coffee', 'tea', 'juice', 'soda', 'water', 'wine', 'beer', 'drink'] },
 ]
 
 const getCategory = (name: string | null) => {
@@ -25,6 +30,7 @@ const getCategory = (name: string | null) => {
   return CATEGORIES.find(c => c.keywords.some(k => safeName.includes(k))) || { id: 'other', label: 'Pantry', icon: Package, color: 'text-slate-600', bg: 'bg-slate-100/50 border-slate-200' }
 }
 
+// Improved Freshness Logic with Badges instead of bars
 const getFreshnessStatus = (dateString: string) => {
   if (!dateString) return { label: 'Fresh', color: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', Icon: Sparkles }
   const days = (new Date().getTime() - new Date(dateString).getTime()) / (1000 * 3600 * 24)
@@ -131,7 +137,7 @@ export function PantryManager({ items }: { items: PantryItem[] }) {
 
             <div className="flex flex-wrap items-center gap-2 mt-5">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Frequent:</span>
-                {["Eggs (12)", "Milk (1L)", "Bread (Loaf)", "Chicken (500g)", "Rice (1kg)"].map(chip => (
+                {["Eggs (12)", "Milk (1L)", "Bread (Loaf)", "Chicken (500g)", "Olive Oil (1Btl)", "Salt (1Box)"].map(chip => (
                     <button
                         key={chip} type="button"
                         onClick={() => {

@@ -3,71 +3,73 @@
 
 import { createClient } from "@/utils/supabase/server"
 import { revalidatePath } from "next/cache"
-import { z } from "zod"
-import { checkAndAwardBadges } from "./gamification" // IMPORT THIS
-
-const MealSchema = z.object({
-  dish_name: z.string().trim().min(1).max(150),
-  rating: z.coerce.number().int().min(0).max(5).default(0),
-  notes: z.string().trim().max(1000).optional().default(""),
-})
-
-export async function logCookingHistoryAction(dishName: string, rating: number = 5, notes: string = "") {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("Unauthorized")
-
-  await supabase.from("cooking_history").insert({
-    user_id: user.id,
-    dish_name: dishName,
-    rating, 
-    notes,
-    cooked_at: new Date().toISOString()
-  })
-
-  await checkAndAwardBadges() // TRIGGER GAMIFICATION
-  revalidatePath("/dashboard")
-  return { success: true }
-}
+import { checkAndAwardBadges } from "./gamification"
 
 export async function logMeal(formData: FormData) {
   const supabase = await createClient()
+  
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  const rawData = {
-    dish_name: formData.get("dish_name"),
-    rating: formData.get("rating"),
-    notes: formData.get("notes"),
-  }
-
-  const result = MealSchema.safeParse(rawData)
-  if (!result.success) throw new Error("Invalid data")
+  const dish_name = formData.get("dish_name")?.toString()
+  const rating = parseInt(formData.get("rating")?.toString() || "5")
+  const notes = formData.get("notes")?.toString() || ""
   
-  const { dish_name, rating, notes } = result.data
+  // Get all checked ingredients to remove from pantry
+  const usedItems = formData.getAll("used_items")
 
-  // Handle deletions
-  const rawUsedIds = formData.getAll("used_items") as string[]
-  const safeUsedIds = rawUsedIds.slice(0, 50).map(id => parseInt(id)).filter(id => !isNaN(id))
+  if (!dish_name) throw new Error("Dish name is required")
 
-  await supabase.from("cooking_history").insert({
-    user_id: user.id,
-    dish_name, rating, notes, cooked_at: new Date().toISOString()
-  })
+  // 1. Insert the meal into cooking_history
+  const { error: historyError } = await supabase
+    .from("cooking_history")
+    .insert({
+      user_id: user.id,
+      dish_name,
+      rating,
+      notes,
+      cooked_at: new Date().toISOString()
+    })
 
-  if (safeUsedIds.length > 0) {
-    await supabase.from("pantry_items").delete().in("id", safeUsedIds).eq("user_id", user.id)
+  if (historyError) {
+    console.error("Error logging meal:", historyError)
+    throw new Error("Failed to log meal")
   }
 
-  await checkAndAwardBadges() // TRIGGER GAMIFICATION
+  // 2. If they checked off ingredients they used, delete them from the pantry
+  if (usedItems.length > 0) {
+    const { error: pantryError } = await supabase
+      .from("pantry_items")
+      .delete()
+      .in('id', usedItems)
+      
+    if (pantryError) {
+      console.error("Error removing used items from pantry:", pantryError)
+    }
+  }
+
+  // 3. Trigger Gamification Badges (from our previous updates!)
+  await checkAndAwardBadges()
+
   revalidatePath("/dashboard")
 }
 
-export async function deleteMeal(mealId: number) {
+export async function deleteMeal(id: number) {
   const supabase = await createClient()
+  
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("Unauthorized")
 
-  await supabase.from("cooking_history").delete().eq("id", mealId).eq("user_id", user.id)
+  const { error } = await supabase
+    .from("cooking_history")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id)
+
+  if (error) {
+    console.error("Error deleting meal:", error)
+    throw new Error("Failed to delete meal")
+  }
+
   revalidatePath("/dashboard")
 }

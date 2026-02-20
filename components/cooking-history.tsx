@@ -2,8 +2,9 @@
 "use client"
 
 import { logMeal, deleteMeal } from "@/app/actions/history"
-import { Trash2, Star, Calendar, Check, PenTool, BookOpen } from "lucide-react"
+import { Trash2, Star, Calendar, Check, PenTool, BookOpen, Sparkles, ArrowRight } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 type HistoryItem = {
@@ -29,6 +30,7 @@ export function CookingHistory({
   pantryItems: PantryItem[],
   prefillDishName?: string
 }) {
+  const router = useRouter()
   const [selectedIngredients, setSelectedIngredients] = useState<number[]>([])
   const [dishName, setDishName] = useState(prefillDishName || "")
   
@@ -43,6 +45,10 @@ export function CookingHistory({
     setSelectedIngredients(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     )
+  }
+
+  const handleRecreate = (dish: string) => {
+    router.push(`/recipes/generate?prompt=Recreate my ${encodeURIComponent(dish)}`)
   }
 
   return (
@@ -147,15 +153,14 @@ export function CookingHistory({
           )}
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <input
+            <textarea
               name="notes"
-              type="text"
-              placeholder="Any notes? (e.g., Needs a squeeze of lime next time)"
-              className="flex-1 bg-slate-50 px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-100 text-slate-900 placeholder:text-slate-400 transition-all text-sm font-medium"
+              placeholder="Jot down your recipe or tweaks... (e.g., Added an extra splash of soy sauce, baked for 25 mins instead of 20)"
+              className="flex-1 bg-slate-50 px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-slate-100 text-slate-900 placeholder:text-slate-400 transition-all text-sm font-medium resize-y min-h-[60px]"
             />
             <button
               type="submit"
-              className="bg-slate-900 text-white px-8 py-3.5 rounded-xl shadow-sm hover:bg-slate-800 hover:shadow-md active:scale-[0.98] transition-all font-semibold text-sm whitespace-nowrap flex items-center justify-center"
+              className="bg-slate-900 text-white px-8 py-3.5 rounded-xl shadow-sm hover:bg-slate-800 hover:shadow-md active:scale-[0.98] transition-all font-semibold text-sm whitespace-nowrap flex items-center justify-center h-fit mt-auto"
             >
               Log Meal
             </button>
@@ -174,45 +179,59 @@ export function CookingHistory({
                 No meals logged yet. Get cooking!
             </div>
         ) : (
-             <div className="grid gap-4 md:grid-cols-2">
+             <div className="grid gap-6">
              {initialHistory?.map((meal, idx) => (
                <div
                  key={meal.id}
-                 className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all group flex flex-col justify-between"
+                 className="bg-white p-6 rounded-[24px] border border-slate-200/80 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all group flex flex-col sm:flex-row gap-6"
                >
-                 <div className="flex items-start justify-between gap-4 mb-3">
-                   <div className="flex-1">
-                     <h3 className="font-semibold text-slate-900 text-lg leading-tight mb-1.5 group-hover:text-tangerine transition-colors">{meal.dish_name}</h3>
+                 <div className="flex-1">
+                   <div className="flex items-start justify-between gap-4 mb-2">
+                     <h3 className="font-bold text-slate-900 text-xl leading-tight group-hover:text-tangerine transition-colors">{meal.dish_name}</h3>
                      
+                     <form action={deleteMeal.bind(null, meal.id)}>
+                       <button type="submit" className="text-slate-300 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition-all" title="Delete record">
+                         <Trash2 className="w-4 h-4" />
+                       </button>
+                     </form>
+                   </div>
+                   
+                   <div className="flex items-center gap-3 mb-4">
                      <div className="flex gap-0.5 text-yellow-400">
                        {[...Array(5)].map((_, i) => (
                          <Star 
                             key={i} 
                             className={cn(
-                                "w-3.5 h-3.5", 
+                                "w-4 h-4", 
                                 i < meal.rating ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-slate-200"
                             )} 
                          />
                        ))}
                      </div>
+                     <div className="w-1 h-1 bg-slate-200 rounded-full" />
+                     <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium uppercase tracking-wider">
+                       <Calendar className="w-3.5 h-3.5 opacity-70" />
+                       {new Date(meal.cooked_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                     </div>
                    </div>
-                   
-                   <form action={deleteMeal.bind(null, meal.id)}>
-                     <button type="submit" className="text-slate-300 hover:text-rose-500 hover:bg-rose-50 p-2 rounded-lg transition-all" title="Delete record">
-                       <Trash2 className="w-4 h-4" />
-                     </button>
-                   </form>
+
+                   {/* Recipe / Notes Section */}
+                   <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-100">
+                      <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Chef's Notes / Recipe</h4>
+                      <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+                        {meal.notes || "No notes recorded for this dish."}
+                      </p>
+                   </div>
                  </div>
 
-                 {meal.notes && (
-                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 relative mt-2 mb-4">
-                        <p className="text-slate-600 text-[13px] italic leading-relaxed">"{meal.notes}"</p>
-                    </div>
-                 )}
-                 
-                 <div className="mt-auto flex items-center gap-1.5 text-[11px] text-slate-400 font-medium uppercase tracking-wider pt-2 border-t border-slate-50">
-                   <Calendar className="w-3.5 h-3.5 opacity-70" />
-                   {new Date(meal.cooked_at).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                 {/* Action Bar */}
+                 <div className="sm:w-48 flex flex-col justify-end gap-3 shrink-0">
+                    <button 
+                      onClick={() => handleRecreate(meal.dish_name)}
+                      className="w-full py-2.5 px-4 bg-orange-50 text-tangerine hover:bg-orange-100 border border-orange-100 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" /> AI Recreate
+                    </button>
                  </div>
                </div>
              ))}
