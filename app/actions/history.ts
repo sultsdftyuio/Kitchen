@@ -74,8 +74,13 @@ export async function deleteMeal(id: number) {
   revalidatePath("/dashboard")
 }
 
-// Added this function specifically for the CookMode UI
-export async function logCookingHistoryAction(dish_name: string, rating: number, notes: string) {
+// Updated function for CookMode UI with Auto-Deduction
+export async function logCookingHistoryAction(
+  dish_name: string, 
+  rating: number, 
+  notes: string,
+  used_ingredients: string[] = []
+) {
   const supabase = await createClient()
   
   const { data: { user } } = await supabase.auth.getUser()
@@ -83,6 +88,7 @@ export async function logCookingHistoryAction(dish_name: string, rating: number,
 
   if (!dish_name) throw new Error("Dish name is required")
 
+  // 1. Log the meal
   const { error: historyError } = await supabase
     .from("cooking_history")
     .insert({
@@ -98,8 +104,23 @@ export async function logCookingHistoryAction(dish_name: string, rating: number,
     throw new Error("Failed to log meal")
   }
 
-  // Trigger Gamification Badges
+  // 2. Auto-deduct used ingredients from the pantry
+  if (used_ingredients.length > 0) {
+    const { error: pantryError } = await supabase
+      .from("pantry_items")
+      .delete()
+      .in('item_name', used_ingredients) // Match by item name from the recipe
+      .eq('user_id', user.id)
+      
+    if (pantryError) {
+      console.error("Error auto-deducting pantry items:", pantryError)
+    }
+  }
+
+  // 3. Trigger Gamification Badges
   await checkAndAwardBadges()
 
+  // Revalidate both dashboard and pantry since inventory changed
   revalidatePath("/dashboard")
+  revalidatePath("/pantry") 
 }

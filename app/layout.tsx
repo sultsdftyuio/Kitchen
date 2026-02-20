@@ -1,87 +1,72 @@
 // app/layout.tsx
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner"; 
-import { CookieBanner } from "@/components/cookie-banner";
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/sonner"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const inter = Inter({ subsets: ["latin"] })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+// 🚀 THIS IS THE SEO GOLDMINE
 export const metadata: Metadata = {
-  // Set the base URL for all relative links/images in metadata
-  metadataBase: new URL('https://kernelcook.com'),
-  
-  title: "kernelcook | AI Kitchen Management",
-  description: "Master your kitchen with AI-powered inventory management and personalized coaching.",
-  keywords: ["cooking", "inventory", "AI chef", "pantry tracker", "kernelcook"],
-  
-  // Fix: Ensure canonical points to your actual production domain
-  alternates: {
-    canonical: '/', 
+  metadataBase: new URL('https://yourdomain.com'), // REQUIRED for absolute image URLs in OG tags
+  title: {
+    default: "Kernelcook | Your AI Culinary Assistant",
+    template: "%s | Kernelcook", 
   },
-  
-  // Add this for Google Search Console verification
-  verification: {
-    google: "YOUR_GOOGLE_VERIFICATION_STRING_HERE", // Get this from GSC settings
-  },
-  
+  description: "Stop wasting food. Manage your pantry, track your cooking history, and get AI-generated recipes based on what you already have in your kitchen.",
+  keywords: ["recipe generator", "pantry manager", "AI cooking", "zero waste cooking", "meal prep"],
+  authors: [{ name: "Kernelcook Team" }],
+  creator: "Kernelcook",
   openGraph: {
-    title: "kernelcook | AI Kitchen Management",
-    description: "Master your kitchen with AI-powered inventory management and personalized coaching.",
-    url: 'https://kernelcook.com',
-    siteName: 'kernelcook',
-    locale: 'en_US',
-    type: 'website',
+    type: "website",
+    locale: "en_US",
+    url: "https://yourdomain.com",
+    title: "Kernelcook | Your AI Culinary Assistant",
+    description: "Manage your pantry, reduce waste, and cook delicious meals with AI-powered recipes.",
+    siteName: "Kernelcook",
+    images: [
+      {
+        url: "/og-image.jpg", // Add a nice 1200x630 image to your /public folder!
+        width: 1200,
+        height: 630,
+        alt: "Kernelcook Dashboard Preview",
+      },
+    ],
   },
-};
+  twitter: {
+    card: "summary_large_image",
+    title: "Kernelcook | Your AI Culinary Assistant",
+    description: "Manage your pantry, reduce waste, and cook delicious meals with AI-powered recipes.",
+    creator: "@kernelcook", // Replace with your twitter handle
+    images: ["/og-image.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "kernelcook",
-    "operatingSystem": "Web",
-    "applicationCategory": "LifestyleApplication",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    }
-  };
-
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
+      <body className={inter.className}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           {children}
-          <Toaster />
-          <CookieBanner />
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

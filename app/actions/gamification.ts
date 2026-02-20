@@ -18,6 +18,7 @@ export type KitchenItem = {
   requiredLevel: string
   icon: string
   unlocked: boolean
+  description: string
 }
 
 export type GamificationStats = {
@@ -52,7 +53,6 @@ export async function getGamificationStats(): Promise<GamificationStats | null> 
   const [pantryRes, historyRes, badgesRes] = await Promise.all([
     supabase.from('pantry_items').select('id').eq('user_id', userId),
     supabase.from('cooking_history').select('cooked_at, rating').eq('user_id', userId).order('cooked_at', { ascending: false }),
-    // Note: Assuming user_badges table was created for this, keeping as is from your code
     supabase.from('user_badges').select('badge_id, earned_at').eq('user_id', userId)
   ])
 
@@ -113,22 +113,21 @@ export async function getGamificationStats(): Promise<GamificationStats | null> 
     earnedAt: earnedBadgesMap.get(def.id) || undefined
   }))
 
-  // 6. Build Kitchen (Meta-Game)
-  // We define the items that map directly to the VirtualKitchen UI keywords: 'stove', 'plant', 'knife', 'mixer'
-  const allKitchenItems: KitchenItem[] = [
-    { name: 'Basic Stove', requiredLevel: 'Dishwasher', icon: 'Flame', unlocked: true }, 
-    { name: 'Potted Plant', requiredLevel: '3-Day Streak', icon: 'Leaf', unlocked: streak >= 3 },
-    { name: 'Chef Knife', requiredLevel: 'Prep Cook', icon: 'Knife', unlocked: totalXp >= 200 },
-    { name: 'Stand Mixer', requiredLevel: 'Sous Chef', icon: 'Wind', unlocked: totalXp >= 1000 },
+  // 6. Build Expanded Virtual Kitchen
+  // CTO Note: We pass all items to the frontend now so we can render locked silhouettes.
+  const kitchen: KitchenItem[] = [
+    { name: 'Basic Stove', requiredLevel: 'Default', icon: 'Flame', unlocked: true, description: 'The foundation of every kitchen.' }, 
+    { name: 'Herb Garden', requiredLevel: '3-Day Streak', icon: 'Leaf', unlocked: streak >= 3, description: 'Fresh herbs at your fingertips.' },
+    { name: 'Carbon Steel Pan', requiredLevel: 'Prep Cook', icon: 'CircleDashed', unlocked: totalXp >= 200, description: 'Achieve the perfect sear.' },
+    { name: 'Pro Chef Knife', requiredLevel: 'Line Cook', icon: 'Utensils', unlocked: totalXp >= 500, description: 'Cuts prep time in half.' },
+    { name: 'Dutch Oven', requiredLevel: 'Sous Chef', icon: 'CookingPot', unlocked: totalXp >= 1000, description: 'Master of slow braises.' },
+    { name: 'Smart Sous-Vide', requiredLevel: 'Zero Waste > 80', icon: 'Thermometer', unlocked: zeroWasteScore >= 80, description: 'Precision temperature control.' },
+    { name: 'Espresso Machine', requiredLevel: 'Executive Chef', icon: 'Coffee', unlocked: totalXp >= 2000, description: 'Liquid energy for the head chef.' },
   ]
 
-  // IMPORTANT: We filter out locked items so the frontend component ONLY receives and renders what the user actually owns.
-  const unlockedKitchen = allKitchenItems.filter(item => item.unlocked)
-
-  return { streak, xp: totalXp, level, nextLevelXp, xpProgress, zeroWasteScore, badges, kitchen: unlockedKitchen }
+  return { streak, xp: totalXp, level, nextLevelXp, xpProgress, zeroWasteScore, badges, kitchen }
 }
 
-// --- CHECK AND AWARD NEW BADGES ---
 export async function checkAndAwardBadges() {
   const stats = await getGamificationStats()
   if (!stats) return
@@ -139,7 +138,6 @@ export async function checkAndAwardBadges() {
 
   const newBadges: string[] = []
 
-  // Check Logic
   if (stats.xp >= 50) newBadges.push('first_meal')
   if (stats.streak >= 3) newBadges.push('streak_3')
   if (stats.streak >= 7) newBadges.push('streak_7')
@@ -161,9 +159,8 @@ export async function checkAndAwardBadges() {
 
   if (pantry && pantry.length >= 20) newBadges.push('hoarder')
 
-  // Insert new badges
   for (const badgeId of newBadges) {
-    const { error } = await supabase.from('user_badges').upsert(
+    await supabase.from('user_badges').upsert(
       { user_id: user.id, badge_id: badgeId },
       { onConflict: 'user_id, badge_id', ignoreDuplicates: true }
     )
@@ -172,7 +169,6 @@ export async function checkAndAwardBadges() {
   revalidatePath('/dashboard')
 }
 
-// --- PANTRY ROULETTE ---
 export async function getPantryRoulette() {
   const supabase = await createClient()
   const { data: userData } = await supabase.auth.getUser()
@@ -197,8 +193,7 @@ export async function getPantryRoulette() {
     [normalizedItems[i], normalizedItems[j]] = [normalizedItems[j], normalizedItems[i]];
   }
 
-  const challengeCount = 3
-  const challengeItems = normalizedItems.slice(0, challengeCount)
+  const challengeItems = normalizedItems.slice(0, 3)
 
   return { challengeItems }
 }

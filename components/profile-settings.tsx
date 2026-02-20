@@ -88,7 +88,7 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[100] grid place-items-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white w-full max-w-2xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200 relative z-50">
             
             {/* Header */}
@@ -107,8 +107,8 @@ export function ProfileSettings({ initialProfile }: { initialProfile: Profile | 
               </button>
             </div>
 
-            {/* Scrollable Body */}
-            <div className="overflow-y-auto p-6 custom-scrollbar">
+            {/* Scrollable Body - Added flex-1 and min-h-0 to fix overflow */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-6 custom-scrollbar">
               <form id="profile-form" onSubmit={handleSubmit} className="space-y-8">
                 
                 {/* Dietary Restrictions */}
